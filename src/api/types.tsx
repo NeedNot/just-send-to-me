@@ -13,6 +13,7 @@ export type Folder = Entity<{
   expiresAt: Date;
   deletesAt: Date;
   files: File[];
+  isOwnFolder: boolean;
 }>;
 
 export type File = Entity<{ name: string; folderId: string; size: number }>;

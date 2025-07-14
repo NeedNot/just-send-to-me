@@ -16,9 +16,10 @@ export async function getFolder(id: string): Promise<Folder> {
         id: '2',
         name: 'myfile.mp4',
         folderId: id,
-        size: 1024 ** 3 / 2,
+        size: 1024 ** 3 / 2.2,
       } as File,
     ],
+    isOwnFolder: false,
   };
 }
 
