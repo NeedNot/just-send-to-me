@@ -16,4 +16,9 @@ export type Folder = Entity<{
   isOwnFolder: boolean;
 }>;
 
-export type File = Entity<{ name: string; folderId: string; size: number }>;
+export type File = Entity<{
+  name: string;
+  folderId: string;
+  size: number;
+  thumbnail?: string;
+}>;

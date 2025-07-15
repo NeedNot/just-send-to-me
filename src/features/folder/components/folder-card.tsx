@@ -53,7 +53,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
       <CardContent>
         {/* empty folder */}
         {folder.files.length == 0 && folder.isOwnFolder && EmptyList()}
-        {!folder.isOwnFolder && <UploadDialog />}
+        {!folder.isOwnFolder && <UploadDialog maxBytes={folder.maxSize} />}
 
         {folder.files.length > 0 && <FilesList files={folder.files} />}
       </CardContent>
@@ -80,7 +80,7 @@ function EmptyList() {
   );
 }
 
-function UploadDialog() {
+function UploadDialog({ maxBytes }: { maxBytes: number }) {
   const [files, setFiles] = useState<Buffer.File[]>([]);
 
   return (
@@ -97,7 +97,8 @@ function UploadDialog() {
           </div>
           <p className="text-sm font-medium">Drag & drop files here</p>
           <p className="text-muted-foreground text-xs">
-            Or click to browse (max 2 files, up to 5MB each)
+            Or click to browse (max 100 files, up to {formatBytes(maxBytes)}{' '}
+            total)
           </p>
         </div>
         <FileUploadTrigger asChild>
@@ -131,11 +132,13 @@ function FilesList({ files }: { files: File[] }) {
           className="flex w-full items-center rounded-md border p-3 not-last:mb-2"
           key={file.id}
         >
-          <img
-            className="mr-2 size-10 rounded object-cover"
-            src="https://images.unsplash.com/photo-1682685796063-d2604827f7b3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxfHx8ZW58MHx8fHx8"
-            alt=""
-          />
+          {file.thumbnail && (
+            <img
+              className="mr-2 size-10 rounded object-cover"
+              src={file.thumbnail}
+              alt=""
+            />
+          )}
           <div className="flex flex-1 flex-col">
             <span className="truncate text-sm font-medium">{file.name}</span>
             <span className="text-muted-foreground truncate text-xs">

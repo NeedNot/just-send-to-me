@@ -1006,7 +1006,7 @@ function FileUploadItem(props: FileUploadItemProps) {
   );
 }
 
-function getFileIcon(file: File) {
+export function getFileIcon(file: File) {
   const type = file.type;
   const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
 
