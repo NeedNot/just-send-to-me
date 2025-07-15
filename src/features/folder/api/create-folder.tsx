@@ -22,7 +22,10 @@ export async function createFolder(data: CreateFolderInput): Promise<Folder> {
     name: data.name,
     expiresAt: new Date(),
     deletesAt: new Date(),
-    createdAt: Date.now(),
+    createdAt: new Date(),
+    maxSize: 1024 ** 3,
+    files: [],
+    isOwnFolder: true,
   };
 }
 

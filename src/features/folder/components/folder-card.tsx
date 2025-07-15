@@ -7,8 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../../../components/ui/card';
-import type { File, Folder } from '../../../api/types';
-import * as Buffer from 'buffer';
+import type { File as FileEntity, Folder } from '../../../api/types';
 import { Countdown } from '../../../components/countdown';
 import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
@@ -81,7 +80,7 @@ function EmptyList() {
 }
 
 function UploadDialog({ maxBytes }: { maxBytes: number }) {
-  const [files, setFiles] = useState<Buffer.File[]>([]);
+  const [files, setFiles] = useState<File[]>([]);
 
   return (
     <FileUpload
@@ -124,7 +123,7 @@ function UploadDialog({ maxBytes }: { maxBytes: number }) {
   );
 }
 
-function FilesList({ files }: { files: File[] }) {
+function FilesList({ files }: { files: FileEntity[] }) {
   return (
     <ul className="pt-2">
       {files.map((file) => (
