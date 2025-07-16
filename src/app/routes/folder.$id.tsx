@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { FolderCard } from '../../features/folder/components/folder-card';
 import { useGetFolder } from '../../features/folder/api/get-folder';
-import type { Folder } from '../../api/types';
+import type { Folder } from '@shared/schemas';
 
 export const Route = createFileRoute('/folder/$id')({
   component: RouteComponent,

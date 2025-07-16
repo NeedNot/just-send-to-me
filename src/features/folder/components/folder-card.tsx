@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '../../../components/ui/card';
-import type { File as FileEntity, Folder } from '../../../api/types';
 import { Countdown } from '../../../components/countdown';
 import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
@@ -25,8 +24,10 @@ import {
   FileUploadTrigger,
 } from '../../../components/ui/file-upload';
 import { formatBytes } from '../../../lib/utils';
+import type { Folder, File as FileEntity } from '@shared/schemas';
 
 export function FolderCard({ folder }: { folder: Folder }) {
+  const ownerOfFolder = folder.creatorId === '123';
   const folderSize = useMemo(() => {
     if (!folder?.files) return 0;
     return folder?.files.reduce((acc, file) => acc + file.size, 0);
@@ -51,12 +52,14 @@ export function FolderCard({ folder }: { folder: Folder }) {
       </CardHeader>
       <CardContent>
         {/* empty folder */}
-        {folder.files.length == 0 && folder.isOwnFolder && EmptyList()}
-        {!folder.isOwnFolder && <UploadDialog maxBytes={folder.maxSize} />}
+        {(folder.files ?? []).length == 0 && ownerOfFolder && EmptyList()}
+        {!ownerOfFolder && <UploadDialog maxBytes={folder.maxSize} />}
 
-        {folder.files.length > 0 && <FilesList files={folder.files} />}
+        {(folder.files ?? []).length > 0 && (
+          <FilesList files={folder.files || []} />
+        )}
       </CardContent>
-      {(!folder.isOwnFolder || folder.files.length > 0) && (
+      {(!ownerOfFolder || (folder.files ?? []).length > 0) && (
         <CardFooter className="flex gap-4">
           <Progress value={(folderSize / folder.maxSize) * 100} />
           <div className="shrink-0">

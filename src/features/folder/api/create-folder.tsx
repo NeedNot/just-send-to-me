@@ -1,31 +1,22 @@
-import z from 'zod';
-import type { Folder } from '@/api/types';
 import {
   useMutation,
   useQueryClient,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-
-export const createFolderSchema = z.object({
-  name: z.string().min(1, 'Required'),
-  expiration: z.enum(['week', 'fortnight'], 'Required'),
-  retention: z.enum(['week', 'fortnight'], 'Required'),
-});
-
-export type CreateFolderInput = z.infer<typeof createFolderSchema>;
+import { type CreateFolderInput, type Folder } from '@shared/schemas';
 
 export async function createFolder(data: CreateFolderInput): Promise<Folder> {
   console.log(data);
   await new Promise((resolve) => setTimeout(resolve, 5000));
   return {
     id: '1',
+    creatorId: '1',
     name: data.name,
     expiresAt: new Date(),
     deletesAt: new Date(),
     createdAt: new Date(),
     maxSize: 1024 ** 3,
     files: [],
-    isOwnFolder: true,
   };
 }
 

@@ -1,4 +1,4 @@
-import type { Folder, File } from '@/api/types';
+import type { File, Folder } from '@shared/schemas';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 export async function getFolder(id: string): Promise<Folder> {
@@ -6,6 +6,7 @@ export async function getFolder(id: string): Promise<Folder> {
   return {
     id,
     name: 'Test folder',
+    creatorId: '123',
     maxSize: 1024 ** 3,
     expiresAt: new Date(),
     deletesAt: new Date(),
@@ -19,7 +20,6 @@ export async function getFolder(id: string): Promise<Folder> {
         size: 1024 ** 3 / 2.2,
       } as File,
     ],
-    isOwnFolder: false,
   };
 }
 
