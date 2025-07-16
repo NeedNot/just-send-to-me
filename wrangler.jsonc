@@ -1,0 +1,15 @@
+{
+  "name": "just-send-to-me",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2025-07-15",
+  "assets": {
+    "run_worker_first": ["/api/*"],
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "dev-db",
+      "database_id": "8f5598f0-eca4-46b4-82ee-840d80f6d2b8",
+    },
+  ],
+}
