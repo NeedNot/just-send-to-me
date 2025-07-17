@@ -4,6 +4,6 @@ import type { AppBindings } from './lib/types';
 
 const app = new OpenAPIHono<AppBindings>();
 
-app.route('/', folderRoutes);
+app.route('/api', folderRoutes);
 
 export default app;

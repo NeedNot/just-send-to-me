@@ -6,18 +6,11 @@ import {
 import { type CreateFolderInput, type Folder } from '@shared/schemas';
 
 export async function createFolder(data: CreateFolderInput): Promise<Folder> {
-  console.log(data);
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-  return {
-    id: '1',
-    creatorId: '1',
-    name: data.name,
-    expiresAt: new Date(),
-    deletesAt: new Date(),
-    createdAt: new Date(),
-    maxSize: 1024 ** 3,
-    files: [],
-  };
+  return await fetch('/api/folders/new', {
+    method: 'POST',
+    body: JSON.stringify(data),
+    headers: { 'Content-Type': 'application/json' },
+  }).then((res) => res.json());
 }
 
 export function useCreateFolder(
@@ -31,10 +24,6 @@ export function useCreateFolder(
     mutationFn: createFolder,
     onSuccess: (...args) => {
       queryClient.setQueryData(['folder', args[0].id], args[0]);
-      queryClient.setQueryData(['myFolders'], (folders: string[] = []) => [
-        ...folders,
-        args[0].id,
-      ]);
       onSuccess?.(...args);
     },
     ...mutationConfig,

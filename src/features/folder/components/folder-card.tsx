@@ -27,7 +27,7 @@ import { formatBytes } from '../../../lib/utils';
 import type { Folder, File as FileEntity } from '@shared/schemas';
 
 export function FolderCard({ folder }: { folder: Folder }) {
-  const ownerOfFolder = folder.creatorId === '123';
+  const ownerOfFolder = folder?.creatorId !== '123';
   const folderSize = useMemo(() => {
     if (!folder?.files) return 0;
     return folder?.files.reduce((acc, file) => acc + file.size, 0);
@@ -44,7 +44,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
         </CardDescription>
         <CardAction className="flex gap-2">
           <CopyLinkButton variant={'outline'} link="todo here" />
-          <Button size="sm" variant={'default'}>
+          <Button size="sm" disabled={!folder.files} variant={'default'}>
             <Download />
             Download all
           </Button>

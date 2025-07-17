@@ -1,5 +1,9 @@
 import { createRoute } from '@hono/zod-openapi';
-import { createFolderSchema, folderSchema } from '../../../../shared/schemas';
+import {
+  createFolderSchema,
+  folderSchema,
+  IdParamSchema,
+} from '../../../../shared/schemas';
 
 export const createFolder = createRoute({
   method: 'post',
@@ -25,4 +29,26 @@ export const createFolder = createRoute({
   },
 });
 
+export const getFolder = createRoute({
+  method: 'get',
+  path: '/folders/{id}',
+  request: {
+    params: IdParamSchema,
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: folderSchema,
+        },
+      },
+      description: 'Get folder by id',
+    },
+    404: {
+      description: 'Folder not found',
+    },
+  },
+});
+
 export type CreateFolderRoute = typeof createFolder;
+export type GetFolderRoute = typeof getFolder;

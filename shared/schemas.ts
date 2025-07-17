@@ -35,6 +35,17 @@ export const folderSchema = z
     type: 'object',
   });
 
+export const IdParamSchema = z.object({
+  id: z.string().openapi({
+    param: {
+      name: 'id',
+      in: 'path',
+      required: true,
+    },
+    required: ['id'],
+  }),
+});
+
 export type Folder = z.infer<typeof folderSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 
