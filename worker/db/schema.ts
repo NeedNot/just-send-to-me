@@ -8,7 +8,7 @@ export const folders = sqliteTable('folders', {
     .primaryKey(),
   name: text({ length: 128 }).notNull(),
   maxSize: integer().notNull(),
-  expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  expiresAt: integer({ mode: 'timestamp_ms' }).notNull(), //todo rename to "locksAt"?
   deletesAt: integer({ mode: 'timestamp_ms' }).notNull(),
   creatorId: text().notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })

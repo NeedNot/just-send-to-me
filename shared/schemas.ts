@@ -10,7 +10,7 @@ export const fileSchema = z.object({
 
 export const createFolderSchema = z
   .object({
-    name: z.string().min(1, 'Required'),
+    name: z.string().min(1),
     expiration: z.enum(['week', 'fortnight'], 'Required'),
     retention: z.enum(['week', 'fortnight'], 'Required'),
   })

@@ -1,8 +1,10 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
-import { folders } from '../../../db/schema';
 import type { AppRouteHandler } from '../../../lib/types';
 import type { CreateFolderRoute, GetFolderRoute } from './routes';
-import { eq } from 'drizzle-orm';
+import {
+  getFolderById,
+  createFolder as repositoryCreateFolder,
+} from '../../../repositories/folder-repository';
 
 const MS_IN_WEEK = 60 * 60 * 24 * 7 * 1000;
 
@@ -17,27 +19,18 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   );
 
   const db = drizzle(c.env.DB);
-  const result = await db
-    .insert(folders)
-    .values({
-      name,
-      maxSize: 1024 ** 3,
-      creatorId: '123',
-      expiresAt,
-      deletesAt,
-    })
-    .returning();
+  const result = await repositoryCreateFolder(db, {
+    name,
+    expiresAt,
+    deletesAt,
+  });
   return c.json(result[0], 200);
 };
 
 export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
   const { id } = c.req.valid('param');
   const db = drizzle(c.env.DB);
-  const result = await db
-    .select()
-    .from(folders)
-    .where(eq(folders.id, id))
-    .get();
+  const result = await getFolderById(db, id);
   if (!result) return c.notFound();
   return c.json(result, 200);
 };
