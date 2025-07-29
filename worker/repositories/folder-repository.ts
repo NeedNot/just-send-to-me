@@ -26,5 +26,6 @@ export const createFolder = (
       expiresAt,
       deletesAt,
     })
-    .returning();
+    .returning()
+    .get();
 };

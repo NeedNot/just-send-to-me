@@ -15,6 +15,7 @@ export const createFolder = createRoute({
           schema: createFolderSchema,
         },
       },
+      required: true,
     },
   },
   responses: {

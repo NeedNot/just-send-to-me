@@ -24,11 +24,12 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
     expiresAt,
     deletesAt,
   });
-  return c.json(result[0], 200);
+  return c.json(result, 200);
 };
 
 export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
   const { id } = c.req.valid('param');
+
   const db = drizzle(c.env.DB);
   const result = await getFolderById(db, id);
   if (!result) return c.notFound();

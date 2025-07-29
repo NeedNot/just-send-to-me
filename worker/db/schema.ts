@@ -15,3 +15,17 @@ export const folders = sqliteTable('folders', {
     .notNull()
     .default(sql`(unixepoch() * 1000)`),
 });
+
+export const files = sqliteTable('files', {
+  id: text()
+    .$defaultFn(() => createId())
+    .primaryKey(),
+  folderId: text().notNull(),
+  name: text({ length: 255 }).notNull(),
+  key: text().notNull(),
+  size: integer().notNull(),
+  uploaded: integer({ mode: 'boolean' }).notNull().default(false),
+  createdAt: integer({ mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});

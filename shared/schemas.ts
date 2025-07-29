@@ -8,13 +8,45 @@ export const fileSchema = z.object({
   size: z.number(),
 });
 
+export const createFileSchema = z
+  .object({
+    folderId: z.string().min(1),
+    name: z.string().min(1),
+    size: z.number('Required'),
+  })
+  .openapi({
+    type: 'object',
+    required: ['folderId', 'name', 'size'],
+  });
+
+export const createFileResponseSchema = z
+  .object({
+    id: z.string(),
+    signedUrl: z.string(),
+    key: z.string(),
+  })
+  .openapi({
+    type: 'object',
+    required: ['id', 'signedUrl'],
+  });
+
+export const completeFileUploadSchema = z
+  .object({
+    folderId: z.string().min(1),
+    id: z.string().min(1),
+    key: z.string().min(1),
+  })
+  .openapi({
+    type: 'object',
+    required: ['folderId', 'id'],
+  });
+
 export const createFolderSchema = z
   .object({
     name: z.string().min(1),
     expiration: z.enum(['week', 'fortnight'], 'Required'),
     retention: z.enum(['week', 'fortnight'], 'Required'),
   })
-  // todo better openapi schema
   .openapi({
     type: 'object',
     required: ['name', 'expiration', 'retention'],

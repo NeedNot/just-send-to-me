@@ -13,6 +13,9 @@ type UseFolderOptions = {
 export function useGetFolder({ folderId, queryConfig }: UseFolderOptions) {
   return useQuery<Folder>({
     queryKey: ['folder', folderId],
+    staleTime: 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
     queryFn: () => getFolder(folderId),
     ...queryConfig,
   });

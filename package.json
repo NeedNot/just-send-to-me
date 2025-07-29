@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.10",
@@ -19,6 +20,9 @@
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "^1.127.3",
     "@tanstack/react-router-devtools": "^1.127.3",
+    "@uppy/aws-s3": "^4.2.3",
+    "@vitest/coverage-istanbul": "^3.2.4",
+    "aws4fetch": "^1.0.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.0",
@@ -31,10 +35,12 @@
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
     "tailwindcss": "^4.1.11",
+    "vitest": "^3.2.4",
     "zod": "^4.0.5"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.9.4",
+    "@cloudflare/vitest-pool-workers": "^0.8.57",
     "@eslint/js": "^9.30.1",
     "@tanstack/router-plugin": "^1.127.5",
     "@types/node": "^24.0.12",
@@ -46,6 +52,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
+    "miniflare": "^4.20250712.2",
     "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "tsx": "^4.20.3",
