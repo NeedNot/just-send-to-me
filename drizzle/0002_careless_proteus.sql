@@ -1,0 +1,1 @@
+ALTER TABLE `files` ADD `key` text NOT NULL;

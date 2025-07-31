@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `size` integer DEFAULT 0 NOT NULL;
