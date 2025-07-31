@@ -15,7 +15,10 @@ export default defineConfig({
       autoCodeSplitting: true,
       routesDirectory: 'src/app/routes',
     }),
-    cloudflare(),
+    cloudflare({
+      configPath: './wrangler.jsonc',
+      experimental: { remoteBindings: true },
+    }),
   ],
   resolve: {
     alias: {

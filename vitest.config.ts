@@ -14,6 +14,7 @@ export default defineWorkersConfig(async () => {
       poolOptions: {
         workers: {
           singleWorker: true,
+          experimental_remoteBindings: true,
           wrangler: { configPath: './wrangler.jsonc' },
           miniflare: {
             bindings: { TEST_MIGRATIONS: migrations },

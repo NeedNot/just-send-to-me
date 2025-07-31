@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:test';
-import app from '../../worker';
+import { app } from '../../worker';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { Folder, createFileResponseSchema } from '../../shared/schemas';
 import z from 'zod';
@@ -86,29 +86,5 @@ describe('File upload API flow', () => {
 
     const putFileRes = await fetch(uploadRequestBody.signedUrl, putFileReq);
     expect(putFileRes.status).toBe(200);
-
-    //todo check
-    const completeFileReq = {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        folderId: createdFolderId,
-        id: uploadRequestBody.id,
-        key: uploadRequestBody.key,
-      }),
-    };
-
-    const completeFileRes = await app.request(
-      '/api/files/upload-complete',
-      completeFileReq,
-      env,
-    );
-    expect(completeFileRes.status).toBe(200);
-    const body = await completeFileRes.json();
-    expect(body).toHaveProperty('id', uploadRequestBody.id);
-    expect(body).toHaveProperty('key', uploadRequestBody.key);
-    expect(body).toHaveProperty('uploaded', true);
   });
 });

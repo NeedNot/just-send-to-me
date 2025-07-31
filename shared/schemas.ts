@@ -23,7 +23,6 @@ export const createFileResponseSchema = z
   .object({
     id: z.string(),
     signedUrl: z.string(),
-    key: z.string(),
   })
   .openapi({
     type: 'object',
@@ -34,7 +33,6 @@ export const completeFileUploadSchema = z
   .object({
     folderId: z.string().min(1),
     id: z.string().min(1),
-    key: z.string().min(1),
   })
   .openapi({
     type: 'object',
@@ -82,3 +80,10 @@ export type Folder = z.infer<typeof folderSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 
 export type File = z.infer<typeof fileSchema>;
+export type RequestFileUploadRequest = z.infer<typeof createFileSchema>;
+export type ReuqestFileUploadResponse = z.infer<
+  typeof createFileResponseSchema
+>;
+export type CompleteFileUploadRequest = z.infer<
+  typeof completeFileUploadSchema
+>;

@@ -11,8 +11,9 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "dev-db",
+      "database_name": "preview-db",
       "database_id": "8f5598f0-eca4-46b4-82ee-840d80f6d2b8",
+      "experimental_remote": true,
       "migrations_dir": "./drizzle",
     },
   ],
@@ -20,6 +21,17 @@
     {
       "bucket_name": "files-bucket",
       "binding": "files_bucket",
+      "preview_bucket_name": "preview-files-bucket",
+      "experimental_remote": true,
     },
   ],
+  "queues": {
+    "consumers": [
+      {
+        "queue": "r2-event-queue",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5,
+      },
+    ],
+  },
 }

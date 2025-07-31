@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { folders } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export const getFolderById = (
   db: DrizzleD1Database & { $client: D1Database },
@@ -26,6 +26,18 @@ export const createFolder = (
       expiresAt,
       deletesAt,
     })
+    .returning()
+    .get();
+};
+
+export const addFileSizeToFolder = (
+  db: DrizzleD1Database & { $client: D1Database },
+  { size, folderId }: { size: number; folderId: string },
+) => {
+  return db
+    .update(folders)
+    .set({ size: sql`${folders.size} + ${size}` })
+    .where(eq(folders.id, folderId))
     .returning()
     .get();
 };

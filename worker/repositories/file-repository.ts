@@ -39,12 +39,12 @@ export const createFile = (
 
 export const markFileUploaded = (
   db: DrizzleD1Database & { $client: D1Database },
-  { folderId, id }: { folderId: string; id: string },
+  { key }: { key: string },
 ) => {
   return db
     .update(files)
     .set({ uploaded: true })
-    .where(and(eq(files.folderId, folderId), eq(files.id, id)))
+    .where(eq(files.key, key))
     .returning()
     .get();
 };
