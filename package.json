@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "vite dev --host",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -20,7 +20,6 @@
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-router": "^1.127.3",
     "@tanstack/react-router-devtools": "^1.127.3",
-    "@uppy/aws-s3": "^4.2.3",
     "@vitest/coverage-istanbul": "^3.2.4",
     "aws4fetch": "^1.0.20",
     "class-variance-authority": "^0.7.1",

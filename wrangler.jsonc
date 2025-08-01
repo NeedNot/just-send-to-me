@@ -11,7 +11,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "preview-db",
+      "database_name": "dev-db",
       "database_id": "8f5598f0-eca4-46b4-82ee-840d80f6d2b8",
       "experimental_remote": true,
       "migrations_dir": "./drizzle",

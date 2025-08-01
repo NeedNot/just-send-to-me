@@ -10,21 +10,12 @@ import {
 import { Countdown } from '../../../components/countdown';
 import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
-import { Download, Upload, X } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { Progress } from '../../../components/ui/progress';
-import { useMemo, useState } from 'react';
-import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadItem,
-  FileUploadItemDelete,
-  FileUploadItemMetadata,
-  FileUploadItemPreview,
-  FileUploadList,
-  FileUploadTrigger,
-} from '../../../components/ui/file-upload';
+import { useMemo } from 'react';
 import { formatBytes } from '../../../lib/utils';
 import type { Folder, File as FileEntity } from '@shared/schemas';
+import { UploadFiles } from '@/features/file/components/upload-files';
 
 export function FolderCard({ folder }: { folder: Folder }) {
   const ownerOfFolder = folder?.creatorId !== '123';
@@ -53,7 +44,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
       <CardContent>
         {/* empty folder */}
         {(folder.files ?? []).length == 0 && ownerOfFolder && EmptyList()}
-        {!ownerOfFolder && <UploadDialog maxBytes={folder.maxSize} />}
+        {!ownerOfFolder && <UploadFiles folder={folder} />}
 
         {(folder.files ?? []).length > 0 && (
           <FilesList files={folder.files || []} />
@@ -79,50 +70,6 @@ function EmptyList() {
         Share this folder with someone so they can upload files
       </p>
     </div>
-  );
-}
-
-function UploadDialog({ maxBytes }: { maxBytes: number }) {
-  const [files, setFiles] = useState<File[]>([]);
-
-  return (
-    <FileUpload
-      multiple
-      className="w-full"
-      value={files}
-      onValueChange={setFiles}
-    >
-      <FileUploadDropzone>
-        <div className="flex flex-col items-center gap-1 text-center">
-          <div className="flex items-center justify-center rounded-full border p-2.5">
-            <Upload className="text-muted-foreground size-6" />
-          </div>
-          <p className="text-sm font-medium">Drag & drop files here</p>
-          <p className="text-muted-foreground text-xs">
-            Or click to browse (max 100 files, up to {formatBytes(maxBytes)}{' '}
-            total)
-          </p>
-        </div>
-        <FileUploadTrigger asChild>
-          <Button variant="outline" size="sm" className="mt-2 w-fit">
-            Browse files
-          </Button>
-        </FileUploadTrigger>
-      </FileUploadDropzone>
-      <FileUploadList>
-        {files.map((file, index) => (
-          <FileUploadItem key={index} value={file}>
-            <FileUploadItemPreview />
-            <FileUploadItemMetadata />
-            <FileUploadItemDelete asChild>
-              <Button variant="ghost" size="icon" className="size-7">
-                <X />
-              </Button>
-            </FileUploadItemDelete>
-          </FileUploadItem>
-        ))}
-      </FileUploadList>
-    </FileUpload>
   );
 }
 

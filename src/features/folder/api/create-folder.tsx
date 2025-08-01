@@ -5,12 +5,13 @@ import {
 } from '@tanstack/react-query';
 import { type CreateFolderInput, type Folder } from '@shared/schemas';
 
-export async function createFolder(data: CreateFolderInput): Promise<Folder> {
-  return await fetch('/api/folders/new', {
+export async function createFolder(data: CreateFolderInput) {
+  const res = await fetch('/api/folders/new', {
     method: 'POST',
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
-  }).then((res) => res.json());
+  });
+  return await res.json();
 }
 
 export function useCreateFolder(
