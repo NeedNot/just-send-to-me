@@ -14,19 +14,24 @@ import { formatBytes } from '@/lib/utils';
 import { Upload, X } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { requestPresignedUrl, useFileUploader } from '../api/upload-file';
-import type { Folder } from '@shared/schemas';
+import { type Folder } from '@shared/schemas';
 import { toast } from 'sonner';
 
 export function UploadFiles({ folder }: { folder: Folder }) {
   const [files, setFiles] = useState<File[]>([]);
-  const { uploadFile, abortUpload } = useFileUploader(async (file) => {
-    const response = await requestPresignedUrl({
-      name: file.name!,
-      size: file.size!,
-      folderId: folder.id,
-    });
-    return response.signedUrl;
-  });
+  const { uploadFile, abortUpload, fileStatuses } = useFileUploader(
+    async (file, signal) => {
+      const response = await requestPresignedUrl(
+        {
+          name: file.name!,
+          size: file.size!,
+          folderId: folder.id,
+        },
+        signal,
+      );
+      return response.signedUrl;
+    },
+  );
 
   const onUpload = useCallback(
     (
@@ -48,8 +53,12 @@ export function UploadFiles({ folder }: { folder: Folder }) {
               description: reason.message,
             });
             onError(file, reason);
+            throw reason;
           })
-          .then(() => onSuccess(file));
+          .then((msg) => {
+            toast.success(msg, { description: file.name });
+            onSuccess(file);
+          });
       }
     },
     [],
@@ -88,11 +97,14 @@ export function UploadFiles({ folder }: { folder: Folder }) {
             <div className="flex w-full gap-2">
               <FileUploadItemPreview />
               <FileUploadItemMetadata />
-              <FileUploadItemDelete onClick={() => abortUpload(file)} asChild>
-                <Button variant="ghost" size="icon" className="size-7">
-                  <X />
-                </Button>
-              </FileUploadItemDelete>
+              {fileStatuses.find((f) => f.file === file)?.status !==
+                'complete' && (
+                <FileUploadItemDelete onClick={() => abortUpload(file)} asChild>
+                  <Button variant="ghost" size="icon" className="size-7">
+                    <X />
+                  </Button>
+                </FileUploadItemDelete>
+              )}
             </div>
             <FileUploadItemProgress />
           </FileUploadItem>
