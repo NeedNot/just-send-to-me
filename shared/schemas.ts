@@ -59,6 +59,7 @@ export const folderSchema = z
     expiresAt: z.date(),
     deletesAt: z.date(),
     maxSize: z.number(),
+    size: z.number(),
     createdAt: z.date(),
   })
   .openapi({

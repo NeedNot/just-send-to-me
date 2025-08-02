@@ -16,8 +16,10 @@ import { useCallback, useState } from 'react';
 import { requestPresignedUrl, useFileUploader } from '../api/upload-file';
 import { type Folder } from '@shared/schemas';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function UploadFiles({ folder }: { folder: Folder }) {
+  const queryClient = useQueryClient();
   const [files, setFiles] = useState<File[]>([]);
   const { uploadFile, abortUpload, fileStatuses } = useFileUploader(
     async (file, signal) => {
@@ -48,15 +50,25 @@ export function UploadFiles({ folder }: { folder: Folder }) {
     ) => {
       for (const file of files) {
         uploadFile(file, (number) => onProgress(file, number))
-          .catch((reason: Error) => {
-            toast.error(`Unable to upload ${file.name}`, {
-              description: reason.message,
-            });
-            onError(file, reason);
+          .catch((reason: Error | string) => {
+            typeof reason === 'string'
+              ? (toast.error(reason, {
+                  description: file.name,
+                }),
+                onError(file, new Error(reason)))
+              : (toast.error(`Unable to upload`, {
+                  description: file.name,
+                }),
+                onError(file, reason));
             throw reason;
           })
           .then((msg) => {
             toast.success(msg, { description: file.name });
+            queryClient.setQueryData(['folder', folder.id], (prev: Folder) => ({
+              ...prev,
+              size: prev.size + file.size,
+            }));
+            // todo this is problematic because it thinks there is never an error
             onSuccess(file);
           });
       }

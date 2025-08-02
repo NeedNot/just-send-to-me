@@ -19,10 +19,6 @@ import { UploadFiles } from '@/features/file/components/upload-files';
 
 export function FolderCard({ folder }: { folder: Folder }) {
   const ownerOfFolder = folder?.creatorId !== '123';
-  const folderSize = useMemo(() => {
-    if (!folder?.files) return 0;
-    return folder?.files.reduce((acc, file) => acc + file.size, 0);
-  }, [folder?.files]);
 
   if (!folder) return <div>No folder</div>;
 
@@ -52,9 +48,9 @@ export function FolderCard({ folder }: { folder: Folder }) {
       </CardContent>
       {(!ownerOfFolder || (folder.files ?? []).length > 0) && (
         <CardFooter className="flex gap-4">
-          <Progress value={(folderSize / folder.maxSize) * 100} />
+          <Progress value={(folder.size / folder.maxSize) * 100} />
           <div className="shrink-0">
-            {formatBytes(folderSize)} / {formatBytes(folder.maxSize)}
+            {formatBytes(folder.size)} / {formatBytes(folder.maxSize)}
           </div>
         </CardFooter>
       )}
