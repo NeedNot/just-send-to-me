@@ -67,10 +67,10 @@ export function useFileUploader(
         resolve('Upload complete');
       });
       xhr.addEventListener('error', () => {
-        reject(new Error('File upload failed'));
+        reject('File upload failed');
       });
       xhr.addEventListener('abort', () => {
-        resolve('Upload canceled');
+        reject('Upload canceled');
       });
 
       xhr.open('PUT', uploadUrl, true);

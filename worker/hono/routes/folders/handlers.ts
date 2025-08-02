@@ -31,7 +31,7 @@ export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
   const { id } = c.req.valid('param');
 
   const db = drizzle(c.env.DB);
-  const result = await getFolderById(db, id);
+  const result = await getFolderById(db, id, { withFiles: true });
   if (!result) return c.notFound();
   return c.json(result, 200);
 };

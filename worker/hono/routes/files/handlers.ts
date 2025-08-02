@@ -16,6 +16,7 @@ export const requestFileUpload: AppRouteHandler<
   const db = drizzle(c.env.DB);
 
   // get folder
+  // todo with foriegn keys could simply ignore this and let sql throw the error
   const folder = await getFolderById(db, folderId);
   if (!folder) return c.notFound();
 

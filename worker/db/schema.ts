@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
-import { sql } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 export const folders = sqliteTable('folders', {
   id: text()
@@ -21,7 +21,9 @@ export const files = sqliteTable('files', {
   id: text()
     .$defaultFn(() => createId())
     .primaryKey(),
-  folderId: text().notNull(),
+  folderId: text()
+    .references(() => folders.id)
+    .notNull(),
   name: text({ length: 255 }).notNull(),
   key: text().notNull(),
   size: integer().notNull(),
