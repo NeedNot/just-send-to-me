@@ -74,6 +74,10 @@ export function useFileUploader(
       });
 
       xhr.open('PUT', uploadUrl, true);
+      xhr.setRequestHeader(
+        'Content-Disposition',
+        `attachment; filename="${file.name}"`,
+      );
       xhr.send(file);
       uploadRequests.current.set(file, xhr);
     }).finally(() => {

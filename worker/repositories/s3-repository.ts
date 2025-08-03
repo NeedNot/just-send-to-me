@@ -8,10 +8,12 @@ export async function createPresignedFileUploadUrl(
     bucket,
     key,
     size,
+    filename,
   }: {
     bucket: string;
     key: string;
     size: number;
+    filename: string;
   },
 ) {
   const x = await client.sign(`${S3_URL}/${bucket}/${key}?X-Amz-Expires=300`, {
@@ -19,6 +21,7 @@ export async function createPresignedFileUploadUrl(
     aws: { signQuery: true, allHeaders: true },
     headers: {
       'content-length': size.toString(),
+      'Content-Disposition': `attachment; filename="${filename}"`,
     },
   });
   return x.url.toString();

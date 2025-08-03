@@ -12,10 +12,11 @@ import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
 import { Download } from 'lucide-react';
 import { Progress } from '../../../components/ui/progress';
-import { useMemo } from 'react';
 import { formatBytes } from '../../../lib/utils';
 import type { Folder, File as FileEntity } from '@shared/schemas';
 import { UploadFiles } from '@/features/file/components/upload-files';
+import { getFileUrl } from '@/features/file/api/download-file';
+import { useCallback } from 'react';
 
 export function FolderCard({ folder }: { folder: Folder }) {
   const ownerOfFolder = folder?.creatorId !== '123';
@@ -70,6 +71,16 @@ function EmptyList() {
 }
 
 function FilesList({ files }: { files: FileEntity[] }) {
+  const handleDownload = useCallback((file: FileEntity) => {
+    const fileUrl = getFileUrl(file.key);
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = file.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
+
   return (
     <ul className="pt-2">
       {files.map((file) => (
@@ -90,7 +101,12 @@ function FilesList({ files }: { files: FileEntity[] }) {
               {formatBytes(file.size)}
             </span>
           </div>
-          <Button variant="ghost" size="icon" className="size-7">
+          <Button
+            variant="ghost"
+            onClick={() => handleDownload(file)}
+            size="icon"
+            className="size-7"
+          >
             <Download />
           </Button>
         </li>

@@ -38,6 +38,7 @@ export const requestFileUpload: AppRouteHandler<
     bucket,
     key,
     size,
+    filename: name,
   });
 
   return c.json({ id, signedUrl }, 200);

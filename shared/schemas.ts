@@ -3,6 +3,7 @@ import { z } from '@hono/zod-openapi';
 export const fileSchema = z.object({
   id: z.string(),
   name: z.string(),
+  key: z.string(),
   folderId: z.string(),
   thumbnail: z.string().optional(),
   size: z.number(),
