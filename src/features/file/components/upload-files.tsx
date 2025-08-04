@@ -51,15 +51,17 @@ export function UploadFiles({ folder }: { folder: Folder }) {
       for (const file of files) {
         uploadFile(file, (number) => onProgress(file, number))
           .catch((reason: Error | string) => {
-            typeof reason === 'string'
-              ? (toast.error(reason, {
-                  description: file.name,
-                }),
-                onError(file, new Error(reason)))
-              : (toast.error(`Unable to upload`, {
-                  description: file.name,
-                }),
-                onError(file, reason));
+            if (typeof reason === 'string') {
+              toast.error(reason, {
+                description: file.name,
+              });
+              onError(file, new Error(reason));
+            } else {
+              toast.error(`Unable to upload`, {
+                description: file.name,
+              });
+              onError(file, reason);
+            }
             throw reason;
           })
           .then((msg) => {
@@ -73,7 +75,7 @@ export function UploadFiles({ folder }: { folder: Folder }) {
           });
       }
     },
-    [],
+    [folder.id, queryClient, uploadFile],
   );
   // todo dont allow duplicates
 

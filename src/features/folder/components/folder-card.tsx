@@ -13,10 +13,9 @@ import { Button } from '../../../components/ui/button';
 import { Download } from 'lucide-react';
 import { Progress } from '../../../components/ui/progress';
 import { formatBytes } from '../../../lib/utils';
-import type { Folder, File as FileEntity } from '@shared/schemas';
+import type { Folder } from '@shared/schemas';
 import { UploadFiles } from '@/features/file/components/upload-files';
-import { getFileUrl } from '@/features/file/api/download-file';
-import { useCallback } from 'react';
+import { FileList } from '@/features/file/components/file-list';
 
 export function FolderCard({ folder }: { folder: Folder }) {
   const ownerOfFolder = folder?.creatorId !== '123';
@@ -44,7 +43,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
         {!ownerOfFolder && <UploadFiles folder={folder} />}
 
         {(folder.files ?? []).length > 0 && (
-          <FilesList files={folder.files || []} />
+          <FileList files={folder.files || []} />
         )}
       </CardContent>
       {(!ownerOfFolder || (folder.files ?? []).length > 0) && (
@@ -67,50 +66,5 @@ function EmptyList() {
         Share this folder with someone so they can upload files
       </p>
     </div>
-  );
-}
-
-function FilesList({ files }: { files: FileEntity[] }) {
-  const handleDownload = useCallback((file: FileEntity) => {
-    const fileUrl = getFileUrl(file.key);
-    const link = document.createElement('a');
-    link.href = fileUrl;
-    link.download = file.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, []);
-
-  return (
-    <ul className="pt-2">
-      {files.map((file) => (
-        <li
-          className="flex w-full items-center rounded-md border p-3 not-last:mb-2"
-          key={file.id}
-        >
-          {file.thumbnail && (
-            <img
-              className="mr-2 size-10 rounded object-cover"
-              src={file.thumbnail}
-              alt=""
-            />
-          )}
-          <div className="flex flex-1 flex-col">
-            <span className="truncate text-sm font-medium">{file.name}</span>
-            <span className="text-muted-foreground truncate text-xs">
-              {formatBytes(file.size)}
-            </span>
-          </div>
-          <Button
-            variant="ghost"
-            onClick={() => handleDownload(file)}
-            size="icon"
-            className="size-7"
-          >
-            <Download />
-          </Button>
-        </li>
-      ))}
-    </ul>
   );
 }
