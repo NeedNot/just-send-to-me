@@ -16,9 +16,16 @@ import { formatBytes } from '../../../lib/utils';
 import type { Folder } from '@shared/schemas';
 import { UploadFiles } from '@/features/file/components/upload-files';
 import { FileList } from '@/features/file/components/file-list';
+import { useDownloadFolder } from '../api/download-all-files';
 
 export function FolderCard({ folder }: { folder: Folder }) {
+  const { progress, downloading, downloadFolder } = useDownloadFolder();
   const ownerOfFolder = folder?.creatorId !== '123';
+
+  const handleDownload = async () => {
+    if (downloading) return;
+    downloadFolder(folder);
+  };
 
   if (!folder) return <div>No folder</div>;
 
@@ -31,9 +38,21 @@ export function FolderCard({ folder }: { folder: Folder }) {
         </CardDescription>
         <CardAction className="flex gap-2">
           <CopyLinkButton variant={'outline'} link="todo here" />
-          <Button size="sm" disabled={!folder.files} variant={'default'}>
-            <Download />
-            Download all
+          <Button
+            size="sm"
+            disabled={!folder.files || downloading}
+            onClick={handleDownload}
+            variant={downloading ? 'outline' : 'default'}
+          >
+            {!downloading ? (
+              <>
+                <Progress className="w-24" value={progress} />
+              </>
+            ) : (
+              <>
+                <Download /> Download all
+              </>
+            )}
           </Button>
         </CardAction>
       </CardHeader>

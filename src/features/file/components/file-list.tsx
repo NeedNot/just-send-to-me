@@ -1,18 +1,9 @@
 import type { File } from '@shared/schemas';
 import { getFileUrl } from '../api/download-file';
-import { formatBytes } from '@/lib/utils';
+import { downloadFile, formatBytes } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-
-function handleDownload(file: File) {
-  const fileUrl = getFileUrl(file.key);
-  const link = document.createElement('a');
-  link.href = fileUrl;
-  link.download = file.name;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+import { Check, Download } from 'lucide-react';
+import { useCooldown } from '@/hooks/use-cooldown';
 
 export function FileList({ files }: { files: File[] }) {
   return (
@@ -43,14 +34,21 @@ export function FileList({ files }: { files: File[] }) {
 }
 
 export function FileDownloadButton({ file }: { file: File }) {
+  const { cooldown, startCooldown } = useCooldown(2000);
+
+  const handleDownload = () => {
+    downloadFile(file.name, getFileUrl(file.key));
+    startCooldown();
+  };
+
   return (
     <Button
       variant="ghost"
-      onClick={() => handleDownload(file)}
+      onClick={() => handleDownload()}
       size="icon"
       className="size-7"
     >
-      <Download />
+      {cooldown ? <Check /> : <Download />}
     </Button>
   );
 }

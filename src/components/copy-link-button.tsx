@@ -1,7 +1,7 @@
-import { useState } from 'react';
 import { Button, buttonVariants } from './ui/button';
 import { Link } from 'lucide-react';
 import type { VariantProps } from 'class-variance-authority';
+import { useCooldown } from '@/hooks/use-cooldown';
 
 export type CopyLinkButtonProps = React.ComponentProps<'button'> &
   VariantProps<typeof buttonVariants> & {
@@ -14,23 +14,22 @@ export default function CopyLinkButton({
   link,
   ...props
 }: CopyLinkButtonProps) {
-  const [copied, setCopied] = useState(false);
+  const { cooldown, startCooldown } = useCooldown(2000);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    startCooldown();
   };
 
   return (
     <Button
       size="sm"
-      variant={copied ? 'secondary' : 'default'}
+      variant={cooldown ? 'secondary' : 'default'}
       onClick={handleCopy}
       {...props}
       className={'transition-colors duration-200' + ' ' + props.className}
     >
-      {copied ? 'Copied!' : <Link />}
+      {cooldown ? 'Copied!' : <Link />}
     </Button>
   );
 }
