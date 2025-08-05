@@ -84,6 +84,19 @@ export function UploadFiles({ folder }: { folder: Folder }) {
       multiple
       className="w-full"
       value={files}
+      onFileValidate={(newFile) =>
+        files.some(
+          (file) =>
+            file.name === newFile.name &&
+            file.size === newFile.size &&
+            file.lastModified === newFile.lastModified,
+        )
+          ? 'File already exists'
+          : null
+      }
+      onFileReject={(file, message) =>
+        toast.error(message, { description: file.name })
+      }
       onValueChange={setFiles}
       // onFileValidate={(file) => (file.size < maxSize ? null : 'File too large')} //todo account for total folder size
       onUpload={onUpload}

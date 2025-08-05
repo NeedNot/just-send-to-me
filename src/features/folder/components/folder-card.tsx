@@ -44,7 +44,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
             onClick={handleDownload}
             variant={downloading ? 'outline' : 'default'}
           >
-            {!downloading ? (
+            {downloading ? (
               <>
                 <Progress className="w-24" value={progress} />
               </>

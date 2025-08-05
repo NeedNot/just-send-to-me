@@ -4,7 +4,7 @@ import type {
 } from '@shared/schemas';
 import { useRef, useState } from 'react';
 
-type UploadStatus = 'getting-url' | 'uploading' | 'complete';
+type UploadStatus = 'getting-url' | 'uploading' | 'failed' | 'complete';
 
 type FileStatus = {
   file: File;
@@ -80,11 +80,19 @@ export function useFileUploader(
       );
       xhr.send(file);
       uploadRequests.current.set(file, xhr);
-    }).finally(() => {
-      setStatus(file, 'complete');
-      abortControllers.current.delete(file);
-      uploadRequests.current.delete(file);
-    });
+    })
+      .then((result) => {
+        setStatus(file, 'complete');
+        return result;
+      })
+      .catch((error) => {
+        setStatus(file, 'failed');
+        throw error;
+      })
+      .finally(() => {
+        abortControllers.current.delete(file);
+        uploadRequests.current.delete(file);
+      });
   };
 
   const abortUpload = (file: File) => {
