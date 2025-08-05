@@ -79,7 +79,11 @@ describe('File upload API flow', () => {
 
     const putFileReq = {
       method: 'PUT',
-      headers: { 'content-length': '11', 'content-type': 'text/plain' },
+      headers: {
+        'content-length': '11',
+        'content-type': 'text/plain',
+        'Content-Disposition': `attachment; filename="test.txt"`,
+      },
       body: 'Hello World',
     };
 
