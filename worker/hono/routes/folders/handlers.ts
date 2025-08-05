@@ -5,24 +5,17 @@ import {
   getFolderById,
   createFolder as repositoryCreateFolder,
 } from '../../../repositories/folder-repository';
-
-const MS_IN_WEEK = 60 * 60 * 24 * 7 * 1000;
+import { expirationDurations } from '../../../../shared/constants';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
-  const { name, expiration, retention } = c.req.valid('json');
+  const { name, expiration } = c.req.valid('json');
 
-  const expiresAt = new Date(
-    Date.now() + MS_IN_WEEK * (expiration === 'week' ? 1 : 2),
-  );
-  const deletesAt = new Date(
-    Date.now() + MS_IN_WEEK * (retention === 'week' ? 1 : 2),
-  );
+  const expiresAt = new Date(Date.now() + expirationDurations[expiration]);
 
   const db = drizzle(c.env.DB);
   const result = await repositoryCreateFolder(db, {
     name,
     expiresAt,
-    deletesAt,
   });
   return c.json(result, 200);
 };

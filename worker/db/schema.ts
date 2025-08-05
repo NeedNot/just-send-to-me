@@ -1,6 +1,6 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
-import { relations, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 export const folders = sqliteTable('folders', {
   id: text()
@@ -9,8 +9,7 @@ export const folders = sqliteTable('folders', {
   name: text({ length: 128 }).notNull(),
   maxSize: integer().notNull(),
   size: integer().default(0).notNull(),
-  expiresAt: integer({ mode: 'timestamp_ms' }).notNull(), //todo rename to "locksAt"?
-  deletesAt: integer({ mode: 'timestamp_ms' }).notNull(),
+  expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
   creatorId: text().notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()

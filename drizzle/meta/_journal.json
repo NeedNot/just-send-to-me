@@ -43,6 +43,13 @@
       "when": 1753925262120,
       "tag": "0005_quick_human_fly",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1754361008996,
+      "tag": "0006_slow_hellfire_club",
+      "breakpoints": true
     }
   ]
 }

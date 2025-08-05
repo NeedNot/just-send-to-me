@@ -14,8 +14,7 @@ beforeAll(async () => {
     },
     body: JSON.stringify({
       name: 'test',
-      expiration: 'week',
-      retention: 'week',
+      expiration: '7d',
     }),
   };
 

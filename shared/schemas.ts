@@ -1,5 +1,7 @@
 import { z } from '@hono/zod-openapi';
 
+export const folderExpirationDuration = z.enum(['1d', '3d', '7d']);
+
 export const fileSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -43,12 +45,11 @@ export const completeFileUploadSchema = z
 export const createFolderSchema = z
   .object({
     name: z.string().min(1),
-    expiration: z.enum(['week', 'fortnight'], 'Required'),
-    retention: z.enum(['week', 'fortnight'], 'Required'),
+    expiration: folderExpirationDuration,
   })
   .openapi({
     type: 'object',
-    required: ['name', 'expiration', 'retention'],
+    required: ['name', 'expiration'],
   });
 
 export const folderSchema = z
@@ -58,7 +59,6 @@ export const folderSchema = z
     name: z.string().max(128),
     files: z.array(fileSchema).optional(),
     expiresAt: z.date(),
-    deletesAt: z.date(),
     maxSize: z.number(),
     size: z.number(),
     createdAt: z.date(),
@@ -80,6 +80,7 @@ export const IdParamSchema = z.object({
 
 export type Folder = z.infer<typeof folderSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
+export type ExpirationDuration = z.infer<typeof folderExpirationDuration>;
 
 export type File = z.infer<typeof fileSchema>;
 export type RequestFileUploadRequest = z.infer<typeof createFileSchema>;

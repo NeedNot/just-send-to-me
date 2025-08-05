@@ -77,7 +77,6 @@ export function UploadFiles({ folder }: { folder: Folder }) {
     },
     [folder.id, queryClient, uploadFile],
   );
-  // todo dont allow duplicates
 
   return (
     <FileUpload

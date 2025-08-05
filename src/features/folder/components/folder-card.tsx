@@ -7,7 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '../../../components/ui/card';
-import { Countdown } from '../../../components/countdown';
 import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
 import { Download } from 'lucide-react';
@@ -17,8 +16,12 @@ import type { Folder } from '@shared/schemas';
 import { UploadFiles } from '@/features/file/components/upload-files';
 import { FileList } from '@/features/file/components/file-list';
 import { useDownloadFolder } from '../api/download-all-files';
+import { useCountdown } from '@/hooks/use-countddown';
 
 export function FolderCard({ folder }: { folder: Folder }) {
+  const { display: expiration, isDone: isExpired } = useCountdown(
+    new Date(folder.expiresAt),
+  );
   const { progress, downloading, downloadFolder } = useDownloadFolder();
   const ownerOfFolder = folder?.creatorId !== '123';
 
@@ -27,14 +30,16 @@ export function FolderCard({ folder }: { folder: Folder }) {
     downloadFolder(folder);
   };
 
-  if (!folder) return <div>No folder</div>;
+  if (isExpired) {
+    return <div>This card is expired</div>;
+  }
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>{folder.name}</CardTitle>
         <CardDescription>
-          <Countdown prefix="Expires in" targetDate={folder.expiresAt} />
+          <span>{isExpired ? 'Expired' : `Expires in ${expiration}`}</span>
         </CardDescription>
         <CardAction className="flex gap-2">
           <CopyLinkButton variant={'outline'} link="todo here" />

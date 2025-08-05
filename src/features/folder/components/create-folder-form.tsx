@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useCreateFolder } from '../api/create-folder';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
+import type { ExpirationDuration } from '@shared/schemas';
 
 export function CreateFolderForm() {
   const router = useRouter();
@@ -34,9 +35,8 @@ export function CreateFolderForm() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const name = formData.get('name') as string;
-    const expiration = formData.get('expiration') as 'week' | 'fortnight';
-    const retention = formData.get('retention') as 'week' | 'fortnight';
-    createFolder.mutate({ name, expiration, retention });
+    const expiration = formData.get('expiration') as ExpirationDuration;
+    createFolder.mutate({ name, expiration });
   };
 
   return (
@@ -58,28 +58,15 @@ export function CreateFolderForm() {
             </div>
             <div className="grid gap-3">
               <label htmlFor="expiration">Link valid for</label>
-              <Select name="expiration" defaultValue="week">
+              <Select name="expiration" defaultValue="3d">
                 <SelectTrigger id="expiration" className="w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="week">7 Days</SelectItem>
-                    <SelectItem value="fortnight">14 Days</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-3">
-              <label htmlFor="retention">Delete files after</label>
-              <Select name="retention" defaultValue="week">
-                <SelectTrigger id="retention" className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="week">7 Days</SelectItem>
-                    <SelectItem value="fortnight">14 Weeks</SelectItem>
+                    <SelectItem value="1d">1 Day</SelectItem>
+                    <SelectItem value="3d">3 Days</SelectItem>
+                    <SelectItem value="7d">7 Days</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
