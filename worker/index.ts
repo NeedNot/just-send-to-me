@@ -5,11 +5,15 @@ import type { AppBindings, EventNotification } from './lib/types';
 import { markFileUploaded } from './repositories/file-repository';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { addFileSizeToFolder } from './repositories/folder-repository';
+import { auth } from './hono/lib/better-auth';
 
 const app = new OpenAPIHono<AppBindings>();
 
 app.route('/api', folderRoutes);
 app.route('/api', fileRoutes);
+app.on(['GET', 'POST'], '/api/*', (c) => {
+  return auth(c.env).handler(c.req.raw);
+});
 
 export { app };
 
