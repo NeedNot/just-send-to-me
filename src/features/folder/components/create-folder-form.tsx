@@ -13,6 +13,7 @@ import { useCreateFolder } from '../api/create-folder';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
+import { Label } from '@/components/ui/label';
 
 export function CreateFolderForm() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export function CreateFolderForm() {
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
-              <label htmlFor="name">Name</label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 name="name"
                 placeholder="Summer pictures" //todo have a random name generator
@@ -57,7 +58,7 @@ export function CreateFolderForm() {
               />
             </div>
             <div className="grid gap-3">
-              <label htmlFor="expiration">Link valid for</label>
+              <Label htmlFor="expiration">Link valid for</Label>
               <Select name="expiration" defaultValue="3d">
                 <SelectTrigger id="expiration" className="w-[180px]">
                   <SelectValue />
