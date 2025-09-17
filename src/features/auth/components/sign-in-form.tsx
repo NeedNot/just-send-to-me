@@ -5,8 +5,9 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
 import { useSignIn } from '../api/sign-in';
+import type React from 'react';
 
-export function SignInForm() {
+export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
 
   const signIn = useSignIn({
@@ -32,7 +33,7 @@ export function SignInForm() {
   };
 
   return (
-    <Card>
+    <Card {...props}>
       <CardHeader>
         <CardTitle>Sign in</CardTitle>
       </CardHeader>

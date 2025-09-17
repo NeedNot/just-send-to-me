@@ -6,6 +6,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { SignUpForm } from './sign-up-form';
+import { SignInForm } from './sign-in-form';
 
 export function SignUpModal({ ...props }: React.ComponentProps<typeof Dialog>) {
   return (
@@ -15,7 +16,11 @@ export function SignUpModal({ ...props }: React.ComponentProps<typeof Dialog>) {
         className="min-w-full md:min-w-2xl"
       >
         <div className="grid grid-cols-1 sm:grid-cols-2">
-          <SignUpForm className="order-2 min-w-64 sm:order-1" />
+          {true ? (
+            <SignUpForm className="order-2 min-w-64 sm:order-1" />
+          ) : (
+            <SignInForm className="order-2 min-w-64 sm:order-1" />
+          )}
           <div className="order-1 flex flex-1 flex-col gap-3 px-6 py-6">
             <DialogHeader>
               <DialogTitle className="leading-6">
