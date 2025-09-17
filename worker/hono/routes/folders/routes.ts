@@ -27,6 +27,9 @@ export const createFolder = createRoute({
       },
       description: 'Create new folder',
     },
+    401: {
+      description: 'Not authenticated',
+    },
   },
 });
 

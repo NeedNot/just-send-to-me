@@ -8,13 +8,16 @@ import {
 import { expirationDurations } from '../../../../shared/constants';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
-  const { name, expiration } = c.req.valid('json');
+  const user = c.get('user');
+  if (!user) return c.body(null, 401);
 
+  const { name, expiration } = c.req.valid('json');
   const expiresAt = new Date(Date.now() + expirationDurations[expiration]);
 
   const db = drizzle(c.env.DB);
   const result = await repositoryCreateFolder(db, {
     name,
+    creatorId: user.id,
     expiresAt,
   });
   return c.json(result, 200);

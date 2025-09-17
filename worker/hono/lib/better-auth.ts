@@ -1,4 +1,5 @@
 import { betterAuth } from 'better-auth';
+import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../../db/better-auth-schema';
@@ -13,6 +14,18 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     basePath: '/api/',
     emailAndPassword: {
       enabled: true,
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (ctx.path !== '/sign-up/email') {
+          return;
+        }
+        if (ctx.body?.name.length < 2) {
+          throw new APIError('BAD_REQUEST', {
+            message: 'Name too short',
+          });
+        }
+      }),
     },
   });
 };

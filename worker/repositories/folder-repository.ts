@@ -32,14 +32,18 @@ export const getFolderById = async (
 
 export const createFolder = (
   db: DrizzleD1Database & { $client: D1Database },
-  { name, expiresAt }: { name: string; expiresAt: Date },
+  {
+    name,
+    creatorId,
+    expiresAt,
+  }: { name: string; creatorId: string; expiresAt: Date },
 ) => {
   return db
     .insert(folders)
     .values({
       name,
       maxSize: 1024 ** 3,
-      creatorId: '123',
+      creatorId,
       expiresAt,
     })
     .returning()

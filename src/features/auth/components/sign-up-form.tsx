@@ -7,13 +7,13 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useSignUp } from '../api/sign-up';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 
-export function SignUpForm() {
+export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [showEmailSignUpForm, setShowEmailSignUpForm] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const router = useRouter();
@@ -47,7 +47,7 @@ export function SignUpForm() {
   };
 
   return (
-    <Card>
+    <Card {...props}>
       <CardHeader>
         <CardTitle>Create account</CardTitle>
         {showEmailSignUpForm && (

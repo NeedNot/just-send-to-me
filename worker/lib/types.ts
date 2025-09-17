@@ -1,12 +1,20 @@
 import type { RouteConfig, RouteHandler } from '@hono/zod-openapi';
+import type { auth } from '../better-auth.config';
 
 export interface AppBindings {
   Bindings: Env;
 }
 
+export interface AppVariables {
+  Variables: {
+    user: typeof auth.$Infer.Session.user | null;
+    session: typeof auth.$Infer.Session.session | null;
+  };
+}
+
 export type AppRouteHandler<R extends RouteConfig> = RouteHandler<
   R,
-  AppBindings
+  AppBindings & AppVariables
 >;
 
 export interface EventNotification {
