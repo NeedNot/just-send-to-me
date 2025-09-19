@@ -27,6 +27,12 @@ export const createFolder = createRoute({
       },
       description: 'Create new folder',
     },
+    401: {
+      description: 'Not authenticated',
+    },
+    403: {
+      description: 'User has reached their folders limit',
+    },
   },
 });
 

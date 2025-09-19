@@ -13,8 +13,13 @@ import { useCreateFolder } from '../api/create-folder';
 import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
+import { Label } from '@/components/ui/label';
+import { authClient } from '@/lib/better-auth';
+import { useSignUpPrompter } from '@/features/auth/components/sign-up-prompter';
 
 export function CreateFolderForm() {
+  const { promptSignUp } = useSignUpPrompter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const router = useRouter();
   const createFolder = useCreateFolder({
     onSuccess: (newFolder) => {
@@ -24,6 +29,9 @@ export function CreateFolderForm() {
       router.navigate({ to: '/folder/' + newFolder.id });
     },
     onError(error) {
+      if (error.cause === 'FOLDER_LIMIT_REACHED') {
+        // todo prompt upgrade
+      }
       toast.error('Unable to create folder', {
         description: error.message,
         position: 'top-center',
@@ -31,11 +39,21 @@ export function CreateFolderForm() {
     },
   });
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!session) {
+      promptSignUp();
+      return;
+    }
+
     const formData = new FormData(event.currentTarget);
-    const name = formData.get('name') as string;
-    const expiration = formData.get('expiration') as ExpirationDuration;
+    const data = Object.fromEntries(formData.entries());
+
+    const { name, expiration } = data as {
+      name: string;
+      expiration: ExpirationDuration;
+    };
+
     createFolder.mutate({ name, expiration });
   };
 
@@ -48,7 +66,7 @@ export function CreateFolderForm() {
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-6">
             <div className="grid gap-3">
-              <label htmlFor="name">Name</label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 name="name"
                 placeholder="Summer pictures" //todo have a random name generator
@@ -57,7 +75,7 @@ export function CreateFolderForm() {
               />
             </div>
             <div className="grid gap-3">
-              <label htmlFor="expiration">Link valid for</label>
+              <Label htmlFor="expiration">Link valid for</Label>
               <Select name="expiration" defaultValue="3d">
                 <SelectTrigger id="expiration" className="w-[180px]">
                   <SelectValue />
@@ -71,7 +89,10 @@ export function CreateFolderForm() {
                 </SelectContent>
               </Select>
             </div>
-            <Button disabled={createFolder.isPending} type="submit">
+            <Button
+              disabled={createFolder.isPending || sessionPending}
+              type="submit"
+            >
               Create
             </Button>
           </div>

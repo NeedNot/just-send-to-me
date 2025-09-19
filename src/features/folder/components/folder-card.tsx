@@ -39,6 +39,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
       <CardHeader>
         <CardTitle>{folder.name}</CardTitle>
         <CardDescription>
+          {/* todo tooltip */}
           <span>{isExpired ? 'Expired' : `Expires in ${expiration}`}</span>
         </CardDescription>
         <CardAction className="flex gap-2">

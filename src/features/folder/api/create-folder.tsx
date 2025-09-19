@@ -11,6 +11,16 @@ export async function createFolder(data: CreateFolderInput) {
     body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
   });
+  if (!res.ok) {
+    let error: Error;
+    try {
+      const err = await res.json();
+      error = Error(err.message, { cause: err.code });
+    } catch (e) {
+      error = Error(res.statusText, { cause: res.status });
+    }
+    throw error;
+  }
   return await res.json();
 }
 
