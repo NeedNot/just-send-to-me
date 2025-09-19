@@ -12,7 +12,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     database: drizzleAdapter(db, { provider: 'sqlite', schema }),
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    basePath: '/api/auth/',
+    basePath: '/api/auth',
     emailAndPassword: {
       enabled: true,
     },
@@ -36,6 +36,12 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           await createUserMetadata(db, newSession.user.id);
         }
       }),
+    },
+    socialProviders: {
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
     },
   });
 };

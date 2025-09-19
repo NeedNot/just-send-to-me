@@ -43,6 +43,7 @@ export function CreateFolderForm() {
     event.preventDefault();
     if (!session) {
       promptSignUp();
+      return;
     }
 
     const formData = new FormData(event.currentTarget);
