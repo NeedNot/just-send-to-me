@@ -87,7 +87,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                 />
               </>
             )}
-            <Button>Continue with email</Button>
+            <Button disabled={signUp.isPending}>Continue with email</Button>
           </div>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}

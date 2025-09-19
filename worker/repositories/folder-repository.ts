@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { and, eq, sql } from 'drizzle-orm';
-import { files, folders } from '../db/schema';
+import { files, folders, user_metadata } from '../db/schema';
 import type { File } from '../../shared/schemas';
 
 export const getFolderById = async (
@@ -30,7 +30,7 @@ export const getFolderById = async (
   };
 };
 
-export const createFolder = (
+export const createFolder = async (
   db: DrizzleD1Database & { $client: D1Database },
   {
     name,
@@ -38,7 +38,7 @@ export const createFolder = (
     expiresAt,
   }: { name: string; creatorId: string; expiresAt: Date },
 ) => {
-  return db
+  const res = await db
     .insert(folders)
     .values({
       name,
@@ -48,6 +48,13 @@ export const createFolder = (
     })
     .returning()
     .get();
+
+  await db
+    .update(user_metadata)
+    .set({ foldersCreated: sql`${user_metadata.foldersCreated} + 1` })
+    .where(eq(user_metadata.userId, creatorId));
+
+  return res;
 };
 
 export const addFileSizeToFolder = (

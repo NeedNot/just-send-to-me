@@ -9,7 +9,7 @@ import { auth } from './hono/lib/better-auth';
 
 const app = new OpenAPIHono<AppBindings & AppVariables>();
 
-app.on(['GET', 'POST'], '/api/*', (c) => {
+app.on(['GET', 'POST'], '/api/auth/*', (c) => {
   return auth(c.env).handler(c.req.raw);
 });
 app.use('/api/*', async (c, next) => {

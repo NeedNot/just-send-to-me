@@ -2,7 +2,8 @@ import { betterAuth } from 'better-auth';
 import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import * as schema from '../../db/better-auth-schema';
+import * as schema from '../../db/auth-schema';
+import { createUserMetadata } from '../../repositories/user-metadata-repository';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);
@@ -11,7 +12,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     database: drizzleAdapter(db, { provider: 'sqlite', schema }),
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
-    basePath: '/api/',
+    basePath: '/api/auth/',
     emailAndPassword: {
       enabled: true,
     },
@@ -24,6 +25,15 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           throw new APIError('BAD_REQUEST', {
             message: 'Name too short',
           });
+        }
+      }),
+      after: createAuthMiddleware(async (ctx) => {
+        if (!ctx.path.startsWith('/sign-up')) {
+          return;
+        }
+        const newSession = ctx.context.newSession;
+        if (newSession) {
+          await createUserMetadata(db, newSession.user.id);
         }
       }),
     },

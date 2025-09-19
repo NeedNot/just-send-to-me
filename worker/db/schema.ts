@@ -1,6 +1,9 @@
 import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
+import { user } from './auth-schema';
+
+// todo rename column names to snake case
 
 export const folders = sqliteTable('folders', {
   id: text()
@@ -30,4 +33,12 @@ export const files = sqliteTable('files', {
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),
+});
+
+export const user_metadata = sqliteTable('user_metadata', {
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  downloads: integer().notNull().default(0),
+  foldersCreated: integer('folders_created').notNull().default(0),
 });

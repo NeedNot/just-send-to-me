@@ -6,6 +6,7 @@ import {
   createFolder as repositoryCreateFolder,
 } from '../../../repositories/folder-repository';
 import { expirationDurations } from '../../../../shared/constants';
+import { getUserMetadata } from '../../../repositories/user-metadata-repository';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   const user = c.get('user');
@@ -15,6 +16,20 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   const expiresAt = new Date(Date.now() + expirationDurations[expiration]);
 
   const db = drizzle(c.env.DB);
+
+  const limit = 5;
+  const userMeta = await getUserMetadata(db, user.id);
+
+  if (userMeta && userMeta.foldersCreated >= limit) {
+    return c.json(
+      {
+        code: 'FOLDER_LIMIT_REACHED',
+        message: 'Please upgrade your account to create more folders',
+      },
+      403,
+    );
+  }
+
   const result = await repositoryCreateFolder(db, {
     name,
     creatorId: user.id,

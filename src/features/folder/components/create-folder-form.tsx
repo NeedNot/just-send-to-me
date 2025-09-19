@@ -14,8 +14,12 @@ import { toast } from 'sonner';
 import { useRouter } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
 import { Label } from '@/components/ui/label';
+import { authClient } from '@/lib/better-auth';
+import { useSignUpPrompter } from '@/features/auth/components/sign-up-prompter';
 
 export function CreateFolderForm() {
+  const { promptSignUp } = useSignUpPrompter();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const router = useRouter();
   const createFolder = useCreateFolder({
     onSuccess: (newFolder) => {
@@ -25,6 +29,9 @@ export function CreateFolderForm() {
       router.navigate({ to: '/folder/' + newFolder.id });
     },
     onError(error) {
+      if (error.cause === 'FOLDER_LIMIT_REACHED') {
+        // todo prompt upgrade
+      }
       toast.error('Unable to create folder', {
         description: error.message,
         position: 'top-center',
@@ -32,11 +39,20 @@ export function CreateFolderForm() {
     },
   });
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!session) {
+      promptSignUp();
+    }
+
     const formData = new FormData(event.currentTarget);
-    const name = formData.get('name') as string;
-    const expiration = formData.get('expiration') as ExpirationDuration;
+    const data = Object.fromEntries(formData.entries());
+
+    const { name, expiration } = data as {
+      name: string;
+      expiration: ExpirationDuration;
+    };
+
     createFolder.mutate({ name, expiration });
   };
 
@@ -72,7 +88,10 @@ export function CreateFolderForm() {
                 </SelectContent>
               </Select>
             </div>
-            <Button disabled={createFolder.isPending} type="submit">
+            <Button
+              disabled={createFolder.isPending || sessionPending}
+              type="submit"
+            >
               Create
             </Button>
           </div>
