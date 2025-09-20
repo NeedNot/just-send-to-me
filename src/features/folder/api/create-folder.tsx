@@ -33,10 +33,10 @@ export function useCreateFolder(
 
   return useMutation<Folder, Error, CreateFolderInput>({
     mutationFn: createFolder,
+    ...mutationConfig,
     onSuccess: (...args) => {
       queryClient.setQueryData(['folder', args[0].id], args[0]);
       onSuccess?.(...args);
     },
-    ...mutationConfig,
   });
 }

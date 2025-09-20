@@ -2,7 +2,8 @@ import type { Folder } from '@shared/schemas';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
 export async function getFolder(id: string): Promise<Folder> {
-  return await fetch(`/api/folders/${id}`).then((res) => res.json());
+  const res = await fetch(`/api/folders/${id}`);
+  return res.json();
 }
 
 type UseFolderOptions = {

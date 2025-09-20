@@ -15,25 +15,23 @@ export const requestFileUpload: AppRouteHandler<
 
   const db = drizzle(c.env.DB);
 
-  // get folder
-  // todo with foriegn keys could simply ignore this and let sql throw the error
+  // todo with foriegn keys could simply skip this and let sql throw the error
   const folder = await getFolderById(db, folderId);
   if (!folder) return c.notFound();
 
-  // folder has expired
   if (Date.now() - folder.expiresAt.getTime() > 0) {
-    return c.json({ error: 'Link expired' }, 410);
+    return c.json({ message: 'Link expired' }, 410);
   }
 
-  // todo get current folder size
+  if (size + folder.size > folder.maxSize) {
+    return c.json({ message: 'File is too large for folder' }, 413);
+  }
 
-  // insert file into d1
   const userId = '123';
   const { id, key } = await createFile(db, { folderId, name, userId, size });
 
   const client = createAwsClient(c.env);
 
-  // create signed url
   const signedUrl = await createPresignedFileUploadUrl(client, {
     bucket,
     key,

@@ -17,13 +17,20 @@ import { UploadFiles } from '@/features/file/components/upload-files';
 import { FileList } from '@/features/file/components/file-list';
 import { useDownloadFolder } from '../api/download-all-files';
 import { useCountdown } from '@/hooks/use-countddown';
+import { authClient } from '@/lib/better-auth';
+import { useMemo } from 'react';
 
 export function FolderCard({ folder }: { folder: Folder }) {
   const { display: expiration, isDone: isExpired } = useCountdown(
     new Date(folder.expiresAt),
   );
   const { progress, downloading, downloadFolder } = useDownloadFolder();
-  const ownerOfFolder = folder?.creatorId !== '123';
+  const { data: session } = authClient.useSession();
+
+  const isOwner = useMemo(
+    () => session?.user.id === folder.creatorId,
+    [session],
+  );
 
   const handleDownload = async () => {
     if (downloading) return;
@@ -64,14 +71,14 @@ export function FolderCard({ folder }: { folder: Folder }) {
       </CardHeader>
       <CardContent>
         {/* empty folder */}
-        {(folder.files ?? []).length == 0 && ownerOfFolder && EmptyList()}
-        {!ownerOfFolder && <UploadFiles folder={folder} />}
+        {(folder.files ?? []).length == 0 && isOwner && EmptyList()}
+        {!isOwner && <UploadFiles folder={folder} />}
 
         {(folder.files ?? []).length > 0 && (
           <FileList files={folder.files || []} />
         )}
       </CardContent>
-      {(!ownerOfFolder || (folder.files ?? []).length > 0) && (
+      {(!isOwner || (folder.files ?? []).length > 0) && (
         <CardFooter className="flex gap-4">
           <Progress value={(folder.size / folder.maxSize) * 100} />
           <div className="shrink-0">

@@ -36,7 +36,7 @@ export function UploadFiles({ folder }: { folder: Folder }) {
   );
 
   const onUpload = useCallback(
-    (
+    async (
       files: File[],
       {
         onProgress,
@@ -49,7 +49,7 @@ export function UploadFiles({ folder }: { folder: Folder }) {
       },
     ) => {
       for (const file of files) {
-        uploadFile(file, (number) => onProgress(file, number))
+        await uploadFile(file, (number) => onProgress(file, number))
           .catch((reason: Error | string) => {
             if (typeof reason === 'string') {
               toast.error(reason, {
@@ -83,21 +83,28 @@ export function UploadFiles({ folder }: { folder: Folder }) {
       multiple
       className="w-full"
       value={files}
-      onFileValidate={(newFile) =>
-        files.some(
+      onFileValidate={(newFile) => {
+        let totalSize = folder.maxSize - folder.size - newFile.size;
+        if (totalSize < 0) return 'File is too large';
+        for (const file of files) {
+          totalSize -= file.size;
+          if (totalSize < 0) {
+            return 'File is too large';
+          }
+        }
+        return files.some(
           (file) =>
             file.name === newFile.name &&
             file.size === newFile.size &&
             file.lastModified === newFile.lastModified,
         )
           ? 'File already exists'
-          : null
-      }
+          : null;
+      }}
       onFileReject={(file, message) =>
         toast.error(message, { description: file.name })
       }
       onValueChange={setFiles}
-      // onFileValidate={(file) => (file.size < maxSize ? null : 'File too large')} //todo account for total folder size
       onUpload={onUpload}
     >
       <FileUploadDropzone>

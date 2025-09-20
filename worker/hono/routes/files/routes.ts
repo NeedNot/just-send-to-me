@@ -32,6 +32,9 @@ export const requestFileUpload = createRoute({
     410: {
       description: 'Folder locked and no more files can be uploaded',
     },
+    413: {
+      description: 'File size exceeds remaining folder space',
+    },
   },
 });
 
