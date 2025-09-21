@@ -68,3 +68,14 @@ export const addFileSizeToFolder = (
     .returning()
     .get();
 };
+
+export const getFoldersByCreator = async (
+  db: DrizzleD1Database & { $client: D1Database },
+  creatorId: string,
+) => {
+  return db
+    .select()
+    .from(folders)
+    .where(eq(folders.creatorId, creatorId))
+    .all();
+};

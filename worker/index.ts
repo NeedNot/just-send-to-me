@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import folderRoutes from './hono/routes/folders';
 import fileRoutes from './hono/routes/files';
+import accountRoutes from './hono/routes/account';
 import type { AppBindings, AppVariables, EventNotification } from './lib/types';
 import { markFileUploaded } from './repositories/file-repository';
 import { drizzle } from 'drizzle-orm/d1/driver';
@@ -29,6 +30,7 @@ app.use('/api/*', async (c, next) => {
 });
 app.route('/api', folderRoutes);
 app.route('/api', fileRoutes);
+app.route('/api', accountRoutes);
 
 export { app };
 

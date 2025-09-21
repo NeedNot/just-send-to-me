@@ -12,6 +12,7 @@ export const folders = sqliteTable('folders', {
   name: text({ length: 128 }).notNull(),
   maxSize: integer().notNull(),
   size: integer().default(0).notNull(),
+  fileCount: integer().default(0).notNull(),
   expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
   creatorId: text().notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })

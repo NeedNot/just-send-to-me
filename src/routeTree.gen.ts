@@ -14,6 +14,7 @@ import { Route as SignInRouteImport } from './app/routes/sign-in'
 import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as FolderIdRouteImport } from './app/routes/folder.$id'
+import { Route as AccountMyFoldersRouteImport } from './app/routes/account/my-folders'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -40,12 +41,18 @@ const FolderIdRoute = FolderIdRouteImport.update({
   path: '/folder/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountMyFoldersRoute = AccountMyFoldersRouteImport.update({
+  id: '/account/my-folders',
+  path: '/account/my-folders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRoutesByTo {
@@ -53,6 +60,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRoutesById {
@@ -61,14 +69,34 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/sign-in' | '/sign-up' | '/folder/$id'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/sign-in'
+    | '/sign-up'
+    | '/account/my-folders'
+    | '/folder/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/sign-in' | '/sign-up' | '/folder/$id'
-  id: '__root__' | '/' | '/about' | '/sign-in' | '/sign-up' | '/folder/$id'
+  to:
+    | '/'
+    | '/about'
+    | '/sign-in'
+    | '/sign-up'
+    | '/account/my-folders'
+    | '/folder/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/sign-in'
+    | '/sign-up'
+    | '/account/my-folders'
+    | '/folder/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -76,6 +104,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  AccountMyFoldersRoute: typeof AccountMyFoldersRoute
   FolderIdRoute: typeof FolderIdRoute
 }
 
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FolderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/my-folders': {
+      id: '/account/my-folders'
+      path: '/account/my-folders'
+      fullPath: '/account/my-folders'
+      preLoaderRoute: typeof AccountMyFoldersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -124,6 +160,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  AccountMyFoldersRoute: AccountMyFoldersRoute,
   FolderIdRoute: FolderIdRoute,
 }
 export const routeTree = rootRouteImport
