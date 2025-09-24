@@ -1,5 +1,5 @@
-import { createRoute, z } from '@hono/zod-openapi';
-import { folderSchema } from '../../../../shared/schemas';
+import { createRoute } from '@hono/zod-openapi';
+import { myFoldersResponseSchema } from '../../../../shared/schemas';
 
 export const getMyFolders = createRoute({
   method: 'get',
@@ -8,10 +8,10 @@ export const getMyFolders = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: z.array(folderSchema.omit({ files: true })),
+          schema: myFoldersResponseSchema,
         },
       },
-      description: 'All the folders created the account',
+      description: 'All the folders created by the account',
     },
     401: {
       description: 'Unauthenticated',

@@ -79,6 +79,12 @@ export const IdParamSchema = z.object({
   }),
 });
 
+export const myFoldersResponseSchema = z.object({
+  folders: z.array(folderSchema.omit({ files: true })),
+  expiredFolders: z.array(folderSchema.omit({ files: true })),
+  maxFolders: z.number(),
+});
+
 export type Folder = z.infer<typeof folderSchema>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 export type ExpirationDuration = z.infer<typeof folderExpirationDuration>;
@@ -91,3 +97,4 @@ export type ReuqestFileUploadResponse = z.infer<
 export type CompleteFileUploadRequest = z.infer<
   typeof completeFileUploadSchema
 >;
+export type MyFolderReponse = z.infer<typeof myFoldersResponseSchema>;

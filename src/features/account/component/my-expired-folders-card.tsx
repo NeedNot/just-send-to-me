@@ -13,66 +13,43 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import type React from 'react';
-import { useCallback } from 'react';
-import { useRouter } from '@tanstack/react-router';
-import { Progress } from '@/components/ui/progress';
 import type { Folder } from '@shared/schemas';
-import { useCountdown } from '@/hooks/use-countddown';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
 import { formatBytes } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import TimeAgo from 'react-timeago';
 
-export function MyFoldersCard({
+export function MyExpiredFoldersCard({
   folders,
-  maxFolders,
   ...props
-}: {
-  folders: Folder[];
-  maxFolders: number;
-} & React.ComponentProps<typeof Card>) {
-  const router = useRouter();
-  const onFolderClick = useCallback((id: string) => {
-    router.navigate({ to: '/folder/$id', params: { id } });
-  }, []);
+}: { folders: Folder[] } & React.ComponentProps<typeof Card>) {
   return (
     <Card {...props}>
       <CardHeader>
-        <CardTitle>Active folders</CardTitle>
-        <CardDescription>Something here</CardDescription>
+        <CardTitle>Expired folders</CardTitle>
+        <CardDescription>
+          Folder content can no longer be accessed or downloaded
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {folders && (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-end justify-between">
-                <div>Folders used</div>
-                <div className="text-muted-foreground ml-auto text-right text-sm">
-                  {`${folders.length} of ${maxFolders} used`}
-                </div>
-              </div>
-              <Progress value={(folders.length / maxFolders) * 100} />
-            </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-48">Name</TableHead>
                   <TableHead>Files</TableHead>
-                  <TableHead>Space free</TableHead>
-                  <TableHead className="text-right">Expires in</TableHead>
+                  <TableHead>Space used</TableHead>
+                  <TableHead className="text-right">Expired</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {folders?.map((f) => (
-                  <FolderRow
-                    key={f.id}
-                    onClick={() => onFolderClick(f.id)}
-                    folder={f}
-                  />
+                  <FolderRow key={f.id} folder={f} />
                 ))}
               </TableBody>
             </Table>
@@ -90,10 +67,6 @@ function FolderRow({
   folder: Folder;
 } & React.ComponentProps<typeof TableRow>) {
   const expiresAt = new Date(folder.expiresAt);
-  const countdown = useCountdown(expiresAt);
-  if (expiresAt.getTime() - Date.now() < 1) {
-    return null;
-  }
   return (
     <TableRow {...props}>
       <TableCell className="max-w-48 overflow-hidden text-ellipsis">
@@ -103,15 +76,13 @@ function FolderRow({
         </Tooltip>
       </TableCell>
       <TableCell>{folder.fileCount}</TableCell>
-      <TableCell>{formatBytes(folder.maxSize - folder.size)}</TableCell>
+      <TableCell>{formatBytes(folder.size)}</TableCell>
       <TableCell className="text-right">
         <Badge variant="outline">
-          <time
-            dateTime={expiresAt.toISOString()}
+          <TimeAgo
             title={expiresAt.toLocaleString()}
-          >
-            {countdown.display}
-          </time>
+            date={expiresAt}
+          ></TimeAgo>
         </Badge>
       </TableCell>
     </TableRow>

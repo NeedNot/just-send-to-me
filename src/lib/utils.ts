@@ -30,16 +30,14 @@ export function formatTime(msLeft: number) {
   if (days >= 1) {
     return days === 1 ? '1 day' : `${days} days`;
   }
+  if (totalHours >= 1) {
+    return totalHours === 1 ? '1 hour' : `${totalHours} hours`;
+  }
 
-  const hours = totalHours % 24;
   const minutes = totalMinutes % 60;
   const seconds = totalSeconds % 60;
 
-  if (totalHours >= 1) {
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  } else {
-    return `${pad(minutes)}:${pad(seconds)}`;
-  }
+  return `${pad(minutes)}:${pad(seconds)}`;
 }
 
 export function pad(num: number): string {
