@@ -13,7 +13,7 @@ export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const expiredFolders: Folder[] = [];
 
   for (const folder of allFolders) {
-    if (folder.expiresAt.getTime() > Date.now()) {
+    if (folder.expiresAt > new Date()) {
       folders.push(folder);
     } else {
       expiredFolders.push(folder);

@@ -16,14 +16,12 @@ import type { Folder } from '@shared/schemas';
 import { UploadFiles } from '@/features/file/components/upload-files';
 import { FileList } from '@/features/file/components/file-list';
 import { useDownloadFolder } from '../api/download-all-files';
-import { useCountdown } from '@/hooks/use-countddown';
 import { authClient } from '@/lib/better-auth';
 import { useMemo } from 'react';
+import TimeAgo, { type Unit } from 'react-timeago';
 
 export function FolderCard({ folder }: { folder: Folder }) {
-  const { display: expiration, isDone: isExpired } = useCountdown(
-    new Date(folder.expiresAt),
-  );
+  const expiresAt = new Date(folder.expiresAt);
   const { progress, downloading, downloadFolder } = useDownloadFolder();
   const { data: session } = authClient.useSession();
 
@@ -37,7 +35,7 @@ export function FolderCard({ folder }: { folder: Folder }) {
     downloadFolder(folder);
   };
 
-  if (isExpired) {
+  if (expiresAt < new Date()) {
     return <div>This card is expired</div>;
   }
 
@@ -47,7 +45,17 @@ export function FolderCard({ folder }: { folder: Folder }) {
         <CardTitle>{folder.name}</CardTitle>
         <CardDescription>
           {/* todo tooltip */}
-          <span>{isExpired ? 'Expired' : `Expires in ${expiration}`}</span>
+          {expiresAt < new Date() ? (
+            <span title={expiresAt.toLocaleString()}>Expired</span>
+          ) : (
+            <TimeAgo
+              date={expiresAt}
+              title={expiresAt.toLocaleString()}
+              formatter={(value: number, unit: Unit) =>
+                `Expires in ${value} ${unit}${value === 1 ? '' : 's'}`
+              }
+            />
+          )}
         </CardDescription>
         <CardAction className="flex gap-2">
           <CopyLinkButton variant={'outline'} link="todo here" />
