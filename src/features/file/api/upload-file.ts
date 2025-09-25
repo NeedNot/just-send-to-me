@@ -15,12 +15,15 @@ export async function requestPresignedUrl(
   data: RequestFileUploadRequest,
   signal: AbortSignal,
 ): Promise<ReuqestFileUploadResponse> {
-  return fetch('/api/files/upload-request', {
+  const res = await fetch('/api/files/upload-request', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
     signal,
-  }).then((res) => res.json());
+  });
+  if (!res.ok)
+    throw Error('Failed to get presigned url', { cause: res.status });
+  return res.json();
 }
 
 export function useFileUploader(
@@ -50,6 +53,7 @@ export function useFileUploader(
         typeof getUploadUrl === 'function'
           ? await getUploadUrl(file, abortController.signal)
           : getUploadUrl;
+      if (!uploadUrl) throw Error('Unable to fetch upload url');
     } catch (e) {
       if (abortController.signal.aborted) {
         return 'Upload canceled';

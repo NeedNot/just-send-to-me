@@ -23,15 +23,22 @@ export function UploadFiles({ folder }: { folder: Folder }) {
   const [files, setFiles] = useState<File[]>([]);
   const { uploadFile, abortUpload, fileStatuses } = useFileUploader(
     async (file, signal) => {
-      const response = await requestPresignedUrl(
-        {
-          name: file.name!,
-          size: file.size!,
-          folderId: folder.id,
-        },
-        signal,
-      );
-      return response.signedUrl;
+      try {
+        const response = await requestPresignedUrl(
+          {
+            name: file.name!,
+            size: file.size!,
+            folderId: folder.id,
+          },
+          signal,
+        );
+        return response.signedUrl;
+      } catch (e: any) {
+        if (e.cause === 413) {
+          throw Error('File is too large');
+        }
+        throw e;
+      }
     },
   );
 
@@ -84,14 +91,14 @@ export function UploadFiles({ folder }: { folder: Folder }) {
       className="w-full"
       value={files}
       onFileValidate={(newFile) => {
-        let totalSize = folder.maxSize - folder.size - newFile.size;
-        if (totalSize < 0) return 'File is too large';
-        for (const file of files) {
-          totalSize -= file.size;
-          if (totalSize < 0) {
-            return 'File is too large';
-          }
-        }
+        // let totalSize = folder.maxSize - folder.size - newFile.size;
+        // if (totalSize < 0) return 'File is too large';
+        // for (const file of files) {
+        //   totalSize -= file.size;
+        //   if (totalSize < 0) {
+        //     return 'File is too large';
+        //   }
+        // }
         return files.some(
           (file) =>
             file.name === newFile.name &&

@@ -19,16 +19,20 @@ export const requestFileUpload: AppRouteHandler<
   const folder = await getFolderById(db, folderId);
   if (!folder) return c.notFound();
 
-  if (Date.now() - folder.expiresAt.getTime() > 0) {
-    return c.json({ message: 'Link expired' }, 410);
+  if (folder.expiresAt < new Date()) {
+    return c.json({ message: 'Folder has expired' }, 410);
   }
 
   if (size + folder.size > folder.maxSize) {
     return c.json({ message: 'File is too large for folder' }, 413);
   }
 
-  const userId = '123';
-  const { id, key } = await createFile(db, { folderId, name, userId, size });
+  const { id, key } = await createFile(db, {
+    folderId,
+    name,
+    userId: folder.creatorId,
+    size,
+  });
 
   const client = createAwsClient(c.env);
 
