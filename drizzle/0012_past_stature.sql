@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `filesDeleted` integer DEFAULT false NOT NULL;
