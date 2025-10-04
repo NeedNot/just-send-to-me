@@ -5,8 +5,8 @@ import accountRoutes from './hono/routes/account';
 import type { AppBindings, AppVariables, EventNotification } from './lib/types';
 import { markFileUploaded } from './repositories/file-repository';
 import { drizzle } from 'drizzle-orm/d1/driver';
-import { addFileSizeToFolder } from './repositories/folder-repository';
-import { auth } from './hono/lib/better-auth';
+import { addFileMetaToFolder } from './repositories/folder-repository';
+import { auth } from './lib/better-auth';
 import { files, folders } from './db/schema';
 import { and, eq, inArray, lt } from 'drizzle-orm';
 
@@ -81,7 +81,7 @@ export default {
       try {
         const body = msg.body as EventNotification;
         const file = await markFileUploaded(db, body.object);
-        await addFileSizeToFolder(db, file);
+        await addFileMetaToFolder(db, file);
       } catch (e) {
         console.error(e);
         msg.retry();

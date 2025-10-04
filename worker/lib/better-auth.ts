@@ -2,8 +2,8 @@ import { betterAuth } from 'better-auth';
 import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import * as schema from '../../db/auth-schema';
-import { createUserMetadata } from '../../repositories/user-metadata-repository';
+import * as schema from '../db/auth-schema';
+import { createUserMetadata } from '../repositories/user-metadata-repository';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);

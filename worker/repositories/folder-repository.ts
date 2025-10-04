@@ -57,13 +57,16 @@ export const createFolder = async (
   return res;
 };
 
-export const addFileSizeToFolder = (
+export const addFileMetaToFolder = (
   db: DrizzleD1Database & { $client: D1Database },
   { size, folderId }: { size: number; folderId: string },
 ) => {
   return db
     .update(folders)
-    .set({ size: sql`${folders.size} + ${size}` })
+    .set({
+      size: sql`${folders.size} + ${size}`,
+      fileCount: sql`${folders.fileCount} + 1`,
+    })
     .where(eq(folders.id, folderId))
     .returning()
     .get();
