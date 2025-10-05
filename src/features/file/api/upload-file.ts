@@ -6,9 +6,10 @@ import { useRef, useState } from 'react';
 
 type UploadStatus = 'getting-url' | 'uploading' | 'failed' | 'complete';
 
-type FileStatus = {
+export type FileStatus = {
   file: File;
   status: UploadStatus;
+  progress: number;
 };
 
 export async function requestPresignedUrl(
@@ -39,13 +40,13 @@ export function useFileUploader(
     );
   };
 
-  const uploadFile = async (
-    file: File,
-    onProgress: (progress: number) => void,
-  ): Promise<string> => {
+  const uploadFile = async (file: File): Promise<string> => {
     const abortController = new AbortController();
     abortControllers.current.set(file, abortController);
-    setFileStatuses((prev) => [...prev, { file, status: 'getting-url' }]);
+    setFileStatuses((prev) => [
+      ...prev,
+      { file, status: 'getting-url', progress: 0 },
+    ]);
 
     let uploadUrl: string;
     try {
@@ -65,7 +66,11 @@ export function useFileUploader(
     return new Promise<string>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.upload.addEventListener('progress', (e) =>
-        onProgress((e.loaded / e.total) * 100),
+        setFileStatuses((prev) =>
+          prev.map((f) =>
+            f.file == file ? { ...f, progress: (e.loaded / e.total) * 100 } : f,
+          ),
+        ),
       );
       xhr.addEventListener('load', () => {
         resolve('Upload complete');

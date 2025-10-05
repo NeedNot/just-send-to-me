@@ -17,7 +17,7 @@ import { UploadFiles } from '@/features/file/components/upload-files';
 import { FileList } from '@/features/file/components/file-list';
 import { useDownloadFolder } from '../api/download-all-files';
 import { authClient } from '@/lib/better-auth';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import TimeAgo, { type Unit } from 'react-timeago';
 
 export function FolderCard({ folder }: { folder: Folder }) {

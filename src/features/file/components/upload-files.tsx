@@ -1,26 +1,28 @@
-import { Button } from '@/components/ui/button';
+import React, { useMemo } from 'react';
 import {
-  FileUpload,
-  FileUploadDropzone,
-  FileUploadItem,
-  FileUploadItemDelete,
-  FileUploadItemMetadata,
-  FileUploadItemPreview,
-  FileUploadItemProgress,
-  FileUploadList,
-  FileUploadTrigger,
-} from '@/components/ui/file-upload';
-import { formatBytes } from '@/lib/utils';
-import { Upload, X } from 'lucide-react';
-import { useCallback, useState } from 'react';
-import { requestPresignedUrl, useFileUploader } from '../api/upload-file';
+  requestPresignedUrl,
+  useFileUploader,
+  type FileStatus,
+} from '../api/upload-file';
 import { type Folder } from '@shared/schemas';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { Upload } from 'lucide-react';
+import { formatBytes } from '@/lib/utils';
+import { FileUpload } from '@/components/ui/better-file-upload';
+import { type FileRejection, ErrorCode } from 'react-dropzone';
 
-export function UploadFiles({ folder }: { folder: Folder }) {
+export interface UploadFilesProps {
+  folder: Folder;
+  createFilesListComponent?: (incompleteFiles: FileStatus[]) => React.Component;
+}
+
+export function UploadFiles({
+  folder,
+  createFilesListComponent,
+}: UploadFilesProps) {
   const queryClient = useQueryClient();
-  const [files, setFiles] = useState<File[]>([]);
+
   const { uploadFile, abortUpload, fileStatuses } = useFileUploader(
     async (file, signal) => {
       try {
@@ -42,79 +44,80 @@ export function UploadFiles({ folder }: { folder: Folder }) {
     },
   );
 
-  const onUpload = useCallback(
-    async (
-      files: File[],
-      {
-        onProgress,
-        onError,
-        onSuccess,
-      }: {
-        onProgress: (file: File, progress: number) => void;
-        onError: (file: File, error: Error) => void;
-        onSuccess: (file: File) => void;
-      },
-    ) => {
-      for (const file of files) {
-        await uploadFile(file, (number) => onProgress(file, number))
-          .catch((reason: Error | string) => {
-            if (typeof reason === 'string') {
-              toast.error(reason, {
-                description: file.name,
-              });
-              onError(file, new Error(reason));
-            } else {
-              toast.error(`Unable to upload`, {
-                description: file.name,
-              });
-              onError(file, reason);
-            }
-            throw reason;
-          })
-          .then((msg) => {
-            toast.success(msg, { description: file.name });
-            queryClient.setQueryData(['folder', folder.id], (prev: Folder) => ({
-              ...prev,
-              size: prev.size + file.size,
-            }));
-            // todo this is problematic because it thinks there is never an error
-            onSuccess(file);
-          });
-      }
-    },
-    [folder.id, queryClient, uploadFile],
+  const incompleteFiles = useMemo(
+    () => fileStatuses.filter((f) => f.status !== 'complete'),
+    [fileStatuses],
   );
 
-  return (
-    <FileUpload
-      multiple
-      className="w-full"
-      value={files}
-      onFileValidate={(newFile) => {
-        // let totalSize = folder.maxSize - folder.size - newFile.size;
-        // if (totalSize < 0) return 'File is too large';
-        // for (const file of files) {
-        //   totalSize -= file.size;
-        //   if (totalSize < 0) {
-        //     return 'File is too large';
-        //   }
-        // }
-        return files.some(
-          (file) =>
-            file.name === newFile.name &&
-            file.size === newFile.size &&
-            file.lastModified === newFile.lastModified,
-        )
-          ? 'File already exists'
-          : null;
-      }}
-      onFileReject={(file, message) =>
-        toast.error(message, { description: file.name })
+  const validate = (files: File[]): [File[], FileRejection[]] => {
+    const valid: File[] = [];
+    const rejected: FileRejection[] = [];
+
+    let remainingSpace =
+      folder.maxSize -
+      (fileStatuses.reduce(
+        (v, s) =>
+          ['getting-url', 'uploading'].includes(s.status) ? v + s.file.size : v,
+        0,
+      ) +
+        folder.size);
+    // sorted largest to smallest so that big files have priority on being uploaded.
+    for (const file of files.sort((a, b) => b.size - a.size)) {
+      if (remainingSpace >= file.size) {
+        valid.push(file);
+        remainingSpace -= file.size;
+      } else {
+        rejected.push({
+          file,
+          errors: [
+            { message: 'File is too large', code: ErrorCode.FileTooLarge },
+          ],
+        });
       }
-      onValueChange={setFiles}
-      onUpload={onUpload}
-    >
-      <FileUploadDropzone>
+    }
+
+    return [valid, rejected];
+  };
+
+  const onAcceptFile = async (file: File) => {
+    console.log('Uploading file', file.name);
+    // todo even need to have errors here? state is inside of the hook anyway
+    try {
+      await uploadFile(file);
+      queryClient.setQueryData(['folder', folder.id], (prev: Folder) => ({
+        ...prev,
+        size: prev.size + file.size,
+        fileCount: prev.fileCount + 1,
+        files: [
+          ...(prev.files ?? []),
+          {
+            id: 'todo',
+            name: file.name,
+            key: 'todo',
+            folderId: folder.id,
+            size: file.size,
+          },
+        ],
+      }));
+    } catch (e: any) {
+      console.log('got error', e);
+    }
+  };
+
+  const onRejectFile = (rejection: FileRejection) => {
+    toast.error(`Unable to upload ${rejection.file.name}`, {
+      description: rejection.errors[0].message,
+    });
+  };
+
+  return (
+    <>
+      <FileUpload
+        multiple={true}
+        validateDrop={validate}
+        onRejectFile={onRejectFile}
+        onAcceptFile={onAcceptFile}
+      >
         <div className="flex flex-col items-center gap-1 text-center">
           <div className="flex items-center justify-center rounded-full border p-2.5">
             <Upload className="text-muted-foreground size-6" />
@@ -125,31 +128,8 @@ export function UploadFiles({ folder }: { folder: Folder }) {
             {formatBytes(folder.maxSize)} total)
           </p>
         </div>
-        <FileUploadTrigger asChild>
-          <Button variant="outline" size="sm" className="mt-2 w-fit">
-            Browse files
-          </Button>
-        </FileUploadTrigger>
-      </FileUploadDropzone>
-      <FileUploadList>
-        {files.map((file, index) => (
-          <FileUploadItem className="flex flex-col" key={index} value={file}>
-            <div className="flex w-full gap-2">
-              <FileUploadItemPreview />
-              <FileUploadItemMetadata />
-              {fileStatuses.find((f) => f.file === file)?.status !==
-                'complete' && (
-                <FileUploadItemDelete onClick={() => abortUpload(file)} asChild>
-                  <Button variant="ghost" size="icon" className="size-7">
-                    <X />
-                  </Button>
-                </FileUploadItemDelete>
-              )}
-            </div>
-            <FileUploadItemProgress />
-          </FileUploadItem>
-        ))}
-      </FileUploadList>
-    </FileUpload>
+      </FileUpload>
+      {createFilesListComponent && createFilesListComponent(incompleteFiles)}
+    </>
   );
 }
