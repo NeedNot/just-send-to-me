@@ -21,7 +21,7 @@ export const getFolderById = async (
     allFiles = await db
       .select()
       .from(files)
-      .where(and(eq(files.folderId, id), eq(files.uploaded, true)))
+      .where(eq(files.folderId, id))
       .all();
   }
   return {

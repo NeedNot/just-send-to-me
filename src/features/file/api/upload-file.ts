@@ -1,112 +1,123 @@
-import type {
-  RequestFileUploadRequest,
-  ReuqestFileUploadResponse,
-} from '@shared/schemas';
-import { useRef, useState } from 'react';
+import { uploadWithProgress } from '@/lib/utils';
+import type { Folder } from '@shared/schemas';
+import { useQueryClient } from '@tanstack/react-query';
+import { constrainedMemory } from 'process';
+import { useCallback, useState } from 'react';
 
-type UploadStatus = 'getting-url' | 'uploading' | 'failed' | 'complete';
+type UploadStatus = 'preparing' | 'uploading' | 'failed' | 'complete';
 
 export type FileStatus = {
-  file: File;
-  status: UploadStatus;
+  id: string;
+  name: string;
   progress: number;
+  status: UploadStatus;
+  size: number;
+  error?: string | undefined;
 };
 
-export async function requestPresignedUrl(
-  data: RequestFileUploadRequest,
-  signal: AbortSignal,
-): Promise<ReuqestFileUploadResponse> {
-  const res = await fetch('/api/files/upload-request', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-    signal,
-  });
-  if (!res.ok)
-    throw Error('Failed to get presigned url', { cause: res.status });
-  return res.json();
+interface UploadedPart {
+  partNumber: number;
+  etag: string;
 }
 
-export function useFileUploader(
-  getUploadUrl: (file: File, signal: AbortSignal) => Promise<string> | string,
-) {
-  const [fileStatuses, setFileStatuses] = useState<FileStatus[]>([]);
-  const uploadRequests = useRef<Map<File, XMLHttpRequest>>(new Map());
-  const abortControllers = useRef<Map<File, AbortController>>(new Map());
+export function useFileUploader(folderId: string) {
+  const queryClient = useQueryClient();
+  const [uploads, setUploads] = useState<FileStatus[]>([]);
 
-  const setStatus = (file: File, status: UploadStatus) => {
-    setFileStatuses((prev) =>
-      prev.map((f) => (f.file === file ? { ...f, status } : f)),
-    );
-  };
-
-  const uploadFile = async (file: File): Promise<string> => {
-    const abortController = new AbortController();
-    abortControllers.current.set(file, abortController);
-    setFileStatuses((prev) => [
+  const uploadFile = useCallback(async (file: File) => {
+    const id = crypto.randomUUID();
+    setUploads((prev) => [
       ...prev,
-      { file, status: 'getting-url', progress: 0 },
+      {
+        id,
+        name: file.name,
+        size: file.size,
+        progress: 0,
+        status: 'preparing',
+      },
     ]);
 
-    let uploadUrl: string;
     try {
-      uploadUrl =
-        typeof getUploadUrl === 'function'
-          ? await getUploadUrl(file, abortController.signal)
-          : getUploadUrl;
-      if (!uploadUrl) throw Error('Unable to fetch upload url');
-    } catch (e) {
-      if (abortController.signal.aborted) {
-        return 'Upload canceled';
-      }
-      throw e;
-    }
+      const newFile = await uploadMultipartFile(folderId, file, (progress) => {
+        setUploads((prev) =>
+          prev.map((f) => (f.id === id ? { ...f, progress } : f)),
+        );
+      });
 
-    setStatus(file, 'uploading');
-    return new Promise<string>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.upload.addEventListener('progress', (e) =>
-        setFileStatuses((prev) =>
-          prev.map((f) =>
-            f.file == file ? { ...f, progress: (e.loaded / e.total) * 100 } : f,
-          ),
+      queryClient.setQueryData(['folder', folderId], (prev: Folder) => ({
+        ...prev,
+        size: prev.size + newFile.size,
+        files: [...(prev.files ?? []), newFile],
+      }));
+
+      setUploads((prev) =>
+        prev.map((f) =>
+          f.id === id ? { ...f, progress: 100, status: 'complete' } : f,
         ),
       );
-      xhr.addEventListener('load', () => {
-        resolve('Upload complete');
-      });
-      xhr.addEventListener('error', () => {
-        reject('File upload failed');
-      });
-      xhr.addEventListener('abort', () => {
-        reject('Upload canceled');
-      });
-
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader(
-        'Content-Disposition',
-        `attachment; filename="${file.name}"`,
+    } catch (e: any) {
+      setUploads((prev) =>
+        prev.map((u) =>
+          u.id === id
+            ? { ...u, status: 'failed', error: e.message ?? 'Unknown error' }
+            : u,
+        ),
       );
-      xhr.send(file);
-      uploadRequests.current.set(file, xhr);
-    })
-      .then((result) => {
-        setStatus(file, 'complete');
-        return result;
-      })
-      .catch((error) => {
-        setStatus(file, 'failed');
-        throw error;
-      })
-      .finally(() => {
-        abortControllers.current.delete(file);
-        uploadRequests.current.delete(file);
-      });
-  };
+    }
+  }, []);
 
-  const abortUpload = (file: File) => {
-    abortControllers.current.get(file)?.abort();
-    uploadRequests.current.get(file)?.abort();
-  };
-  return { uploadFile, abortUpload, fileStatuses };
+  return { upload: uploadFile, statuses: uploads };
+}
+
+async function uploadMultipartFile(
+  folderId: string,
+  file: File,
+  onProgress: (progress: number) => void,
+) {
+  const CHUNK_SIZE = 1024 * 1024 * 10;
+  const { uploadId, key } = await fetch(`/api/files/upload/new`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      folderId,
+      name: file.name,
+      size: file.size,
+    }),
+  }).then((res) => res.json());
+
+  const partCount = Math.ceil(file.size / CHUNK_SIZE);
+  const uploadedParts: UploadedPart[] = [];
+
+  for (let i = 0; i < partCount; i++) {
+    const start = i * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    const blob = file.slice(start, end);
+
+    const { url } = await fetch(
+      `/api/files/upload/part/${i + 1}?uploadId=${uploadId}&key=${key}`,
+      { method: 'GET' },
+    ).then((res) => res.json());
+
+    // todo make this return to use it in the uploaded parts
+    const etag = await uploadWithProgress(url, blob, (e) => {
+      const totalUploaded = i * CHUNK_SIZE + e.loaded;
+      onProgress(Math.min(100, (totalUploaded / file.size) * 100));
+    });
+
+    uploadedParts.push({
+      partNumber: i + 1,
+      etag,
+    });
+  }
+
+  return fetch(`/api/files/upload/complete?key=${key}&uploadId=${uploadId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(uploadedParts),
+  }).then((res) => {
+    if (res.ok) {
+      return res.json();
+    }
+    throw Error(res.statusText);
+  });
 }

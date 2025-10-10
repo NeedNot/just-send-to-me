@@ -31,7 +31,6 @@ export const files = sqliteTable('files', {
   name: text({ length: 255 }).notNull(),
   key: text().notNull(),
   size: integer().notNull(),
-  uploaded: integer({ mode: 'boolean' }).notNull().default(false),
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),

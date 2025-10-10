@@ -3,7 +3,6 @@ import folderRoutes from './hono/routes/folders';
 import fileRoutes from './hono/routes/files';
 import accountRoutes from './hono/routes/account';
 import type { AppBindings, AppVariables, EventNotification } from './lib/types';
-import { markFileUploaded } from './repositories/file-repository';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { addFileMetaToFolder } from './repositories/folder-repository';
 import { auth } from './lib/better-auth';
@@ -75,18 +74,4 @@ export default {
       .where(inArray(folders.id, expiredFolderIds));
   },
   fetch: app.fetch,
-  queue: async (batch, env) => {
-    const db = drizzle(env.DB);
-    for (const msg of batch.messages) {
-      try {
-        const body = msg.body as EventNotification;
-        const file = await markFileUploaded(db, body.object);
-        await addFileMetaToFolder(db, file);
-      } catch (e) {
-        console.error(e);
-        msg.retry();
-      }
-    }
-    batch.ackAll();
-  },
 } satisfies ExportedHandler<Env>;

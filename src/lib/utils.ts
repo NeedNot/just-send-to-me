@@ -43,3 +43,30 @@ export function formatTime(msLeft: number) {
 export function pad(num: number): string {
   return num.toString().padStart(2, '0');
 }
+
+export function uploadWithProgress(
+  url: string,
+  blob: Blob,
+  onProgress: (e: ProgressEvent) => void,
+) {
+  const xhr = new XMLHttpRequest();
+  return new Promise<string>((resolve, reject) => {
+    xhr.upload.addEventListener('progress', onProgress);
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 200) {
+        resolve(xhr.getResponseHeader('etag')!.replaceAll('"', ''));
+      } else {
+        reject(Error('Completion failed', { cause: xhr.statusText }));
+      }
+    });
+    xhr.addEventListener('error', () => {
+      reject(Error('File upload failed'));
+    });
+    xhr.addEventListener('abort', () => {
+      reject(Error('Upload canceled'));
+    });
+
+    xhr.open('PUT', url, true);
+    xhr.send(blob);
+  });
+}

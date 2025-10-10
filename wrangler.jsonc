@@ -25,16 +25,13 @@
       "experimental_remote": true,
     },
   ],
-  "queues": {
-    "consumers": [
-      {
-        "queue": "r2-event-queue",
-        "max_batch_size": 10,
-        "max_batch_timeout": 5,
-      },
-    ],
-  },
   "triggers": {
     "crons": ["0 * * * *"],
   },
+  "kv_namespaces": [
+    {
+      "binding": "PENDING_FILE_UPLOADS",
+      "id": "1ec2a2d91b8e4ad08ab7bbcf9a1d360a",
+    },
+  ],
 }

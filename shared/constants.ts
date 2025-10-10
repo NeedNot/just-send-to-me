@@ -2,6 +2,7 @@ import type { ExpirationDuration } from './schemas';
 
 export const MS_IN_DAY = 1000 * 60 * 60 * 24;
 export const MS_IN_HOUR = 1000 * 60 * 60;
+export const MS_IN_MINUTE = 1000 * 60;
 
 export const expirationDurations: Record<ExpirationDuration, number> = {
   '1d': MS_IN_DAY * 1,

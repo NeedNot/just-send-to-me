@@ -1,7 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
-import { files } from '../db/schema';
-import { and, eq } from 'drizzle-orm';
-import { createId } from '@paralleldrive/cuid2';
+import { files, folders } from '../db/schema';
+import { and, eq, sql } from 'drizzle-orm';
 
 export const getFileById = (
   db: DrizzleD1Database & { $client: D1Database },
@@ -14,37 +13,19 @@ export const getFileById = (
     .get();
 };
 
-export const createFile = (
+export const insertFile = (
   db: DrizzleD1Database & { $client: D1Database },
-  {
-    folderId,
-    name,
-    userId,
-    size,
-  }: {
-    folderId: string;
-    name: string;
-    userId: string;
-    size: number;
-  },
+  r2Object: R2Object,
 ) => {
-  const id = createId();
-  const key = `${userId}/${folderId}/${id}`;
+  const id = r2Object.key.split('/')[r2Object.size - 1];
+  const { folderId, name } = r2Object.customMetadata ?? {};
+
+  if (!folderId || !name) {
+    throw Error('Custom metadata must contain folderId and name');
+  }
   return db
     .insert(files)
-    .values({ id, folderId, name, key, size })
-    .returning()
-    .get();
-};
-
-export const markFileUploaded = (
-  db: DrizzleD1Database & { $client: D1Database },
-  { key }: { key: string },
-) => {
-  return db
-    .update(files)
-    .set({ uploaded: true })
-    .where(eq(files.key, key))
+    .values({ id, folderId, name, key: r2Object.key, size: r2Object.size })
     .returning()
     .get();
 };
