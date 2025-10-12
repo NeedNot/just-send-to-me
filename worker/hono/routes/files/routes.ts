@@ -89,11 +89,31 @@ export const getFilePartUploadUrl = createRoute({
   },
 });
 
-export const abortUpload = createRoute({
-  method: 'post',
-  path: '/files/upload/:uploadId/abort',
-  request: {},
-  responses: {},
+export const abortFileUpload = createRoute({
+  method: 'delete',
+  path: '/files/upload',
+  request: {
+    query: z.object({
+      uploadId: z
+        .string()
+        .min(1)
+        .openapi({
+          param: {
+            name: 'uploadId',
+            in: 'query',
+          },
+        }),
+      key: z
+        .string()
+        .min(1)
+        .openapi({ param: { name: 'key', in: 'query' } }),
+    }),
+  },
+  responses: {
+    204: {
+      description: 'Upload aborted',
+    },
+  },
 });
 
 export const completeFileUpload = createRoute({
@@ -141,3 +161,4 @@ export const completeFileUpload = createRoute({
 export type UploadNewFileRoute = typeof uploadNewFile;
 export type GetFilePartUploadUrl = typeof getFilePartUploadUrl;
 export type CompleteFileUpload = typeof completeFileUpload;
+export type AbortFileUpload = typeof abortFileUpload;

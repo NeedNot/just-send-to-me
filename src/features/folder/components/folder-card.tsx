@@ -9,20 +9,22 @@ import {
 } from '../../../components/ui/card';
 import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
-import { Download } from 'lucide-react';
+import { Check, Download, X } from 'lucide-react';
 import { Progress } from '../../../components/ui/progress';
-import { formatBytes } from '../../../lib/utils';
+import { downloadFile, formatBytes } from '../../../lib/utils';
 import type { File, Folder } from '@shared/schemas';
 import { FileUploader } from '@/features/file/components/file-uploader';
-import { FileDownloadButton } from '@/features/file/components/file-list';
 import { useDownloadFolder } from '../api/download-all-files';
 import { authClient } from '@/lib/better-auth';
-import { useMemo } from 'react';
 import TimeAgo, { type Unit } from 'react-timeago';
 import {
   useFileUploader,
   type FileStatus,
 } from '@/features/file/api/upload-file';
+import { useEffect, useMemo, useRef, type MouseEventHandler } from 'react';
+import { useCooldown } from '@/hooks/use-cooldown';
+import { getFileUrl } from '@/features/file/api/download-file';
+import { toast } from 'sonner';
 
 export function FolderCard({
   folder,
@@ -30,8 +32,46 @@ export function FolderCard({
 }: { folder: Folder } & React.ComponentProps<typeof Card>) {
   const expiresAt = new Date(folder.expiresAt);
   const { progress, downloading, downloadFolder } = useDownloadFolder();
-  const { upload, statuses } = useFileUploader(folder.id);
+  const { upload, statuses, abort } = useFileUploader(folder.id);
   const { data: session } = authClient.useSession();
+  const prevInprogressRef = useRef(new Set());
+
+  useEffect(() => {
+    const prevInprogress = prevInprogressRef.current;
+    const inprogress = new Set<string>();
+
+    for (const { id, name, status, error } of statuses) {
+      const wasPrev = prevInprogress.has(id);
+      if (wasPrev && status === 'complete') {
+        toast.success(name, { description: 'Successfully uploaded' });
+      } else if (wasPrev && status === 'failed') {
+        toast.error(name, { description: error || 'Failed to upload' });
+      } else if (status === 'preparing' || status === 'uploading') {
+        inprogress.add(id);
+      }
+    }
+
+    prevInprogressRef.current = inprogress;
+  }, [statuses]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (
+        statuses.some(
+          (s) => s.status === 'preparing' || s.status === 'uploading',
+        )
+      ) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [statuses, abort]);
 
   const isOwner = useMemo(
     () => session?.user.id === folder.creatorId,
@@ -103,7 +143,7 @@ export function FolderCard({
         {!!fileList.length && (
           <ul className="mt-2 max-h-96 overflow-scroll">
             {fileList.map((f) => (
-              <FileListItem key={f.id} file={f} />
+              <FileListItem key={f.id} file={f} onAbort={() => abort(f.id)} />
             ))}
           </ul>
         )}
@@ -131,7 +171,13 @@ function EmptyList() {
   );
 }
 
-function FileListItem({ file }: { file: File | FileStatus }) {
+function FileListItem({
+  file,
+  onAbort,
+}: {
+  file: File | FileStatus;
+  onAbort?: MouseEventHandler<HTMLButtonElement>;
+}) {
   return (
     <li
       className="flex w-full items-center rounded-md border p-3 not-last:mb-2"
@@ -161,9 +207,49 @@ function FileListItem({ file }: { file: File | FileStatus }) {
         )}
       </div>
       {/* buttons */}
+      {'status' in file &&
+        (file.status === 'uploading' || file.status === 'preparing') && (
+          <AbortFileUploadButton onClick={onAbort} />
+        )}
       {'key' in file && (
         <FileDownloadButton name={file.name} objectKey={file.key} />
       )}
     </li>
+  );
+}
+
+function FileDownloadButton({
+  name,
+  objectKey,
+}: {
+  name: string;
+  objectKey: string;
+}) {
+  const { cooldown, startCooldown } = useCooldown(2000);
+
+  const handleDownload = () => {
+    downloadFile(name, getFileUrl(objectKey));
+    startCooldown();
+  };
+
+  return (
+    <Button
+      variant="ghost"
+      onClick={() => handleDownload()}
+      size="icon"
+      className="size-7"
+    >
+      {cooldown ? <Check /> : <Download />}
+    </Button>
+  );
+}
+
+function AbortFileUploadButton({
+  ...props
+}: React.ComponentProps<typeof Button>) {
+  return (
+    <Button variant="ghost" {...props} size="icon" className="size-7">
+      <X />
+    </Button>
   );
 }

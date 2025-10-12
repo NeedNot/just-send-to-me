@@ -1,7 +1,6 @@
 import { uploadWithProgress } from '@/lib/utils';
 import type { Folder } from '@shared/schemas';
 import { useQueryClient } from '@tanstack/react-query';
-import { constrainedMemory } from 'process';
 import { useCallback, useState } from 'react';
 
 type UploadStatus = 'preparing' | 'uploading' | 'failed' | 'complete';
@@ -13,6 +12,7 @@ export type FileStatus = {
   status: UploadStatus;
   size: number;
   error?: string | undefined;
+  controller?: AbortController;
 };
 
 interface UploadedPart {
@@ -26,6 +26,8 @@ export function useFileUploader(folderId: string) {
 
   const uploadFile = useCallback(async (file: File) => {
     const id = crypto.randomUUID();
+    const controller = new AbortController();
+
     setUploads((prev) => [
       ...prev,
       {
@@ -34,15 +36,21 @@ export function useFileUploader(folderId: string) {
         size: file.size,
         progress: 0,
         status: 'preparing',
+        controller,
       },
     ]);
 
     try {
-      const newFile = await uploadMultipartFile(folderId, file, (progress) => {
-        setUploads((prev) =>
-          prev.map((f) => (f.id === id ? { ...f, progress } : f)),
-        );
-      });
+      const newFile = await uploadMultipartFile(
+        folderId,
+        file,
+        (progress) => {
+          setUploads((prev) =>
+            prev.map((f) => (f.id === id ? { ...f, progress } : f)),
+          );
+        },
+        controller.signal,
+      );
 
       queryClient.setQueryData(['folder', folderId], (prev: Folder) => ({
         ...prev,
@@ -57,67 +65,117 @@ export function useFileUploader(folderId: string) {
       );
     } catch (e: any) {
       setUploads((prev) =>
-        prev.map((u) =>
-          u.id === id
-            ? { ...u, status: 'failed', error: e.message ?? 'Unknown error' }
-            : u,
+        prev.map((f) =>
+          f.id === id
+            ? { ...f, status: 'failed', error: e.message ?? 'Unknown error' }
+            : f,
         ),
       );
     }
   }, []);
 
-  return { upload: uploadFile, statuses: uploads };
+  const abortUpload = useCallback((id: string) => {
+    setUploads((prev) => {
+      const target = prev.find((u) => u.id === id);
+      if (target?.controller) {
+        target.controller.abort();
+      }
+      return prev.map((u) =>
+        u.id === id ? { ...u, status: 'failed', error: 'Upload canceled' } : u,
+      );
+    });
+  }, []);
+
+  return { upload: uploadFile, abort: abortUpload, statuses: uploads };
 }
 
 async function uploadMultipartFile(
   folderId: string,
   file: File,
   onProgress: (progress: number) => void,
+  abortSignal: AbortSignal,
 ) {
   const CHUNK_SIZE = 1024 * 1024 * 10;
-  const { uploadId, key } = await fetch(`/api/files/upload/new`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      folderId,
-      name: file.name,
-      size: file.size,
-    }),
-  }).then((res) => res.json());
+  let uploadId: string | undefined;
+  let key: string | undefined;
 
-  const partCount = Math.ceil(file.size / CHUNK_SIZE);
-  const uploadedParts: UploadedPart[] = [];
-
-  for (let i = 0; i < partCount; i++) {
-    const start = i * CHUNK_SIZE;
-    const end = Math.min(start + CHUNK_SIZE, file.size);
-    const blob = file.slice(start, end);
-
-    const { url } = await fetch(
-      `/api/files/upload/part/${i + 1}?uploadId=${uploadId}&key=${key}`,
-      { method: 'GET' },
-    ).then((res) => res.json());
-
-    // todo make this return to use it in the uploaded parts
-    const etag = await uploadWithProgress(url, blob, (e) => {
-      const totalUploaded = i * CHUNK_SIZE + e.loaded;
-      onProgress(Math.min(100, (totalUploaded / file.size) * 100));
+  const onAbort = () => {
+    if (key && uploadId) abortUpload(uploadId, key);
+  };
+  abortSignal.addEventListener('abort', onAbort);
+  try {
+    const res = await fetch(`/api/files/upload/new`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        folderId,
+        name: file.name,
+        size: file.size,
+      }),
+      signal: abortSignal,
     });
 
-    uploadedParts.push({
-      partNumber: i + 1,
-      etag,
-    });
-  }
-
-  return fetch(`/api/files/upload/complete?key=${key}&uploadId=${uploadId}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(uploadedParts),
-  }).then((res) => {
-    if (res.ok) {
-      return res.json();
+    if (!res.ok) {
+      throw new Error(
+        res.status === 413
+          ? 'File is too large for folder'
+          : 'Failed to initiate upload',
+      );
     }
-    throw Error(res.statusText);
+
+    ({ uploadId, key } = await res.json());
+
+    const partCount = Math.ceil(file.size / CHUNK_SIZE);
+    const uploadedParts: UploadedPart[] = [];
+
+    for (let i = 0; i < partCount; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(start + CHUNK_SIZE, file.size);
+      const blob = file.slice(start, end);
+
+      const res = await fetch(
+        `/api/files/upload/part/${i + 1}?uploadId=${uploadId}&key=${key}`,
+        { method: 'GET', signal: abortSignal },
+      );
+
+      if (!res.ok) {
+        throw new Error(res.statusText || 'Failed to fetch part');
+      }
+      const { url } = await res.json();
+
+      const etag = await uploadWithProgress(
+        url,
+        blob,
+        (e) => {
+          const totalUploaded = i * CHUNK_SIZE + e.loaded;
+          onProgress(Math.min(100, (totalUploaded / file.size) * 100));
+        },
+        abortSignal,
+      );
+
+      uploadedParts.push({
+        partNumber: i + 1,
+        etag,
+      });
+    }
+
+    return fetch(`/api/files/upload/complete?key=${key}&uploadId=${uploadId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(uploadedParts),
+      signal: abortSignal,
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      }
+      throw Error(res.statusText || 'Failed to complete upload');
+    });
+  } finally {
+  }
+}
+
+function abortUpload(uploadId: string, key: string) {
+  return fetch(`/api/files/upload?uploadId=${uploadId}&key=${key}`, {
+    method: 'DELETE',
   });
 }

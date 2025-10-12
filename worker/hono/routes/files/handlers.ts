@@ -5,28 +5,27 @@ import {
   getFolderById,
 } from '../../../repositories/folder-repository';
 import type {
+  AbortFileUpload,
   CompleteFileUpload,
   GetFilePartUploadUrl,
   UploadNewFileRoute,
 } from './routes';
 import { createAwsClient } from '../../../lib/s3';
 import {
-  createMultiPartUpload,
   createPresignedPartUploadUrl,
   listMultipartUploads,
 } from '../../../repositories/s3-repository';
 import { createId } from '@paralleldrive/cuid2';
-import { MS_IN_MINUTE } from '../../../../shared/constants';
-import type { Folder } from '../../../../shared/schemas';
 import { insertFile } from '../../../repositories/file-repository';
-import { size } from 'better-auth';
+import type { Folder } from '../../../../shared/schemas';
+import { MS_IN_HOUR, MS_IN_MINUTE } from '../../../../shared/constants';
 
 const bucket = 'files-bucket';
+const CHUNK_SIZE = 1024 * 1024 * 10;
 
-type PendingFile = {
-  key: string;
-  lastActive: number;
+export type PendingFile = {
   size: number;
+  lastActive: number;
 };
 
 export const uploadNewFile: AppRouteHandler<UploadNewFileRoute> = async (c) => {
@@ -45,9 +44,58 @@ export const uploadNewFile: AppRouteHandler<UploadNewFileRoute> = async (c) => {
     return c.json({ message: 'File is too large for folder' }, 413);
   }
 
+  const multipartUploads = await listMultipartUploads(createAwsClient(c.env), {
+    bucket,
+    prefix: folder.creatorId + '/' + folder.id,
+  });
+
+  const pendingFiles = multipartUploads.Upload
+    ? await c.env.PENDING_FILE_UPLOADS.get(
+        multipartUploads.Upload.map((u) => u.Key),
+        'json',
+      ).then(
+        (r) =>
+          new Map<string, PendingFile>(
+            [...r]
+              .filter((f) => f[1] !== null)
+              .map((f) => [f[0], f[1] as PendingFile] as [string, PendingFile]),
+          ),
+      )
+    : null;
+
+  if (pendingFiles) {
+    const cancellableItems = findCancellableUploadsForSpace(
+      size,
+      folder,
+      pendingFiles,
+    );
+
+    if (cancellableItems === null) {
+      return c.json({ message: 'File is too large for folder' }, 413);
+    }
+
+    const promises = multipartUploads.Upload!.map(async (u) => {
+      if (!cancellableItems.has(u.Key)) return;
+
+      const session = c.env.files_bucket.resumeMultipartUpload(
+        u.Key,
+        u.UploadId,
+      );
+      await Promise.all([
+        session.abort(),
+        c.env.PENDING_FILE_UPLOADS.delete(u.Key),
+      ]);
+    });
+    c.executionCtx.waitUntil(Promise.all(promises));
+  }
+
   const id = createId();
   const key = `${folder.creatorId}/${folderId}/${id}`;
-  c.env.PENDING_FILE_UPLOADS.put(key, JSON.stringify({ folderId, size, name }));
+  c.env.PENDING_FILE_UPLOADS.put(
+    key,
+    JSON.stringify({ size, lastActive: Date.now() }),
+    { expirationTtl: MS_IN_HOUR / 1000 },
+  );
   const res = await c.env.files_bucket.createMultipartUpload(key, {
     customMetadata: {
       folderId: folderId,
@@ -68,12 +116,32 @@ export const uploadFilePart: AppRouteHandler<GetFilePartUploadUrl> = async (
   const { partNumber } = c.req.param();
   const { uploadId, key } = c.req.query();
 
+  const kv = (await c.env.PENDING_FILE_UPLOADS.get(
+    key,
+    'json',
+  )) as PendingFile | null;
+
+  if (!kv || Math.ceil(kv.size / CHUNK_SIZE) < parseInt(partNumber)) {
+    return c.newResponse(null, 400);
+  }
+
+  const contentLength = String(
+    kv.size >= parseInt(partNumber) * CHUNK_SIZE
+      ? CHUNK_SIZE
+      : kv.size % CHUNK_SIZE,
+  );
+
+  c.env.PENDING_FILE_UPLOADS.put(
+    key,
+    JSON.stringify({ ...kv, lastActive: Date.now() }),
+  );
   const awsClient = createAwsClient(c.env);
   const signedUrl = await createPresignedPartUploadUrl(awsClient, {
     bucket,
     partNumber: parseInt(partNumber),
     uploadId,
     key,
+    contentLength,
   });
 
   return c.json({ url: signedUrl.url }, 200);
@@ -95,17 +163,16 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
     return c.newResponse(null, 400);
   }
 
-  const [cachedFile, objectHead] = await Promise.all([
+  const [{ size: promisedSize }, objectHead] = await Promise.all<[any, any]>([
     c.env.PENDING_FILE_UPLOADS.get(key, 'json'),
     c.env.files_bucket.head(key),
   ]);
-  if (!objectHead?.customMetadata || !cachedFile) {
+  if (!objectHead?.customMetadata || !promisedSize) {
     // clearly something went wrong, delete object
     await c.env.files_bucket.delete(key);
     return c.newResponse(null, 400);
   }
 
-  const { size: promisedSize } = cachedFile as PendingFile;
   // verify file size
   if (promisedSize !== objectHead.size) {
     await c.env.files_bucket.delete(key);
@@ -114,6 +181,7 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
       400,
     );
   }
+
   // insert into folder
   const db = drizzle(c.env.DB);
   try {
@@ -126,3 +194,45 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
     return c.newResponse(null, 400);
   }
 };
+
+export const abortFileUpload: AppRouteHandler<AbortFileUpload> = async (c) => {
+  const { uploadId, key } = c.req.query();
+
+  const session = c.env.files_bucket.resumeMultipartUpload(key, uploadId);
+  await Promise.all([session.abort(), c.env.PENDING_FILE_UPLOADS.delete(key)]);
+  return c.newResponse(null, 204);
+};
+
+function findCancellableUploadsForSpace(
+  newFileSize: number,
+  { size: folderSize, maxSize }: Folder,
+  pendingFiles: Map<string, PendingFile>,
+): Set<string> | null {
+  const cutoff = Date.now() - 1.5 * MS_IN_MINUTE;
+
+  const pendingEntries = Array.from(pendingFiles.entries());
+  const totalPending = pendingEntries.reduce((sum, [, f]) => sum + f.size, 0);
+  const remaining = maxSize - folderSize;
+
+  const overflow = totalPending + newFileSize - remaining;
+  if (overflow <= 0) {
+    return new Set();
+  }
+
+  const cancellable = pendingEntries
+    .filter(([, f]) => f.lastActive < cutoff)
+    .sort((a, b) => b[1].size - a[1].size);
+
+  let freed = 0;
+  const toAbort = new Set<string>();
+
+  for (const [key, file] of cancellable) {
+    toAbort.add(key);
+    freed += file.size;
+    if (freed >= overflow) break;
+  }
+
+  if (freed < overflow) return null;
+
+  return toAbort;
+}

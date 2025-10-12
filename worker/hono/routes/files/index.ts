@@ -6,4 +6,5 @@ import * as handlers from './handlers';
 export default new OpenAPIHono<AppBindings & AppVariables>()
   .openapi(routes.uploadNewFile, handlers.uploadNewFile)
   .openapi(routes.getFilePartUploadUrl, handlers.uploadFilePart)
-  .openapi(routes.completeFileUpload, handlers.completeFileUpload);
+  .openapi(routes.completeFileUpload, handlers.completeFileUpload)
+  .openapi(routes.abortFileUpload, handlers.abortFileUpload);

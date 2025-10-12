@@ -48,6 +48,7 @@ export function uploadWithProgress(
   url: string,
   blob: Blob,
   onProgress: (e: ProgressEvent) => void,
+  abortSignal?: AbortSignal,
 ) {
   const xhr = new XMLHttpRequest();
   return new Promise<string>((resolve, reject) => {
@@ -65,6 +66,8 @@ export function uploadWithProgress(
     xhr.addEventListener('abort', () => {
       reject(Error('Upload canceled'));
     });
+
+    abortSignal?.addEventListener('abort', () => xhr.abort());
 
     xhr.open('PUT', url, true);
     xhr.send(blob);

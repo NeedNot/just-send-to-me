@@ -16,7 +16,9 @@ export async function getObjectMetadata(
 export async function listMultipartUploads(
   client: AwsClient,
   { bucket, prefix }: { bucket: string; prefix?: string },
-) {
+): Promise<{
+  Upload?: { UploadId: string; Key: string; Initiated: string }[];
+}> {
   const res = await client.fetch(
     `${S3_URL}/${bucket}?uploads${prefix ? `&prefix=${prefix}` : ''}`,
     {
@@ -25,7 +27,15 @@ export async function listMultipartUploads(
   );
   const xml = await res.text();
   const parser = new XMLParser();
-  return parser.parse(xml);
+  const multipartUploadResult = parser.parse(xml)['ListMultipartUploadsResult'];
+  return {
+    ...multipartUploadResult,
+    Upload: multipartUploadResult.Upload
+      ? Array.isArray(multipartUploadResult.Upload)
+        ? multipartUploadResult.Upload
+        : [multipartUploadResult.Upload]
+      : undefined,
+  };
 }
 
 export async function createMultiPartUpload(
@@ -51,9 +61,20 @@ export function createPresignedPartUploadUrl(
     key,
     partNumber,
     uploadId,
-  }: { bucket: string; key: string; partNumber: number; uploadId: string },
+    contentLength,
+  }: {
+    bucket: string;
+    key: string;
+    partNumber: number;
+    uploadId: string;
+    contentLength: string;
+  },
 ) {
   const url = `${S3_URL}/${bucket}/${key}?partNumber=${partNumber}&uploadId=${uploadId}`;
   // todo size limit
-  return client.sign(url, { aws: { signQuery: true }, method: 'PUT' });
+  return client.sign(url, {
+    aws: { signQuery: true },
+    headers: { 'Content-Length': contentLength },
+    method: 'PUT',
+  });
 }
