@@ -2,6 +2,7 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
 import { user } from './auth-schema';
+import { MS_IN_DAY } from '../../shared/constants';
 
 // todo rename column names to snake case
 
@@ -19,6 +20,9 @@ export const folders = sqliteTable('folders', {
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
     .default(sql`(unixepoch() * 1000)`),
+  effectiveQuotaTill: integer({ mode: 'timestamp_ms' })
+    .default(new Date(Date.now() + MS_IN_DAY * 30))
+    .notNull(),
 });
 
 export const files = sqliteTable('files', {

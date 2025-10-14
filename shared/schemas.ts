@@ -1,6 +1,6 @@
 import { z } from '@hono/zod-openapi';
 
-export const folderExpirationDuration = z.enum(['1d', '3d', '7d']);
+export const folderExpirationDuration = z.enum(['1d', '2d', '3d', '7d']);
 
 export const fileSchema = z.object({
   id: z.string(),

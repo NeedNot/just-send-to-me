@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `effectiveQuotaTill` integer DEFAULT '"2025-11-13T23:02:52.246Z"' NOT NULL;

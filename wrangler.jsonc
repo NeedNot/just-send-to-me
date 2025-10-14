@@ -1,7 +1,7 @@
 {
   "name": "just-send-to-me",
   "main": "./worker/index.ts",
-  "compatibility_date": "2025-07-15",
+  "compatibility_date": "2025-10-14",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
     "directory": "./dist",
@@ -20,7 +20,7 @@
   "r2_buckets": [
     {
       "bucket_name": "files-bucket",
-      "binding": "files_bucket",
+      "binding": "files_bucket", //todo change to caps
       "preview_bucket_name": "preview-files-bucket",
       "experimental_remote": true,
     },

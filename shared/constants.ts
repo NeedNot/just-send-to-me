@@ -4,8 +4,9 @@ export const MS_IN_DAY = 1000 * 60 * 60 * 24;
 export const MS_IN_HOUR = 1000 * 60 * 60;
 export const MS_IN_MINUTE = 1000 * 60;
 
-export const expirationDurations: Record<ExpirationDuration, number> = {
+export const EXPIRATION_DURATIONS: Record<ExpirationDuration, number> = {
   '1d': MS_IN_DAY * 1,
+  '2d': MS_IN_DAY * 2,
   '3d': MS_IN_DAY * 3,
   '7d': MS_IN_DAY * 7,
 };

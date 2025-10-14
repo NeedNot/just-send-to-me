@@ -33,7 +33,6 @@ export const uploadRateLimiter = async (
   c: Context<AppVariables & AppBindings>,
   next: any,
 ) => {
-  console.log('hello world');
   const ip = c.req.header('cf-connecting-ip') || '';
   const userId = c.get('user')?.id;
   const { success } = await c.env.FILE_UPLOAD_RATE_LIMITER.limit({
