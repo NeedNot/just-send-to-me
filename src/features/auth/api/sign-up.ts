@@ -16,11 +16,29 @@ async function signUp(credentials: EmailCredientals) {
   }
 }
 
+async function sendVerificationEmail(email: string) {
+  const { error } = await authClient.sendVerificationEmail({
+    email,
+  });
+  if (error) {
+    throw error;
+  }
+}
+
 export function useSignUp(
   mutationConfig: UseMutationOptions<any, Error, EmailCredientals> = {},
 ) {
   return useMutation<any, Error, EmailCredientals>({
     mutationFn: signUp,
+    ...mutationConfig,
+  });
+}
+
+export function useEmailVerification(
+  mutationConfig: UseMutationOptions<any, Error, string> = {},
+) {
+  return useMutation({
+    mutationFn: sendVerificationEmail,
     ...mutationConfig,
   });
 }

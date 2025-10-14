@@ -6,14 +6,19 @@ async function signIn(credentials: { email: string; password: string }) {
     ...credentials,
   });
   if (error) {
-    throw error;
+    throw { ...error, email: credentials.email };
   }
 }
 
 export function useSignIn(
   mutationConfig: UseMutationOptions<
     any,
-    Error,
+    {
+      code?: string | undefined;
+      message?: string | undefined;
+      status: number;
+      statusText: string;
+    },
     { email: string; password: string }
   > = {},
 ) {

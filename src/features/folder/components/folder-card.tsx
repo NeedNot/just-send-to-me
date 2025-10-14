@@ -225,7 +225,7 @@ function FileDownloadButton({
   name: string;
   objectKey: string;
 }) {
-  const { cooldown, startCooldown } = useCooldown(2000);
+  const { timeLeft, startCooldown } = useCooldown(2000);
 
   const handleDownload = () => {
     downloadFile(name, getFileUrl(objectKey));
@@ -239,7 +239,7 @@ function FileDownloadButton({
       size="icon"
       className="size-7"
     >
-      {cooldown ? <Check /> : <Download />}
+      {timeLeft > 0 ? <Check /> : <Download />}
     </Button>
   );
 }

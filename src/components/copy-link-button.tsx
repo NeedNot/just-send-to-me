@@ -14,7 +14,7 @@ export default function CopyLinkButton({
   link,
   ...props
 }: CopyLinkButtonProps) {
-  const { cooldown, startCooldown } = useCooldown(2000);
+  const { timeLeft, startCooldown } = useCooldown(2000);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
@@ -24,12 +24,12 @@ export default function CopyLinkButton({
   return (
     <Button
       size="sm"
-      variant={cooldown ? 'secondary' : 'default'}
+      variant={timeLeft > 0 ? 'secondary' : 'default'}
       onClick={handleCopy}
       {...props}
       className={'transition-colors duration-200' + ' ' + props.className}
     >
-      {cooldown ? 'Copied!' : <Link />}
+      {timeLeft > 0 ? 'Copied!' : <Link />}
     </Button>
   );
 }

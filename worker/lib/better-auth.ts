@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
 import { createUserMetadata } from '../repositories/user-metadata-repository';
+import { isEmailDomainDisposable, sendVerificationEmail } from './email';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);
@@ -15,6 +16,14 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     basePath: '/api/auth',
     emailAndPassword: {
       enabled: true,
+      requireEmailVerification: true,
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url, token }, request) => {
+        await sendVerificationEmail(user.email, url);
+      },
     },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
@@ -23,7 +32,14 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         }
         if (ctx.body?.name.length < 2) {
           throw new APIError('BAD_REQUEST', {
-            message: 'Name too short',
+            message: 'Name is too short',
+          });
+        }
+        const email = ctx.body?.email.toLowerCase() ?? '';
+        const domain = email.split('@')[1];
+        if (await isEmailDomainDisposable(domain)) {
+          throw new APIError('FORBIDDEN', {
+            message: 'Cannot create account at this time',
           });
         }
       }),
