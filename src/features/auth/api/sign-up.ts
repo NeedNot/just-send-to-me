@@ -8,37 +8,68 @@ export type EmailCredientals = {
 };
 
 async function signUp(credentials: EmailCredientals) {
-  const { error } = await authClient.signUp.email({
+  const { error, data } = await authClient.signUp.email({
     ...credentials,
+  });
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
+async function sendOTPEmail(email: string) {
+  const { error } = await authClient.emailOtp.sendVerificationOtp({
+    email,
+    type: 'email-verification',
   });
   if (error) {
     throw error;
   }
 }
 
-async function sendVerificationEmail(email: string) {
-  const { error } = await authClient.sendVerificationEmail({
-    email,
-  });
+async function verifyOTP(credentials: { email: string; otp: string }) {
+  const { error } = await authClient.emailOtp.verifyEmail(credentials);
   if (error) {
     throw error;
   }
 }
 
 export function useSignUp(
-  mutationConfig: UseMutationOptions<any, Error, EmailCredientals> = {},
+  mutationConfig: UseMutationOptions<
+    Awaited<ReturnType<typeof signUp>>,
+    Error,
+    EmailCredientals
+  > = {},
 ) {
-  return useMutation<any, Error, EmailCredientals>({
+  return useMutation<
+    Awaited<ReturnType<typeof signUp>>,
+    Error,
+    EmailCredientals
+  >({
     mutationFn: signUp,
     ...mutationConfig,
   });
 }
 
-export function useEmailVerification(
-  mutationConfig: UseMutationOptions<any, Error, string> = {},
-) {
-  return useMutation({
-    mutationFn: sendVerificationEmail,
-    ...mutationConfig,
+export function useOTPVerification({
+  onVerificationSuccess,
+}: {
+  onVerificationSuccess?: () => void;
+}) {
+  const sendOTP = useMutation({
+    mutationFn: sendOTPEmail,
   });
+
+  const checkOTP = useMutation({
+    mutationFn: verifyOTP,
+    onSuccess: onVerificationSuccess,
+  });
+
+  return {
+    sendOTP: sendOTP.mutate,
+    checkOTP: checkOTP.mutate,
+
+    isPending: sendOTP.isPending || checkOTP.isPending,
+    error: sendOTP.error || checkOTP.error,
+  };
 }

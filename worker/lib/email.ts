@@ -23,12 +23,12 @@ const transport = nodemailer.createTransport({
   },
 });
 
-export async function sendVerificationEmail(email: string, url: string) {
+export async function sendVerificationEmail(email: string, otp: string) {
   const mailOptions = {
     from: `"Just send to me" <noreply@${SMTP_DOMAIN}>`,
     to: email,
     subject: 'Verify your email address',
-    html: 'Please verify ' + url,
+    html: 'Please verify ' + otp,
   };
 
   const info = await transport.sendMail(mailOptions);

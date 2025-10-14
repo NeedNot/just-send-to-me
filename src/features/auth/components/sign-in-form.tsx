@@ -2,11 +2,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter, useSearch } from '@tanstack/react-router';
 import { useSignIn } from '../api/sign-in';
 import type React from 'react';
 import { ContinueWithGoogle } from './social-sign-in';
-import { VerifyEmailModal } from './verify-email-modal';
+import { VerifyEmailDialog } from './verify-email-dialog';
 import { useState } from 'react';
 
 export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
@@ -14,14 +14,15 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [pendingEmail, setPendingEmail] = useState('');
 
   const signIn = useSignIn({
-    onError: (error: any) => {
+    onError: (error) => {
       if (error.code === 'EMAIL_NOT_VERIFIED') {
-        return setPendingEmail(error.email);
+        setPendingEmail(error.email);
       }
       toast.error(error.message);
     },
     onSuccess: () => {
-      router.navigate({ to: '/' });
+      const redirectTo = router.state.location.search.redirect ?? '/';
+      router.navigate({ to: redirectTo });
     },
   });
 
@@ -40,9 +41,14 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
 
   return (
     <>
-      <VerifyEmailModal
+      <VerifyEmailDialog
+        sendOnOpen={true}
         email={pendingEmail}
         open={!!pendingEmail}
+        onVerificationSuccess={() => {
+          const redirectTo = router.state.location.search.redirect ?? '/';
+          router.navigate({ to: redirectTo });
+        }}
         onOpenChange={() => setPendingEmail('')}
       />
       <Card {...props}>
@@ -86,9 +92,15 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
             </div>
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{' '}
-              <a href="/sign-up" className="underline underline-offset-4">
+              <Link
+                to="/sign-up"
+                search={{
+                  redirect: router.state.location.search.redirect,
+                }}
+                className="underline underline-offset-4"
+              >
                 Sign up
-              </a>
+              </Link>
             </div>
           </form>
         </CardContent>

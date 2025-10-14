@@ -15,10 +15,8 @@ import { useRouter } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/better-auth';
-import { useSignUpPrompter } from '@/features/auth/components/sign-up-prompter';
 
 export function CreateFolderForm() {
-  const { promptSignUp } = useSignUpPrompter();
   const { data: session, isPending: sessionPending } = authClient.useSession();
   const router = useRouter();
   const createFolder = useCreateFolder({
@@ -42,7 +40,7 @@ export function CreateFolderForm() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!session) {
-      promptSignUp();
+      router.navigate({ to: '/sign-up', search: { redirect: undefined } }); //will redirect to here ('/') anyway
       return;
     }
 

@@ -18,6 +18,7 @@ export function useSignIn(
       message?: string | undefined;
       status: number;
       statusText: string;
+      email: string;
     },
     { email: string; password: string }
   > = {},

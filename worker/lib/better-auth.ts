@@ -5,6 +5,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
 import { createUserMetadata } from '../repositories/user-metadata-repository';
 import { isEmailDomainDisposable, sendVerificationEmail } from './email';
+import { emailOTP } from 'better-auth/plugins';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);
@@ -16,15 +17,22 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     basePath: '/api/auth',
     emailAndPassword: {
       enabled: true,
+      autoSignIn: true,
       requireEmailVerification: true,
     },
     emailVerification: {
-      sendOnSignUp: true,
       autoSignInAfterVerification: true,
-      sendVerificationEmail: async ({ user, url, token }, request) => {
-        await sendVerificationEmail(user.email, url);
-      },
     },
+    plugins: [
+      emailOTP({
+        async sendVerificationOTP({ email, otp, type }) {
+          if (type === 'email-verification') {
+            await sendVerificationEmail(email, otp);
+          }
+        },
+        overrideDefaultEmailVerification: true,
+      }),
+    ],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         if (ctx.path !== '/sign-up/email') {

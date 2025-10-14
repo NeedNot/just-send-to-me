@@ -10,12 +10,14 @@ import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { useSignUp } from '../api/sign-up';
 import { toast } from 'sonner';
-import { useRouter } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { ContinueWithGoogle } from './social-sign-in';
+import { VerifyEmailDialog } from './verify-email-dialog';
 
 export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [showEmailSignUpForm, setShowEmailSignUpForm] = useState(false);
+  const [showVerifyDialog, setShowVerifyDialog] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const router = useRouter();
 
@@ -23,8 +25,13 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
     onError: (error: Error) => {
       toast.error(error.message);
     },
-    onSuccess: () => {
-      router.navigate({ to: '/' });
+    onSuccess: (data) => {
+      if (!data.user.emailVerified) {
+        setShowVerifyDialog(true);
+        return;
+      }
+      const redirectTo = router.state.location.search.redirect ?? '/';
+      router.navigate({ to: redirectTo });
     },
   });
 
@@ -48,59 +55,77 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   };
 
   return (
-    <Card {...props}>
-      <CardHeader>
-        <CardTitle>Create account</CardTitle>
-        {showEmailSignUpForm && (
-          <CardDescription>
-            <a
-              href="#"
-              onClick={() => setShowEmailSignUpForm(false)}
-              className="flex items-center gap-1"
-            >
-              <ArrowLeft size={16} /> Go back
-            </a>
-          </CardDescription>
-        )}
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-6">
-            {showEmailSignUpForm ? (
-              <EmailSignUpForm value={emailInput} onChange={setEmailInput} />
-            ) : (
-              <>
-                <ContinueWithGoogle />
-                <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                  <span className="bg-card text-muted-foreground relative z-10 px-2">
-                    Or continue with
-                  </span>
-                </div>
-                <Input
-                  autoComplete="off"
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="Email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.currentTarget.value)}
-                  required
-                />
-              </>
-            )}
-            <Button disabled={signUp.isPending}>
-              {!showEmailSignUpForm ? 'Continue with email' : 'Sign Up'}
-            </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <a href="/sign-in" className="underline underline-offset-4">
-              Sign In
-            </a>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+    <>
+      <VerifyEmailDialog
+        sendOnOpen={true}
+        email={emailInput}
+        open={showVerifyDialog}
+        onVerificationSuccess={() => {
+          const redirectTo = router.state.location.search.redirect ?? '/';
+          router.navigate({ to: redirectTo });
+        }}
+        onOpenChange={setShowVerifyDialog}
+      />
+      <Card {...props}>
+        <CardHeader>
+          <CardTitle>Create account</CardTitle>
+          {showEmailSignUpForm && (
+            <CardDescription>
+              <a
+                href="#"
+                onClick={() => setShowEmailSignUpForm(false)}
+                className="flex items-center gap-1"
+              >
+                <ArrowLeft size={16} /> Go back
+              </a>
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-6">
+              {showEmailSignUpForm ? (
+                <EmailSignUpForm value={emailInput} onChange={setEmailInput} />
+              ) : (
+                <>
+                  <ContinueWithGoogle />
+                  <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
+                    <span className="bg-card text-muted-foreground relative z-10 px-2">
+                      Or continue with
+                    </span>
+                  </div>
+                  <Input
+                    autoComplete="off"
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="Email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.currentTarget.value)}
+                    required
+                  />
+                </>
+              )}
+              <Button disabled={signUp.isPending}>
+                {!showEmailSignUpForm ? 'Continue with email' : 'Sign Up'}
+              </Button>
+            </div>
+            <div className="mt-4 text-center text-sm">
+              Already have an account?{' '}
+              <Link
+                to="/sign-in"
+                search={{
+                  redirect: router.state.location.search.redirect,
+                }}
+                className="underline underline-offset-4"
+              >
+                Sign In
+              </Link>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
