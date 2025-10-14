@@ -4,8 +4,10 @@ import {
   uploadFileResponseSchema,
   uploadNewFileSchema,
 } from '../../../../shared/schemas';
+import { uploadRateLimiter } from '../../middleware/rate-limiters';
 
 export const uploadNewFile = createRoute({
+  middleware: uploadRateLimiter,
   method: 'post',
   path: '/files/upload/new',
   request: {

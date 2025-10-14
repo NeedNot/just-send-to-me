@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { Link, useRouter, useSearch } from '@tanstack/react-router';
+import { Link, useRouter } from '@tanstack/react-router';
 import { useSignIn } from '../api/sign-in';
 import type React from 'react';
 import { ContinueWithGoogle } from './social-sign-in';
@@ -17,8 +17,9 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
     onError: (error) => {
       if (error.code === 'EMAIL_NOT_VERIFIED') {
         setPendingEmail(error.email);
+        return;
       }
-      toast.error(error.message);
+      toast.error(error.message ?? 'Unable to sign in');
     },
     onSuccess: () => {
       const redirectTo = router.state.location.search.redirect ?? '/';

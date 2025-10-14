@@ -2,9 +2,8 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import folderRoutes from './hono/routes/folders';
 import fileRoutes from './hono/routes/files';
 import accountRoutes from './hono/routes/account';
-import type { AppBindings, AppVariables, EventNotification } from './lib/types';
+import type { AppBindings, AppVariables } from './lib/types';
 import { drizzle } from 'drizzle-orm/d1/driver';
-import { addFileMetaToFolder } from './repositories/folder-repository';
 import { auth } from './lib/better-auth';
 import { files, folders } from './db/schema';
 import { and, eq, inArray, lt } from 'drizzle-orm';
@@ -36,7 +35,7 @@ app.route('/api', accountRoutes);
 export { app };
 
 export default {
-  scheduled: async (controller, env, ctx) => {
+  scheduled: async (_, env, __) => {
     const db = drizzle(env.DB);
     const expiredFolderIds = await db
       .select({ id: folders.id })

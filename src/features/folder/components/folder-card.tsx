@@ -100,7 +100,6 @@ export function FolderCard({
       <CardHeader>
         <CardTitle>{folder.name}</CardTitle>
         <CardDescription>
-          {/* todo tooltip */}
           {expiresAt < new Date() ? (
             <span title={expiresAt.toLocaleString()}>Expired</span>
           ) : (

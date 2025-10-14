@@ -23,7 +23,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
 
   const signUp = useSignUp({
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message ?? 'Unable to sign up');
     },
     onSuccess: (data) => {
       if (!data.user.emailVerified) {

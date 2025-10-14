@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
-import { files, folders } from '../db/schema';
-import { and, eq, sql } from 'drizzle-orm';
+import { files } from '../db/schema';
+import { and, eq } from 'drizzle-orm';
 
 export const getFileById = (
   db: DrizzleD1Database & { $client: D1Database },

@@ -1,5 +1,4 @@
 import { z } from '@hono/zod-openapi';
-import { object } from 'better-auth';
 
 export const folderExpirationDuration = z.enum(['1d', '3d', '7d']);
 

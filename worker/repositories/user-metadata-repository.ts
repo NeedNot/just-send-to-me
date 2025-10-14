@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { user_metadata } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 
 export const createUserMetadata = (
   db: DrizzleD1Database & { $client: D1Database },

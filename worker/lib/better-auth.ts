@@ -35,6 +35,13 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     ],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
+        const ip = ctx.headers?.get('cf-connecting-ip') || '';
+        const { success } = await env.GENERAL_RATE_LIMITER.limit({ key: ip });
+
+        if (!success) {
+          throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
+        }
+
         if (ctx.path !== '/sign-up/email') {
           return;
         }

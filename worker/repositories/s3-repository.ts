@@ -71,7 +71,6 @@ export function createPresignedPartUploadUrl(
   },
 ) {
   const url = `${S3_URL}/${bucket}/${key}?partNumber=${partNumber}&uploadId=${uploadId}`;
-  // todo size limit
   return client.sign(url, {
     aws: { signQuery: true },
     headers: { 'Content-Length': contentLength },

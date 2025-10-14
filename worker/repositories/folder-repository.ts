@@ -1,5 +1,5 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
-import { and, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { files, folders, user_metadata } from '../db/schema';
 import type { File } from '../../shared/schemas';
 
