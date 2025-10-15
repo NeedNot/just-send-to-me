@@ -11,10 +11,10 @@
 import { Route as rootRouteImport } from './app/routes/__root'
 import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
+import { Route as AccountRouteImport } from './app/routes/account'
 import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as FolderIdRouteImport } from './app/routes/folder.$id'
-import { Route as AccountMyFoldersRouteImport } from './app/routes/account/my-folders'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -24,6 +24,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -41,35 +46,30 @@ const FolderIdRoute = FolderIdRouteImport.update({
   path: '/folder/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountMyFoldersRoute = AccountMyFoldersRouteImport.update({
-  id: '/account/my-folders',
-  path: '/account/my-folders',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account': typeof AccountRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/account/my-folders': typeof AccountMyFoldersRoute
   '/folder/$id': typeof FolderIdRoute
 }
 export interface FileRouteTypes {
@@ -77,34 +77,28 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/account'
     | '/sign-in'
     | '/sign-up'
-    | '/account/my-folders'
     | '/folder/$id'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/about'
-    | '/sign-in'
-    | '/sign-up'
-    | '/account/my-folders'
-    | '/folder/$id'
+  to: '/' | '/about' | '/account' | '/sign-in' | '/sign-up' | '/folder/$id'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/account'
     | '/sign-in'
     | '/sign-up'
-    | '/account/my-folders'
     | '/folder/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountRoute: typeof AccountRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  AccountMyFoldersRoute: typeof AccountMyFoldersRoute
   FolderIdRoute: typeof FolderIdRoute
 }
 
@@ -122,6 +116,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -145,22 +146,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FolderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account/my-folders': {
-      id: '/account/my-folders'
-      path: '/account/my-folders'
-      fullPath: '/account/my-folders'
-      preLoaderRoute: typeof AccountMyFoldersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountRoute: AccountRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  AccountMyFoldersRoute: AccountMyFoldersRoute,
   FolderIdRoute: FolderIdRoute,
 }
 export const routeTree = rootRouteImport

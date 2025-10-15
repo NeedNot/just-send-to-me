@@ -29,11 +29,9 @@ import { formatBytes } from '@/lib/utils';
 
 export function MyFoldersCard({
   folders,
-  maxFolders,
   ...props
 }: {
   folders: Folder[];
-  maxFolders: number;
 } & React.ComponentProps<typeof Card>) {
   const router = useRouter();
   const onFolderClick = useCallback((id: string) => {
@@ -43,20 +41,13 @@ export function MyFoldersCard({
     <Card {...props}>
       <CardHeader>
         <CardTitle>Active folders</CardTitle>
-        <CardDescription>Something here</CardDescription>
+        <CardDescription>
+          Once folders expire you will not be able to access the files
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {folders && (
           <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-end justify-between">
-                <div>Folders used</div>
-                <div className="text-muted-foreground ml-auto text-right text-sm">
-                  {`${folders.length} of ${maxFolders} used`}
-                </div>
-              </div>
-              <Progress value={(folders.length / maxFolders) * 100} />
-            </div>
             <Table>
               <TableHeader>
                 <TableRow>
