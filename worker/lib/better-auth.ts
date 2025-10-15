@@ -5,7 +5,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
 import { createUserMetadata } from '../repositories/user-metadata-repository';
 import { isEmailDomainDisposable, sendVerificationEmail } from './email';
-import { emailOTP } from 'better-auth/plugins';
+import { captcha, emailOTP } from 'better-auth/plugins';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);
@@ -24,6 +24,11 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       autoSignInAfterVerification: true,
     },
     plugins: [
+      captcha({
+        provider: 'cloudflare-turnstile',
+        secretKey: env.TURNSTILE_SECRET_KEY,
+        endpoints: ['/email-otp/verify-email'],
+      }),
       emailOTP({
         async sendVerificationOTP({ email, otp, type }) {
           if (type === 'email-verification') {

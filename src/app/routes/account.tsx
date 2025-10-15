@@ -20,12 +20,11 @@ function RouteComponent() {
   const [current, setCurrent] = useState('');
   // todo implement everything
   const session = authClient.useSession();
+  const account = useMyAccount();
 
   if (!session.data && !session.isPending) {
     router.navigate({ to: '/sign-in', search: { redirect: '/account' } });
   }
-
-  const account = useMyAccount();
 
   return (
     <>

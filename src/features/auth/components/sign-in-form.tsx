@@ -6,12 +6,19 @@ import { Link, useRouter } from '@tanstack/react-router';
 import { useSignIn } from '../api/sign-in';
 import type React from 'react';
 import { ContinueWithGoogle } from './social-sign-in';
-import { VerifyEmailDialog } from './verify-email-dialog';
 import { useState } from 'react';
+import { VerifyOtpDialog } from './verify-otp-dialog';
+import { useOTPVerification } from '../api/sign-up';
 
 export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
   const [pendingEmail, setPendingEmail] = useState('');
+  const { sendOTP, verifyOTP } = useOTPVerification({
+    onVerificationSuccess() {
+      const redirectTo = router.state.location.search.redirect ?? '/';
+      router.navigate({ to: redirectTo });
+    },
+  });
 
   const signIn = useSignIn({
     onError: (error) => {
@@ -40,17 +47,31 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
     signIn.mutate({ email, password });
   };
 
+  const handleVerify = async (otp: string, turnstileToken?: string) => {
+    if (!turnstileToken) {
+      throw Error('Unable to verify you are not a robot');
+    }
+    try {
+      await verifyOTP({ email: pendingEmail, otp, turnstileToken });
+    } catch (e: any) {
+      if (e.code === 'INVALID_OTP') return false;
+      throw e;
+    }
+    return true;
+  };
+
+  const handleResend = async () => {
+    await sendOTP(pendingEmail);
+  };
+
   return (
     <>
-      <VerifyEmailDialog
-        sendOnOpen={true}
-        email={pendingEmail}
+      <VerifyOtpDialog
         open={!!pendingEmail}
-        onVerificationSuccess={() => {
-          const redirectTo = router.state.location.search.redirect ?? '/';
-          router.navigate({ to: redirectTo });
-        }}
         onOpenChange={() => setPendingEmail('')}
+        onResend={handleResend}
+        onVerify={handleVerify}
+        turnstileKey="0x4AAAAAAB6OHFZzfENBjn5f" //todo dont hard code
       />
       <Card {...props}>
         <CardHeader>

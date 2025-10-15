@@ -27,8 +27,26 @@ async function sendOTPEmail(email: string) {
   }
 }
 
-async function verifyOTP(credentials: { email: string; otp: string }) {
-  const { error } = await authClient.emailOtp.verifyEmail(credentials);
+async function verifyOTP({
+  email,
+  otp,
+  turnstileToken,
+}: {
+  email: string;
+  otp: string;
+  turnstileToken?: string;
+}) {
+  const { error } = await authClient.emailOtp.verifyEmail({
+    email,
+    otp,
+    fetchOptions: turnstileToken
+      ? {
+          headers: {
+            'x-captcha-response': turnstileToken,
+          },
+        }
+      : undefined,
+  });
   if (error) {
     throw error;
   }
@@ -66,8 +84,8 @@ export function useOTPVerification({
   });
 
   return {
-    sendOTP: sendOTP.mutate,
-    checkOTP: checkOTP.mutate,
+    sendOTP: sendOTP.mutateAsync,
+    verifyOTP: checkOTP.mutateAsync,
 
     isPending: sendOTP.isPending || checkOTP.isPending,
     error: sendOTP.error || checkOTP.error,

@@ -8,16 +8,22 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
-import { useSignUp } from '../api/sign-up';
+import { useOTPVerification, useSignUp } from '../api/sign-up';
 import { toast } from 'sonner';
 import { Link, useRouter } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { ContinueWithGoogle } from './social-sign-in';
-import { VerifyEmailDialog } from './verify-email-dialog';
+import { VerifyOtpDialog } from './verify-otp-dialog';
 
 export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   const [showEmailSignUpForm, setShowEmailSignUpForm] = useState(false);
   const [showVerifyDialog, setShowVerifyDialog] = useState(false);
+  const { sendOTP, verifyOTP } = useOTPVerification({
+    onVerificationSuccess() {
+      const redirectTo = router.state.location.search.redirect ?? '/';
+      router.navigate({ to: redirectTo });
+    },
+  });
   const [emailInput, setEmailInput] = useState('');
   const router = useRouter();
 
@@ -54,17 +60,31 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
     signUp.mutate({ name, email, password });
   };
 
+  const handleVerify = async (otp: string, turnstileToken?: string) => {
+    if (!turnstileToken) {
+      throw Error('Unable to verify you are not a robot');
+    }
+    try {
+      await verifyOTP({ email: emailInput, otp });
+    } catch (e: any) {
+      if (e.code === 'INVALID_OTP') return false;
+      throw e;
+    }
+    return true;
+  };
+
+  const handleResend = async () => {
+    await sendOTP(emailInput);
+  };
+
   return (
     <>
-      <VerifyEmailDialog
-        sendOnOpen={true}
-        email={emailInput}
+      <VerifyOtpDialog
         open={showVerifyDialog}
-        onVerificationSuccess={() => {
-          const redirectTo = router.state.location.search.redirect ?? '/';
-          router.navigate({ to: redirectTo });
-        }}
         onOpenChange={setShowVerifyDialog}
+        onResend={handleResend}
+        onVerify={handleVerify}
+        turnstileKey="0x4AAAAAAB6OHFZzfENBjn5f" //todo don't hardcode
       />
       <Card {...props}>
         <CardHeader>
