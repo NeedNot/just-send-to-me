@@ -15,7 +15,7 @@ export const uploadNewFileSchema = z
   .object({
     folderId: z.string().min(1),
     name: z.string().min(1),
-    size: z.number('Required'),
+    size: z.number(),
   })
   .openapi({
     type: 'object',
