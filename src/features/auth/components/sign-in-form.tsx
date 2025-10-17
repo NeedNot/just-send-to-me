@@ -9,9 +9,12 @@ import { ContinueWithGoogle } from './social-sign-in';
 import { useState } from 'react';
 import { VerifyOtpDialog } from './verify-otp-dialog';
 import { useOTPVerification } from '../api/sign-up';
+import { PasswordResetDialog } from './password-reset-dialog';
 
 export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
   const router = useRouter();
+  const [showForgotPasswordDialog, setShowForgotPasswordDialog] =
+    useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
   const { sendOTP, verifyOTP } = useOTPVerification({
     onVerificationSuccess() {
@@ -29,6 +32,7 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
       toast.error(error.message ?? 'Unable to sign in');
     },
     onSuccess: () => {
+      console.log('redirect');
       const redirectTo = router.state.location.search.redirect ?? '/';
       router.navigate({ to: redirectTo });
     },
@@ -66,6 +70,10 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
 
   return (
     <>
+      <PasswordResetDialog
+        open={showForgotPasswordDialog}
+        onOpenChange={setShowForgotPasswordDialog}
+      />
       <VerifyOtpDialog
         open={!!pendingEmail}
         onOpenChange={() => setPendingEmail('')}
@@ -100,11 +108,15 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
                   type="password"
                   minLength={8}
                   autoComplete="new-password"
-                  placeholder="Password (At least 8 characters)"
+                  placeholder="Password"
                   required
                 />
                 <a
-                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowForgotPasswordDialog(true);
+                  }}
+                  href=""
                   className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                 >
                   Forgot your password?

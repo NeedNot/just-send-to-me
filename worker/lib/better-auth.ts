@@ -15,10 +15,20 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     basePath: '/api/auth',
+    session: {
+      cookieCache: {
+        enabled: true,
+        maxAge: 5 * 60,
+      },
+    },
     emailAndPassword: {
       enabled: true,
       autoSignIn: true,
       requireEmailVerification: true,
+      async sendResetPassword({ user, token }) {
+        const url = `${env.BETTER_AUTH_URL}/change-password?token=${token}`;
+        await sendVerificationEmail(user.email, url);
+      },
     },
     emailVerification: {
       autoSignInAfterVerification: true,
