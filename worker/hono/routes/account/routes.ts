@@ -1,7 +1,9 @@
 import { createRoute } from '@hono/zod-openapi';
 import { myFoldersResponseSchema } from '../../../../shared/schemas';
+import { generalRateLimiter } from '../../middleware/rate-limiters';
 
 export const getMyFolders = createRoute({
+  middleware: generalRateLimiter,
   method: 'get',
   path: '/account/my-folders',
   responses: {
