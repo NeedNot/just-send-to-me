@@ -106,6 +106,20 @@
       "when": 1760482972255,
       "tag": "0014_red_warpath",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1760755935011,
+      "tag": "0015_fast_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1760757262497,
+      "tag": "0016_parched_phantom_reporter",
+      "breakpoints": true
     }
   ]
 }
