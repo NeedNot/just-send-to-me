@@ -49,6 +49,14 @@ export function AccountCard({
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <CardTitle className="text-2xl">{name}</CardTitle>
+              <Badge variant={currentSubscription.variant}>
+                {currentSubscription.label}
+              </Badge>
+            </div>
+            <CardDescription className="mt-1">{email}</CardDescription>
+          </div>
+          {subscription === 'free' && (
+            <>
               <Button
                 onClick={onEditAccount}
                 variant="ghost"
@@ -57,17 +65,11 @@ export function AccountCard({
               >
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Badge variant={currentSubscription.variant}>
-                {currentSubscription.label}
-              </Badge>
-            </div>
-            <CardDescription className="mt-1">{email}</CardDescription>
-          </div>
-          {subscription === 'free' && (
-            <Button onClick={onUpgrade} size="sm" className="ml-2">
-              <Crown className="mr-2 h-4 w-4" />
-              Upgrade
-            </Button>
+              <Button onClick={onUpgrade} size="sm" className="ml-2">
+                <Crown className="mr-2 h-4 w-4" />
+                Upgrade
+              </Button>
+            </>
           )}
         </div>
       </CardHeader>

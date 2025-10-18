@@ -106,7 +106,7 @@ export const R2UploadedPartSchema = z.object({
 export const myFoldersResponseSchema = z.object({
   folders: z.array(folderSchema.omit({ files: true })),
   expiredFolders: z.array(folderSchema.omit({ files: true })),
-  maxFolders: z.number(),
+  usedFolders: z.number(),
 });
 
 export type UploadNewFileSchema = z.infer<typeof uploadNewFileSchema>;
@@ -125,4 +125,4 @@ export type ReuqestFileUploadResponse = z.infer<
 export type CompleteFileUploadRequest = z.infer<
   typeof completeFileUploadSchema
 >;
-export type MyFolderReponse = z.infer<typeof myFoldersResponseSchema>;
+export type MyFoldersReponse = z.infer<typeof myFoldersResponseSchema>;

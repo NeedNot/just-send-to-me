@@ -16,7 +16,6 @@ import {
 import type React from 'react';
 import { useCallback } from 'react';
 import { useRouter } from '@tanstack/react-router';
-import { Progress } from '@/components/ui/progress';
 import type { Folder } from '@shared/schemas';
 import { useCountdown } from '@/hooks/use-countddown';
 import {

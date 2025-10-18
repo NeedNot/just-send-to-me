@@ -44,7 +44,7 @@ export function MyExpiredFoldersCard({
                   <TableHead className="w-48">Name</TableHead>
                   <TableHead>Files</TableHead>
                   <TableHead>Space used</TableHead>
-                  <TableHead className="text-right">Expired</TableHead>
+                  <TableHead className="text-right">Expired at</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

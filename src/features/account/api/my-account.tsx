@@ -1,4 +1,4 @@
-function getMyAccount() {}
+// function getMyAccount() {}
 
 export function useMyAccount() {
   return {

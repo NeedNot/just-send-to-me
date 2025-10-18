@@ -1,4 +1,4 @@
-import type { MyFolderReponse } from '@shared/schemas';
+import type { MyFoldersReponse } from '@shared/schemas';
 import { useQuery } from '@tanstack/react-query';
 
 export function useMyFolders() {
@@ -10,7 +10,7 @@ export function useMyFolders() {
     return await response.json();
   };
 
-  return useQuery<MyFolderReponse>({
+  return useQuery<MyFoldersReponse>({
     queryFn: getFolders,
     queryKey: ['account', 'my-folders'],
   });
