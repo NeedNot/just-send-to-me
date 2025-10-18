@@ -5,7 +5,7 @@ import type { AppBindings, AppVariables } from '../../../lib/types';
 import { generalRateLimiter } from '../../middleware/rate-limiters';
 
 const app = new OpenAPIHono<AppBindings & AppVariables>();
-app.use('/folder/*', generalRateLimiter);
+app.use('/folders/*', generalRateLimiter);
 app
   .openapi(routes.createFolder, handlers.createFolder)
   .openapi(routes.getFolder, handlers.getFolder);

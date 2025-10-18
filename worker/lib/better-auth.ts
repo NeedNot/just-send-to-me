@@ -26,7 +26,9 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       autoSignIn: true,
       requireEmailVerification: true,
       async sendResetPassword({ user, token }) {
-        const { success } = await env.GENERAL_RATE_LIMITER.limit({ key: user.email });
+        const { success } = await env.GENERAL_RATE_LIMITER.limit({
+          key: user.email,
+        });
 
         if (!success) {
           throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
@@ -55,11 +57,13 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     ],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
-        const ip = ctx.headers?.get('cf-connecting-ip') || '';
-        const { success } = await env.GENERAL_RATE_LIMITER.limit({ key: ip });
+        if (!ctx.path.startsWith('/get-session')) {
+          const ip = ctx.headers?.get('cf-connecting-ip') || '';
+          const { success } = await env.GENERAL_RATE_LIMITER.limit({ key: ip });
 
-        if (!success) {
-          throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
+          if (!success) {
+            throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
+          }
         }
 
         if (ctx.path !== '/sign-up/email') {
