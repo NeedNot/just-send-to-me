@@ -87,6 +87,16 @@ export const folderSchema = z
     type: 'object',
   });
 
+export const planSchema = z
+  .object({
+    id: z.string(),
+    name: z.string(),
+    maxFolders: z.number(),
+  })
+  .openapi({
+    type: 'object',
+  });
+
 export const IdParamSchema = z.object({
   id: z.string().openapi({
     param: {
@@ -109,6 +119,13 @@ export const myFoldersResponseSchema = z.object({
   usedFolders: z.number(),
 });
 
+export const myAccountResponseSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  foldersUsed: z.number(),
+  plan: planSchema,
+});
+
 export type UploadNewFileSchema = z.infer<typeof uploadNewFileSchema>;
 export type UploadNewFileResponseSchema = z.infer<
   typeof uploadNewFileResponseSchema
@@ -126,3 +143,4 @@ export type CompleteFileUploadRequest = z.infer<
   typeof completeFileUploadSchema
 >;
 export type MyFoldersReponse = z.infer<typeof myFoldersResponseSchema>;
+export type MyAccountResponse = z.infer<typeof myAccountResponseSchema>;

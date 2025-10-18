@@ -35,15 +35,7 @@ function RouteComponent() {
           />
           <div className="w-full max-w-2xl space-y-4 justify-self-center">
             {account && (
-              <AccountCard
-                name={account.name}
-                email={account.email}
-                subscription={account.subscription as 'free'}
-                maxFolders={account.quota.max}
-                foldersUsed={account.quota.used}
-                onSignOut={() => authClient.signOut()}
-                onEditAccount={() => console.log('edit name')}
-              />
+              <AccountCard onEditAccount={() => console.log('edit name')} />
             )}
             <MyFoldersCard
               id="active-folders"

@@ -1,13 +1,17 @@
-// function getMyAccount() {}
+import type { MyAccountResponse } from '@shared/schemas';
+import { useQuery } from '@tanstack/react-query';
+
+async function getMyAccount(): Promise<MyAccountResponse> {
+  const response = await fetch('/api/account');
+  if (!response.ok) {
+    throw response;
+  }
+  return await response.json();
+}
 
 export function useMyAccount() {
-  return {
-    name: 'Test',
-    email: 'hello@justsendto.me',
-    subscription: 'free',
-    quota: {
-      used: 1,
-      max: 3,
-    },
-  };
+  return useQuery({
+    queryFn: getMyAccount,
+    queryKey: ['my-account'],
+  });
 }

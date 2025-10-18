@@ -3,7 +3,6 @@ import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
-import { createUserMetadata } from '../repositories/user-metadata-repository';
 import { isEmailDomainDisposable, sendVerificationEmail } from './email';
 import { captcha, emailOTP } from 'better-auth/plugins';
 
@@ -19,6 +18,16 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       cookieCache: {
         enabled: true,
         maxAge: 5 * 60,
+      },
+    },
+    user: {
+      additionalFields: {
+        planId: {
+          fieldName: 'plan_id',
+          type: 'string',
+          required: true,
+          input: false,
+        },
       },
     },
     emailAndPassword: {
@@ -85,10 +94,6 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       after: createAuthMiddleware(async (ctx) => {
         if (!ctx.path.startsWith('/sign-up')) {
           return;
-        }
-        const newSession = ctx.context.newSession;
-        if (newSession) {
-          await createUserMetadata(db, newSession.user.id);
         }
       }),
     },

@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { eq, gt, sql, and } from 'drizzle-orm';
-import { files, folders, user_metadata } from '../db/schema';
+import { files, folders } from '../db/schema';
 import type { File } from '../../shared/schemas';
 
 export const getFolderById = async (
@@ -55,11 +55,6 @@ export const createFolder = async (
     })
     .returning()
     .get();
-
-  await db
-    .update(user_metadata)
-    .set({ foldersCreated: sql`${user_metadata.foldersCreated} + 1` })
-    .where(eq(user_metadata.userId, creatorId));
 
   return res;
 };

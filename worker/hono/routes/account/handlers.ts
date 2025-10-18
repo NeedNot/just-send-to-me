@@ -1,8 +1,12 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
-import type { GetMyFoldersRoute } from './routes';
-import { getFoldersByCreator } from '../../../repositories/folder-repository';
+import type { GetMyAccountRoute, GetMyFoldersRoute } from './routes';
+import {
+  getEffectiveQuotaFolders,
+  getFoldersByCreator,
+} from '../../../repositories/folder-repository';
 import type { Folder } from '../../../../shared/schemas';
+import { getPlanById } from '../../../repositories/plan-repository';
 
 export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const user = c.get('user')!;
@@ -20,7 +24,27 @@ export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
     }
   }
 
-  const maxFolders = 3;
+  return c.json({ folders, expiredFolders }, 200);
+};
 
-  return c.json({ folders, expiredFolders, maxFolders }, 200);
+export const getMyAccount: AppRouteHandler<GetMyAccountRoute> = async (c) => {
+  const user: any = c.get('user')!;
+
+  const db = drizzle(c.env.DB);
+  const plan = await getPlanById(db, user.planId);
+  const usedFolders = await getEffectiveQuotaFolders(db, user.id);
+
+  return c.json(
+    {
+      name: user.name,
+      email: user.email,
+      foldersUsed: usedFolders.length,
+      plan: {
+        id: plan?.id ?? '',
+        name: plan?.name ?? 'Free',
+        maxFolders: plan?.maxFolderCount ?? 3,
+      },
+    },
+    200,
+  );
 };

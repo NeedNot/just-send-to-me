@@ -3,6 +3,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
 import { user } from './auth-schema';
 import { MS_IN_DAY } from '../../shared/constants';
+import { CANCELLED } from 'dns';
 
 // todo rename column names to snake case
 
@@ -40,10 +41,46 @@ export const files = sqliteTable('files', {
     .default(sql`(unixepoch() * 1000)`),
 });
 
-export const user_metadata = sqliteTable('user_metadata', {
-  userId: text('user_id')
+export const plans = sqliteTable('plans', {
+  id: text()
+    .$defaultFn(() => createId())
+    .primaryKey(),
+  name: text({ length: 128 }).notNull(),
+  priceMonthly: integer('price_monthly').notNull(), // in cents
+  priceYearly: integer('price_yearly').notNull(), // in cents
+  maxStoragePerFolderMb: integer('max_storage').notNull(),
+  maxFolderCount: integer('max_folder_count').notNull(),
+  maxFileCountPerFolder: integer('max_file_count').notNull(),
+  stripePriceId: text('stripe_price_id').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-  downloads: integer().notNull().default(0),
-  foldersCreated: integer('folders_created').notNull().default(0),
+    .default(sql`(unixepoch() * 1000)`),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+});
+
+export const userSubscriptions = sqliteTable('user_subscriptions', {
+  id: text()
+    .$defaultFn(() => createId())
+    .primaryKey(),
+  userId: text()
+    .references(() => user.id)
+    .notNull(),
+  planId: text()
+    .references(() => plans.id)
+    .notNull(),
+  status: text('status', {
+    enum: ['active', 'canceled', 'incomplete', 'incomplete_expired'],
+  }).notNull(),
+  stripeSubscriptionId: text('stripe_subscription_id').notNull(),
+  start: integer({ mode: 'timestamp_ms' }).notNull(),
+  end: integer({ mode: 'timestamp_ms' }).notNull(),
+  cancelAt: integer('cancel_at', { mode: 'timestamp_ms' }).notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
+  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+    .notNull()
+    .default(sql`(unixepoch() * 1000)`),
 });

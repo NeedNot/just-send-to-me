@@ -9,5 +9,14 @@ const db = drizzle(DB);
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
   database: drizzleAdapter(db, { provider: 'sqlite', schema }), // schema is required in order for better-auth to recognize
   baseURL: BETTER_AUTH_URL,
-  secret: BETTER_AUTH_SECRET,
+  user: {
+    additionalFields: {
+      planId: {
+        fieldName: 'plan_id',
+        type: 'string',
+        required: false,
+        input: false,
+      },
+    },
+  },
 });

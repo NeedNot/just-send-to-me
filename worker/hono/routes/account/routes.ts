@@ -1,5 +1,8 @@
 import { createRoute } from '@hono/zod-openapi';
-import { myFoldersResponseSchema } from '../../../../shared/schemas';
+import {
+  myAccountResponseSchema,
+  myFoldersResponseSchema,
+} from '../../../../shared/schemas';
 import { generalRateLimiter } from '../../middleware/rate-limiters';
 
 export const getMyFolders = createRoute({
@@ -21,4 +24,23 @@ export const getMyFolders = createRoute({
   },
 });
 
+export const getMyAccount = createRoute({
+  method: 'get',
+  path: '/account',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: myAccountResponseSchema,
+        },
+      },
+      description: 'Everything about the account',
+    },
+    401: {
+      description: 'Unauthenticated',
+    },
+  },
+});
+
 export type GetMyFoldersRoute = typeof getMyFolders;
+export type GetMyAccountRoute = typeof getMyAccount;
