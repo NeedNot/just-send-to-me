@@ -38,22 +38,6 @@ export async function listMultipartUploads(
   };
 }
 
-export async function createMultiPartUpload(
-  client: AwsClient,
-  { bucket, key }: { bucket: string; key: string },
-) {
-  const res = await client.fetch(`${S3_URL}/${bucket}/${key}?uploads`, {
-    method: 'POST',
-    headers: {
-      'x-amz-meta-folder': 'Hello world',
-    },
-  });
-
-  const xml = await res.text();
-  const parser = new XMLParser();
-  return parser.parse(xml);
-}
-
 export function createPresignedPartUploadUrl(
   client: AwsClient,
   {
@@ -72,7 +56,7 @@ export function createPresignedPartUploadUrl(
 ) {
   const url = `${S3_URL}/${bucket}/${key}?partNumber=${partNumber}&uploadId=${uploadId}`;
   return client.sign(url, {
-    aws: { signQuery: true },
+    aws: { signQuery: true, allHeaders: true },
     headers: { 'Content-Length': contentLength },
     method: 'PUT',
   });
