@@ -32,7 +32,6 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
       toast.error(error.message ?? 'Unable to sign in');
     },
     onSuccess: () => {
-      console.log('redirect');
       const redirectTo = router.state.location.search.redirect ?? '/';
       router.navigate({ to: redirectTo });
     },

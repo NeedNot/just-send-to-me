@@ -11,20 +11,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { useCreateFolder } from '../api/create-folder';
 import { toast } from 'sonner';
-import { useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/better-auth';
 
 export function CreateFolderForm() {
   const { data: session, isPending: sessionPending } = authClient.useSession();
-  const router = useRouter();
+  const navigate = useNavigate()
   const createFolder = useCreateFolder({
     onSuccess: (newFolder) => {
       toast.success('Folder created', {
         position: 'top-center',
       });
-      router.navigate({ to: '/folder/' + newFolder.id });
+      navigate({ to: '/folder/' + newFolder.id });
     },
     onError(error) {
       if (error.cause === 'FOLDER_LIMIT_REACHED') {
@@ -40,7 +40,7 @@ export function CreateFolderForm() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!session) {
-      router.navigate({ to: '/sign-up', search: { redirect: undefined } }); //will redirect to here ('/') anyway
+      navigate({ to: '/sign-up', search: { redirect: undefined } }); //will redirect to here ('/') anyway
       return;
     }
 

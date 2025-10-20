@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/table';
 import type React from 'react';
 import { useCallback } from 'react';
-import { useRouter } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import type { Folder } from '@shared/schemas';
 import { useCountdown } from '@/hooks/use-countddown';
 import {
@@ -32,9 +32,9 @@ export function MyFoldersCard({
 }: {
   folders: Folder[];
 } & React.ComponentProps<typeof Card>) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const onFolderClick = useCallback((id: string) => {
-    router.navigate({ to: '/folder/$id', params: { id } });
+    navigate({ to: '/folder/$id', params: { id } });
   }, []);
   return (
     <Card {...props}>

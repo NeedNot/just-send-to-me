@@ -1,5 +1,5 @@
 import { Toaster } from 'sonner';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { createFileRoute, redirect, useRouter } from '@tanstack/react-router';
 import { MyFoldersCard } from '@/features/account/component/my-folders-card';
 import { MyExpiredFoldersCard } from '@/features/account/component/my-expired-folders-card';
 import { useMyFolders } from '@/features/account/api/my-folders';
@@ -10,19 +10,22 @@ import { Button } from '@/components/ui/button';
 import { useMyAccount } from '@/features/account/api/my-account';
 
 export const Route = createFileRoute('/account')({
+  beforeLoad: async ({location}) => {
+    const session = await authClient.getSession()
+    if (!session.data) {
+      throw redirect({
+        to: '/sign-in',
+        search: {redirect: location.pathname}
+      })
+    }
+  },
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const router = useRouter();
   const { data: myFolders } = useMyFolders();
   // todo implement everything
-  const session = authClient.useSession();
   const account = useMyAccount();
-
-  if (!session.data && !session.isPending) {
-    router.navigate({ to: '/sign-in', search: { redirect: '/account' } });
-  }
 
   return (
     <>
@@ -31,7 +34,7 @@ function RouteComponent() {
           <Sidebar
             current="account"
             items={['Account', 'My folders', 'My expired folders']}
-            className="hidden min-w-48 justify-self-center md:block"
+            className="mr-[15%] ml-auto hidden min-w-48 justify-self-end md:block"
           />
           <div className="w-full max-w-2xl space-y-4 justify-self-center">
             {account && (
