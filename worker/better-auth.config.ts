@@ -3,7 +3,7 @@ import { betterAuth } from 'better-auth';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import * as schema from './lib/better-auth';
 
-const { DB, BETTER_AUTH_URL, BETTER_AUTH_SECRET } = process.env as any;
+const { DB, BETTER_AUTH_URL } = process.env as any;
 const db = drizzle(DB);
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({

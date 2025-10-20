@@ -3,7 +3,6 @@ import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
 import { user } from './auth-schema';
 import { MS_IN_DAY } from '../../shared/constants';
-import { CANCELLED } from 'dns';
 
 // todo rename column names to snake case
 

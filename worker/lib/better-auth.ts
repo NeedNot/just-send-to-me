@@ -14,6 +14,13 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
     baseURL: env.BETTER_AUTH_URL,
     secret: env.BETTER_AUTH_SECRET,
     basePath: '/api/auth',
+    account: {
+      accountLinking: {
+        enabled: true,
+        allowDifferentEmails: false,
+        trustedProviders: ['google'],
+      },
+    },
     session: {
       cookieCache: {
         enabled: true,
