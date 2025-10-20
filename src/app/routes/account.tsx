@@ -1,22 +1,21 @@
 import { Toaster } from 'sonner';
-import { createFileRoute, redirect, useRouter } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { MyFoldersCard } from '@/features/account/component/my-folders-card';
 import { MyExpiredFoldersCard } from '@/features/account/component/my-expired-folders-card';
 import { useMyFolders } from '@/features/account/api/my-folders';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
-import { Button } from '@/components/ui/button';
-import { useMyAccount } from '@/features/account/api/my-account';
+import { DeleteAccountDialog } from '@/features/account/component/delete-account-dialog';
 
 export const Route = createFileRoute('/account')({
-  beforeLoad: async ({location}) => {
-    const session = await authClient.getSession()
+  beforeLoad: async ({ location }) => {
+    const session = await authClient.getSession();
     if (!session.data) {
       throw redirect({
         to: '/sign-in',
-        search: {redirect: location.pathname}
-      })
+        search: { redirect: location.pathname },
+      });
     }
   },
   component: RouteComponent,
@@ -24,32 +23,33 @@ export const Route = createFileRoute('/account')({
 
 function RouteComponent() {
   const { data: myFolders } = useMyFolders();
-  // todo implement everything
-  const account = useMyAccount();
 
   return (
     <>
       <div className="bg-background min-h-screen">
-        <div className="grid grid-cols-1 items-start justify-center md:[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)]">
-          <Sidebar
+        <div>
+          {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
+          {/* <TableOfContents
             current="account"
-            items={['Account', 'My folders', 'My expired folders']}
             className="mr-[15%] ml-auto hidden min-w-48 justify-self-end md:block"
-          />
-          <div className="w-full max-w-2xl space-y-4 justify-self-center">
-            {account && (
-              <AccountCard/>
-            )}
+          /> */}
+          <div
+            id="content"
+            className="mx-auto w-full max-w-2xl space-y-4 justify-self-center"
+          >
+            <AccountCard id="account" data-section="Account" />
             <MyFoldersCard
               id="active-folders"
+              data-section="Active folders"
               folders={myFolders?.folders ?? []}
             />
             <MyExpiredFoldersCard
               id="expired-folders"
+              data-section="Expired folders"
               folders={myFolders?.expiredFolders ?? []}
             />
             <div className="m-auto w-min">
-              <Button variant={'destructive'}>Delete account</Button>
+              <DeleteAccountDialog />
             </div>
           </div>
         </div>
@@ -59,27 +59,49 @@ function RouteComponent() {
   );
 }
 
-export function Sidebar({
+export function TableOfContents({
   current,
-  items,
   className,
   ...props
-}: { current: string; items: string[] } & React.ComponentProps<'ul'>) {
+}: { current: string } & React.ComponentProps<'ul'>) {
+  const [sections, setSections] = useState<{ text: string; href: string }[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const elements = Array.from(
+      document.querySelectorAll('[data-section][id]'),
+    ).map((e) => ({
+      text: e.getAttribute('data-section')!,
+      href: e.getAttribute('id')!,
+    }));
+    setSections(elements);
+  }, []);
+
   return (
     <aside className={className}>
       <nav>
         <ul
           {...props}
-          className="[&>li:not([aria-current=true])]:text-muted-foreground space-y-4 justify-self-end [&>[aria-current=true]]:font-bold [&>li]:before:border-l-2 [&>li]:before:text-primary [&>li]:before:pl-3 [&>li:not([aria-current=true])]:before:border-transparent"
+          className="[&>li:not([aria-current=true])]:text-muted-foreground [&>li]:before:text-primary space-y-4 justify-self-end [&>[aria-current=true]]:font-bold [&>li]:before:border-l-2 [&>li]:before:pl-3 [&>li:not([aria-current=true])]:before:border-transparent"
         >
-          {items.map((i) => (
+          {sections.map((s) => (
             <li
+              key={s.href}
               className="mt-8"
-              aria-current={
-                current.toLowerCase() === i.toLowerCase().replaceAll(' ', '-')
-              }
+              aria-current={current.toLowerCase() === s.href}
             >
-              <a href={`#${i.toLowerCase().replaceAll(' ', '-')}`}>{i}</a>
+              <a
+                href={`#${s.href}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  document
+                    .querySelector(`#${s.href}`)
+                    ?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                {s.text}
+              </a>
             </li>
           ))}
         </ul>
