@@ -10,24 +10,26 @@ import {
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Pencil, Crown, LogOut } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useMyAccount } from '../api/my-account';
 import { authClient } from '@/lib/better-auth';
 import { useNavigate } from '@tanstack/react-router';
+import { EditAccountDialog } from './edit-account-dialog';
 
 interface AccountCardProps {
-  onEditAccount?: () => void;
   onUpgrade?: () => void;
 }
 
 export function AccountCard({
-  onEditAccount,
   onUpgrade,
 }: AccountCardProps & React.ComponentProps<typeof Card>) {
   const { data } = useMyAccount();
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const navigate = useNavigate()
 
   return (
+    <>
+    <EditAccountDialog open={editDialogOpen} onOpenChange={setEditDialogOpen} name={data?.name ?? ''} />
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-start justify-between">
@@ -39,7 +41,7 @@ export function AccountCard({
             <CardDescription className="mt-1">{data?.email}</CardDescription>
           </div>
           <Button
-            onClick={onEditAccount}
+            onClick={() => setEditDialogOpen(true)}
             variant="ghost"
             size="icon"
             className="h-8 w-8"
@@ -68,8 +70,7 @@ export function AccountCard({
           </div>
           <Progress
             value={data ? (data?.foldersUsed / data?.plan.maxFolders) * 100 : 0}
-            className="h-2"
-          />
+            className="h-2" />
           <p className="text-muted-foreground text-xs">
             The longer the folder expiration time is the longer the folder
             counts against your account quota
@@ -77,7 +78,7 @@ export function AccountCard({
         </div>
 
         <Button
-          onClick={() => {authClient.signOut(); navigate({to: '/sign-in', search: {redirect:  location.pathname}})}}
+          onClick={() => { authClient.signOut(); navigate({ to: '/sign-in', search: { redirect: location.pathname } }); } }
           variant="outline"
           className="w-full bg-transparent"
           size="lg"
@@ -87,5 +88,6 @@ export function AccountCard({
         </Button>
       </CardContent>
     </Card>
+    </>
   );
 }

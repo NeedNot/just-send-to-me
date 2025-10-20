@@ -38,7 +38,7 @@ function RouteComponent() {
           />
           <div className="w-full max-w-2xl space-y-4 justify-self-center">
             {account && (
-              <AccountCard onEditAccount={() => console.log('edit name')} />
+              <AccountCard/>
             )}
             <MyFoldersCard
               id="active-folders"
@@ -70,7 +70,7 @@ export function Sidebar({
       <nav>
         <ul
           {...props}
-          className="[&>li:not([aria-current=true])]:text-muted-foreground space-y-4 justify-self-end [&>[aria-current=true]]:font-bold [&>li]:before:border-l-2 [&>li]:before:pl-3 [&>li:not([aria-current=true])]:before:border-transparent"
+          className="[&>li:not([aria-current=true])]:text-muted-foreground space-y-4 justify-self-end [&>[aria-current=true]]:font-bold [&>li]:before:border-l-2 [&>li]:before:text-primary [&>li]:before:pl-3 [&>li:not([aria-current=true])]:before:border-transparent"
         >
           {items.map((i) => (
             <li

@@ -1,3 +1,4 @@
+import { MS_IN_MINUTE } from '@shared/constants';
 import type { MyFoldersReponse } from '@shared/schemas';
 import { useQuery } from '@tanstack/react-query';
 
@@ -13,5 +14,6 @@ export function useMyFolders() {
   return useQuery<MyFoldersReponse>({
     queryFn: getFolders,
     queryKey: ['account', 'my-folders'],
+    staleTime: 5*MS_IN_MINUTE
   });
 }

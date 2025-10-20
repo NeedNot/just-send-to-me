@@ -7,7 +7,7 @@ export type ChangePasswordParams = {
 };
 
 async function changePassword(params: ChangePasswordParams) {
-  const { error } = await authClient.changePassword(params);
+  const { error } = await authClient.changePassword({...params, revokeOtherSessions: true});
   if (error) {
     throw error;
   }

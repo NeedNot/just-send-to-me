@@ -1,3 +1,4 @@
+import { MS_IN_MINUTE } from '@shared/constants';
 import type { MyAccountResponse } from '@shared/schemas';
 import { useQuery } from '@tanstack/react-query';
 
@@ -12,6 +13,7 @@ async function getMyAccount(): Promise<MyAccountResponse> {
 export function useMyAccount() {
   return useQuery({
     queryFn: getMyAccount,
-    queryKey: ['my-account'],
+    queryKey: ['account'],
+    staleTime: 5*MS_IN_MINUTE
   });
 }
