@@ -15,7 +15,7 @@ import { Route as ChangePasswordRouteImport } from './app/routes/change-password
 import { Route as AccountRouteImport } from './app/routes/account'
 import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
-import { Route as FolderIdRouteImport } from './app/routes/folder.$id'
+import { Route as FIdRouteImport } from './app/routes/f.$id'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -47,9 +47,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FolderIdRoute = FolderIdRouteImport.update({
-  id: '/folder/$id',
-  path: '/folder/$id',
+const FIdRoute = FIdRouteImport.update({
+  id: '/f/$id',
+  path: '/f/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -60,7 +60,7 @@ export interface FileRoutesByFullPath {
   '/change-password': typeof ChangePasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/folder/$id': typeof FolderIdRoute
+  '/f/$id': typeof FIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +69,7 @@ export interface FileRoutesByTo {
   '/change-password': typeof ChangePasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/folder/$id': typeof FolderIdRoute
+  '/f/$id': typeof FIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,7 +79,7 @@ export interface FileRoutesById {
   '/change-password': typeof ChangePasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/folder/$id': typeof FolderIdRoute
+  '/f/$id': typeof FIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,7 +90,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/sign-in'
     | '/sign-up'
-    | '/folder/$id'
+    | '/f/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -99,7 +99,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/sign-in'
     | '/sign-up'
-    | '/folder/$id'
+    | '/f/$id'
   id:
     | '__root__'
     | '/'
@@ -108,7 +108,7 @@ export interface FileRouteTypes {
     | '/change-password'
     | '/sign-in'
     | '/sign-up'
-    | '/folder/$id'
+    | '/f/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -118,7 +118,7 @@ export interface RootRouteChildren {
   ChangePasswordRoute: typeof ChangePasswordRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  FolderIdRoute: typeof FolderIdRoute
+  FIdRoute: typeof FIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -165,11 +165,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/folder/$id': {
-      id: '/folder/$id'
-      path: '/folder/$id'
-      fullPath: '/folder/$id'
-      preLoaderRoute: typeof FolderIdRouteImport
+    '/f/$id': {
+      id: '/f/$id'
+      path: '/f/$id'
+      fullPath: '/f/$id'
+      preLoaderRoute: typeof FIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -182,7 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChangePasswordRoute: ChangePasswordRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  FolderIdRoute: FolderIdRoute,
+  FIdRoute: FIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

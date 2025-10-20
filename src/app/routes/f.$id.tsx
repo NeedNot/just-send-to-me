@@ -3,7 +3,7 @@ import { FolderCard } from '../../features/folder/components/folder-card';
 import { useGetFolder } from '../../features/folder/api/get-folder';
 import { Toaster } from 'sonner';
 
-export const Route = createFileRoute('/folder/$id')({
+export const Route = createFileRoute('/f/$id')({
   component: RouteComponent,
 });
 

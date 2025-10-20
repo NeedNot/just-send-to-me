@@ -13,6 +13,7 @@ import { Pencil, Crown, LogOut } from 'lucide-react';
 import React from 'react';
 import { useMyAccount } from '../api/my-account';
 import { authClient } from '@/lib/better-auth';
+import { useNavigate } from '@tanstack/react-router';
 
 interface AccountCardProps {
   onEditAccount?: () => void;
@@ -24,6 +25,7 @@ export function AccountCard({
   onUpgrade,
 }: AccountCardProps & React.ComponentProps<typeof Card>) {
   const { data } = useMyAccount();
+  const navigate = useNavigate()
 
   return (
     <Card className="w-full">
@@ -75,7 +77,7 @@ export function AccountCard({
         </div>
 
         <Button
-          onClick={() => authClient.signOut()}
+          onClick={() => {authClient.signOut(); navigate({to: '/sign-in', search: {redirect:  location.pathname}})}}
           variant="outline"
           className="w-full bg-transparent"
           size="lg"

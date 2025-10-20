@@ -24,7 +24,7 @@ export function CreateFolderForm() {
       toast.success('Folder created', {
         position: 'top-center',
       });
-      navigate({ to: '/folder/' + newFolder.id });
+      navigate({ to: '/f/' + newFolder.id });
     },
     onError(error) {
       if (error.cause === 'FOLDER_LIMIT_REACHED') {

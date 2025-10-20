@@ -34,7 +34,7 @@ export function MyFoldersCard({
 } & React.ComponentProps<typeof Card>) {
   const navigate = useNavigate();
   const onFolderClick = useCallback((id: string) => {
-    navigate({ to: '/folder/$id', params: { id } });
+    navigate({ to: '/f/$id', params: { id } });
   }, []);
   return (
     <Card {...props}>
