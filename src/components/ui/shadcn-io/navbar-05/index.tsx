@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
-import { HelpCircleIcon, ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   NavigationMenu,
@@ -92,38 +92,6 @@ const HamburgerIcon = ({
   </svg>
 );
 
-// Info Menu Component
-const InfoMenu = ({
-  onItemClick,
-}: {
-  onItemClick?: (item: string) => void;
-}) => (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="ghost" size="icon" className="h-9 w-9">
-        <HelpCircleIcon className="h-4 w-4" />
-        <span className="sr-only">Help and Information</span>
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-56">
-      <DropdownMenuLabel>Help & Support</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onItemClick?.('help')}>
-        Help Center
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('documentation')}>
-        Documentation
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('contact')}>
-        Contact Support
-      </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('feedback')}>
-        Send Feedback
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
-
 // User Menu Component
 const UserMenu = ({
   userName = 'John Doe',
@@ -165,11 +133,11 @@ const UserMenu = ({
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onItemClick?.('profile')}>
-        Profile
+      <DropdownMenuItem onClick={() => onItemClick?.('support')}>
+        Support
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('settings')}>
-        Settings
+      <DropdownMenuItem onClick={() => onItemClick?.('account')}>
+        Account
       </DropdownMenuItem>
       <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
         Billing
@@ -204,10 +172,10 @@ export interface Navbar05Props extends React.HTMLAttributes<HTMLElement> {
 
 // Default navigation links
 const defaultNavigationLinks: Navbar05NavItem[] = [
-  { href: '#', label: 'Home' },
-  { href: '#', label: 'Features' },
-  { href: '#', label: 'Pricing' },
-  { href: '#', label: 'About' },
+  { href: '/', label: 'Home' },
+  { href: '/features', label: 'Features' },
+  { href: '/pricing', label: 'Pricing' },
+  { href: '/about', label: 'About' },
 ];
 
 export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
@@ -300,7 +268,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                               if (onNavItemClick && link.href)
                                 onNavItemClick(link.href);
                             }}
-                            className="hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground flex w-full cursor-pointer items-center rounded-md px-3 py-2 text-sm font-medium no-underline transition-colors"
+                            className="hover:bg-accent hover:text-accent-foreground flex w-full cursor-pointer items-center rounded-md px-3 py-2 text-sm font-medium no-underline transition-colors"
                           >
                             {link.label}
                           </button>
@@ -315,7 +283,7 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
             <div className="flex items-center gap-6">
               <button
                 onClick={(e) => e.preventDefault()}
-                className="text-primary hover:text-primary/90 flex cursor-pointer items-center space-x-2 transition-colors"
+                className="text-primary hover:text-secondary/90 flex cursor-pointer items-center space-x-2 transition-colors"
               >
                 <div className="text-2xl">{logo}</div>
                 <span className="hidden text-xl font-bold sm:inline-block">
@@ -329,13 +297,12 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
                     {navigationLinks.map((link, index) => (
                       <NavigationMenuItem key={index}>
                         <NavigationMenuLink
-                          href={link.href}
                           onClick={(e) => {
                             e.preventDefault();
                             if (onNavItemClick && link.href)
                               onNavItemClick(link.href);
                           }}
-                          className="text-muted-foreground hover:text-primary group bg-background focus:bg-accent focus:text-accent-foreground inline-flex h-10 w-max cursor-pointer items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+                          className="text-muted-foreground hover:text-primary group bg-background inline-flex h-10 w-max cursor-pointer items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50"
                         >
                           {link.label}
                         </NavigationMenuLink>
@@ -349,8 +316,12 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
           {/* Right side */}
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              {/* Info menu */}
-              <InfoMenu onItemClick={onInfoItemClick} />
+              <Button
+                onClick={() => onNavItemClick?.('/folders/new')}
+                size="sm"
+              >
+                New folder <Plus />
+              </Button>
             </div>
             {/* User menu */}
             <UserMenu
@@ -368,4 +339,4 @@ export const Navbar05 = React.forwardRef<HTMLElement, Navbar05Props>(
 
 Navbar05.displayName = 'Navbar05';
 
-export { Logo, HamburgerIcon, InfoMenu, UserMenu };
+export { Logo, HamburgerIcon, UserMenu };

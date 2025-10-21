@@ -1,5 +1,5 @@
 import { Toaster } from 'sonner';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { MyFoldersCard } from '@/features/account/component/my-folders-card';
 import { MyExpiredFoldersCard } from '@/features/account/component/my-expired-folders-card';
 import { useMyFolders } from '@/features/account/api/my-folders';
@@ -23,12 +23,18 @@ export const Route = createFileRoute('/account')({
 });
 
 function RouteComponent() {
+  const navigate = useNavigate();
   const { data: myFolders } = useMyFolders();
 
   return (
     <>
       <div className="bg-background flex min-h-screen flex-col gap-4">
-        <Navbar05 userName="Dalton" userEmail="jv7Y2@example.com" />
+        <Navbar05
+          userName="Dalton"
+          userEmail="jv7Y2@example.com"
+          onNavItemClick={(item) => navigate({ to: item })}
+          onUserItemClick={(item) => navigate({ to: item })}
+        />
         <div className="my-auto">
           {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
           {/* <TableOfContents
