@@ -84,7 +84,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
         onOpenChange={setShowVerifyDialog}
         onResend={handleResend}
         onVerify={handleVerify}
-        turnstileKey="0x4AAAAAAB6OHFZzfENBjn5f" //todo don't hardcode
+        turnstileKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
       />
       <Card {...props}>
         <CardHeader>

@@ -11,7 +11,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
 
   return betterAuth({
     database: drizzleAdapter(db, { provider: 'sqlite', schema }),
-    baseURL: env.BETTER_AUTH_URL,
+    baseURL: '',
     secret: env.BETTER_AUTH_SECRET,
     basePath: '/api/auth',
     account: {
@@ -50,7 +50,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         if (!success) {
           throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
         }
-        const url = `${env.BETTER_AUTH_URL}/change-password?token=${token}`;
+        const url = `/change-password?token=${token}`;
         await sendVerificationEmail(user.email, url);
       },
     },

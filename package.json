@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "types": "wrangler types ./worker/lib/worker-configuration.d.ts"
   },
   "dependencies": {
     "@hono/zod-openapi": "^0.19.10",

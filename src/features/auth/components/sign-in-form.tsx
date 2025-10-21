@@ -78,7 +78,7 @@ export function SignInForm({ ...props }: React.ComponentProps<typeof Card>) {
         onOpenChange={() => setPendingEmail('')}
         onResend={handleResend}
         onVerify={handleVerify}
-        turnstileKey="0x4AAAAAAB6OHFZzfENBjn5f" //todo dont hard code
+        turnstileKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
       />
       <Card {...props}>
         <CardHeader>

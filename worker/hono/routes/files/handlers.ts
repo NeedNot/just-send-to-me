@@ -77,7 +77,7 @@ export const uploadNewFile: AppRouteHandler<UploadNewFileRoute> = async (c) => {
     const promises = multipartUploads.Upload!.map(async (u) => {
       if (!cancellableItems.has(u.Key)) return;
 
-      const session = c.env.files_bucket.resumeMultipartUpload(
+      const session = c.env.FILES_BUCKET.resumeMultipartUpload(
         u.Key,
         u.UploadId,
       );
@@ -96,7 +96,7 @@ export const uploadNewFile: AppRouteHandler<UploadNewFileRoute> = async (c) => {
     JSON.stringify({ size, lastActive: Date.now() }),
     { expirationTtl: MS_IN_HOUR / 1000 },
   );
-  const res = await c.env.files_bucket.createMultipartUpload(key, {
+  const res = await c.env.FILES_BUCKET.createMultipartUpload(key, {
     customMetadata: {
       folderId: folderId,
       name: name,
@@ -152,7 +152,7 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
 ) => {
   const { uploadId, key } = c.req.query();
 
-  const upload = c.env.files_bucket.resumeMultipartUpload(key, uploadId);
+  const upload = c.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
   const parts = c.req.valid('json');
 
   try {
@@ -165,17 +165,17 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
 
   const [{ size: promisedSize }, objectHead] = await Promise.all<[any, any]>([
     c.env.PENDING_FILE_UPLOADS.get(key, 'json'),
-    c.env.files_bucket.head(key),
+    c.env.FILES_BUCKET.head(key),
   ]);
   if (!objectHead?.customMetadata || !promisedSize) {
     // clearly something went wrong, delete object
-    await c.env.files_bucket.delete(key);
+    await c.env.FILES_BUCKET.delete(key);
     return c.newResponse(null, 400);
   }
 
   // verify file size
   if (promisedSize !== objectHead.size) {
-    await c.env.files_bucket.delete(key);
+    await c.env.FILES_BUCKET.delete(key);
     return c.json(
       { message: 'Object size does not match agreed opon size' },
       400,
@@ -189,7 +189,7 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
     await addFileMetaToFolder(db, res);
     return c.json(res, 201);
   } catch (e) {
-    await c.env.files_bucket.delete(key);
+    await c.env.FILES_BUCKET.delete(key);
     console.log(e);
     return c.newResponse(null, 400);
   }
@@ -198,7 +198,7 @@ export const completeFileUpload: AppRouteHandler<CompleteFileUpload> = async (
 export const abortFileUpload: AppRouteHandler<AbortFileUpload> = async (c) => {
   const { uploadId, key } = c.req.query();
 
-  const session = c.env.files_bucket.resumeMultipartUpload(key, uploadId);
+  const session = c.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
   await Promise.all([session.abort(), c.env.PENDING_FILE_UPLOADS.delete(key)]);
   return c.newResponse(null, 204);
 };

@@ -57,7 +57,7 @@ export default {
     for (let i = 0; i < expiredFiles.length; i += chunkSize) {
       const batch = expiredFiles.slice(i, i + chunkSize);
       // delete objects
-      await env.files_bucket.delete(batch.map((f) => f.key));
+      await env.FILES_BUCKET.delete(batch.map((f) => f.key));
       // delete files
       await db.delete(files).where(
         inArray(

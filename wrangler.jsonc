@@ -11,6 +11,13 @@
       "enabled": true
     }
   },
+  "vars": {
+    "SMTP_SERVER_NAME": "smtp.zeptomail.com",
+    "SMTP_DOMAIN": "justsendto.me",
+    "SMTP_USERNAME": "emailapikey",
+    "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
+    "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387"
+  },
   "assets": {
     "directory": "./dist",
     "run_worker_first": ["/api/*"],
@@ -28,7 +35,7 @@
   "r2_buckets": [
     {
       "bucket_name": "files-bucket",
-      "binding": "files_bucket", //todo change to caps
+      "binding": "FILES_BUCKET", //todo change to caps
       "remote": true,
     },
   ],
