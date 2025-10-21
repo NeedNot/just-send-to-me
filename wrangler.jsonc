@@ -1,8 +1,16 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "just-send-to-me",
   "main": "./worker/index.ts",
   "compatibility_date": "2025-10-14",
   "compatibility_flags": ["nodejs_compat"],
+  "logpush": true,
+  "observability": {
+    "logs": {
+      "invocation_logs": true,
+      "enabled": true
+    }
+  },
   "assets": {
     "directory": "./dist",
     "run_worker_first": ["/api/*"],

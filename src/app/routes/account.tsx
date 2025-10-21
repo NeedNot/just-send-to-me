@@ -33,7 +33,18 @@ function RouteComponent() {
           userName="Dalton"
           userEmail="jv7Y2@example.com"
           onNavItemClick={(item) => navigate({ to: item })}
-          onUserItemClick={(item) => navigate({ to: item })}
+          onUserItemClick={(item) => {
+            if (item === 'sign-out') {
+              authClient.signOut();
+              // todo clear account data
+              navigate({
+                to: '/sign-in',
+                search: { redirect: location.pathname },
+              });
+              return;
+            }
+            navigate({ to: item });
+          }}
         />
         <div className="my-auto">
           {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
