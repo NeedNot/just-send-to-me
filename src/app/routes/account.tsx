@@ -6,6 +6,8 @@ import { useMyFolders } from '@/features/account/api/my-folders';
 import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
+import { Navbar05 } from '@/components/ui/shadcn-io/navbar-05';
+import { Footer } from '@/components/footer';
 
 export const Route = createFileRoute('/account')({
   beforeLoad: async ({ location }) => {
@@ -25,8 +27,9 @@ function RouteComponent() {
 
   return (
     <>
-      <div className="bg-background min-h-screen">
-        <div>
+      <div className="bg-background flex min-h-screen flex-col gap-4">
+        <Navbar05 userName="Dalton" userEmail="jv7Y2@example.com" />
+        <div className="my-auto">
           {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
           {/* <TableOfContents
             current="account"
@@ -49,6 +52,7 @@ function RouteComponent() {
             />
           </div>
         </div>
+        <Footer />
       </div>
       <Toaster />
     </>
