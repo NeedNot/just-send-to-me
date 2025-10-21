@@ -73,7 +73,9 @@ export function AccountCard({
             </div>
             <Progress
               value={
-                data ? (data?.foldersUsed / data?.plan.maxFolders) * 100 : 0
+                data
+                  ? Math.min(1, data?.foldersUsed / data?.plan.maxFolders) * 100
+                  : 0
               }
               className="h-2"
             />

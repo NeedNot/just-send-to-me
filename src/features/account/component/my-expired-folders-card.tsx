@@ -22,11 +22,13 @@ import {
 import { formatBytes } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import TimeAgo from 'react-timeago';
+import { useState } from 'react';
 
 export function MyExpiredFoldersCard({
   folders,
   ...props
 }: { folders: Folder[] } & React.ComponentProps<typeof Card>) {
+  const [showAll, setShowAll] = useState(false);
   return (
     <Card {...props}>
       <CardHeader>
@@ -44,15 +46,23 @@ export function MyExpiredFoldersCard({
                   <TableHead className="w-48">Name</TableHead>
                   <TableHead>Files</TableHead>
                   <TableHead>Space used</TableHead>
-                  <TableHead className="text-right">Expired at</TableHead>
+                  <TableHead className="text-right">Expired</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {folders?.map((f) => (
+                {folders?.slice(0, showAll ? undefined : 5).map((f) => (
                   <FolderRow key={f.id} folder={f} />
                 ))}
               </TableBody>
             </Table>
+            {folders.length > 5 && !showAll && (
+              <a
+                onClick={() => setShowAll(true)}
+                className="text-primary mx-auto block cursor-pointer text-center font-medium underline"
+              >
+                Show all
+              </a>
+            )}
           </div>
         )}
       </CardContent>

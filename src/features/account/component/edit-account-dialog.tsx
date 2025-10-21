@@ -15,6 +15,7 @@ import type React from 'react';
 import { useEffect, useState } from 'react';
 import { useEditAccount } from '../api/edit-account';
 import { toast } from 'sonner';
+import { DeleteAccountDialog } from './delete-account-dialog';
 
 interface EditAccountDialogProps extends React.ComponentProps<typeof Dialog> {
   name: string;
@@ -52,6 +53,16 @@ export function EditAccountDialog({
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Enter your new account name"
             />
+          </div>
+          <div className="space-y-4">
+            <div className="border-destructive/50 bg-destructive/5 rounded-lg border p-4">
+              <h2 className="text-destructive mb-2 font-medium">Danger Zone</h2>
+              <p className="text-muted-foreground mb-4 text-sm">
+                Once you delete your account, there is no going back. Please be
+                certain.
+              </p>
+              <DeleteAccountDialog />
+            </div>
           </div>
         </div>
         <DialogFooter>

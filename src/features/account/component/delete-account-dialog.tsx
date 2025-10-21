@@ -11,14 +11,19 @@ import {
 import { AlertTriangle, Clock, HelpCircle, Mail } from 'lucide-react';
 import { useDeleteAccount } from '../api/delete-account';
 import { DialogClose } from '@radix-ui/react-dialog';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useCooldown } from '@/hooks/use-cooldown';
 
 export function DeleteAccountDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [password, setPassword] = useState('');
+  const { timeLeft, startCooldown } = useCooldown(10 * 1000);
+  useEffect(() => {
+    startCooldown();
+  }, []);
   const { isPending, mutate } = useDeleteAccount({
     onSuccess: () => setIsOpen(false),
     onError: (e) => {
@@ -31,7 +36,9 @@ export function DeleteAccountDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive">Delete Account</Button>
+        <Button disabled={!!timeLeft} variant="destructive">
+          Delete Account
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
@@ -56,8 +63,8 @@ export function DeleteAccountDialog() {
               <div className="space-y-1">
                 <p className="text-sm font-medium">Verification Email</p>
                 <p className="text-muted-foreground text-sm">
-                  We'll send a verification email to confirm your identity and
-                  ensure this request is legitimate.
+                  We'll send a verification email to confirm this request is
+                  legitimate.
                 </p>
               </div>
             </div>

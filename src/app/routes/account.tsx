@@ -6,7 +6,6 @@ import { useMyFolders } from '@/features/account/api/my-folders';
 import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
-import { DeleteAccountDialog } from '@/features/account/component/delete-account-dialog';
 
 export const Route = createFileRoute('/account')({
   beforeLoad: async ({ location }) => {
@@ -48,9 +47,6 @@ function RouteComponent() {
               data-section="Expired folders"
               folders={myFolders?.expiredFolders ?? []}
             />
-            <div className="m-auto w-min">
-              <DeleteAccountDialog />
-            </div>
           </div>
         </div>
       </div>

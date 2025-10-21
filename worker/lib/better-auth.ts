@@ -42,6 +42,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       autoSignIn: true,
       requireEmailVerification: true,
       async sendResetPassword({ user, token }) {
+        console.log('reset password');
         const { success } = await env.GENERAL_RATE_LIMITER.limit({
           key: user.email,
         });
