@@ -1,5 +1,3 @@
-import { Link } from '@tanstack/react-router';
-
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
@@ -14,24 +12,24 @@ export function Footer() {
 
           {/* Navigation Links */}
           <nav className="flex flex-1 justify-center gap-6">
-            <Link
+            {/* <Link
               to="/legal"
               className="text-muted-foreground hover:text-foreground text-sm transition-colors"
             >
               Legal
-            </Link>
-            <Link
+            </Link> */}
+            {/* <Link
               to="/pricing"
               className="text-muted-foreground hover:text-foreground text-sm transition-colors"
             >
               Pricing
-            </Link>
-            <Link
+            </Link> */}
+            {/* <Link
               to="/support"
               className="text-muted-foreground hover:text-foreground text-sm transition-colors"
             >
               Support
-            </Link>
+            </Link> */}
           </nav>
 
           {/* Social Icons */}
