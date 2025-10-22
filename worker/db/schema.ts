@@ -2,13 +2,12 @@ import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
 import { user } from './auth-schema';
-import { MS_IN_DAY } from '../../shared/constants';
 
 // todo rename column names to snake case
 
 export const folders = sqliteTable('folders', {
   id: text()
-    .$defaultFn(() => createId())
+    .$defaultFn(() => createId().slice(0, 6))
     .primaryKey(),
   name: text({ length: 128 }).notNull(),
   maxSize: integer().notNull(),
@@ -16,13 +15,11 @@ export const folders = sqliteTable('folders', {
   fileCount: integer().default(0).notNull(),
   filesDeleted: integer({ mode: 'boolean' }).default(false).notNull(),
   expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
-  creatorId: text().notNull(),
+  creatorId: text().references(() => user.id).notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
-  effectiveQuotaTill: integer({ mode: 'timestamp_ms' })
-    .default(new Date(Date.now() + MS_IN_DAY * 30))
-    .notNull(),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  creditCost: integer('credit_cost').default(1).notNull(),
 });
 
 export const files = sqliteTable('files', {
@@ -37,7 +34,7 @@ export const files = sqliteTable('files', {
   size: integer().notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
 });
 
 export const plans = sqliteTable('plans', {
@@ -47,16 +44,16 @@ export const plans = sqliteTable('plans', {
   name: text({ length: 128 }).notNull(),
   priceMonthly: integer('price_monthly').notNull(), // in cents
   priceYearly: integer('price_yearly').notNull(), // in cents
-  maxStoragePerFolderMb: integer('max_storage').notNull(),
-  maxFolderCount: integer('max_folder_count').notNull(),
+  maxStoragePerFolder: integer('max_storage').notNull(), //in bytes
   maxFileCountPerFolder: integer('max_file_count').notNull(),
-  stripePriceId: text('stripe_price_id').notNull(),
+  credits: integer('credits').notNull(),
+  stripePriceId: text('stripe_price_id'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
 });
 
 export const userSubscriptions = sqliteTable('user_subscriptions', {
@@ -78,8 +75,8 @@ export const userSubscriptions = sqliteTable('user_subscriptions', {
   cancelAt: integer('cancel_at', { mode: 'timestamp_ms' }).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
     .notNull()
-    .default(sql`(unixepoch() * 1000)`),
+    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
 });

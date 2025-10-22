@@ -17,7 +17,7 @@ import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/better-auth';
 
 export function CreateFolderForm() {
-  const { data: session, isPending: sessionPending } = authClient.useSession();
+  const { data: session } = authClient.useSession();
   const navigate = useNavigate()
   const createFolder = useCreateFolder({
     onSuccess: (newFolder) => {
@@ -26,9 +26,15 @@ export function CreateFolderForm() {
       });
       navigate({ to: '/f/' + newFolder.id });
     },
-    onError(error) {
+    async onError(error) {
       if (error.cause === 'FOLDER_LIMIT_REACHED') {
         // todo prompt upgrade
+      }
+      if (error.cause === 'UNAUTHORIZED') {
+        const s = await authClient.getSession()
+        if (!s) {
+          navigate({ to: '/sign-up', search: { redirect: undefined } });
+        }
       }
       toast.error('Unable to create folder', {
         description: error.message,
@@ -88,7 +94,7 @@ export function CreateFolderForm() {
               </Select>
             </div>
             <Button
-              disabled={createFolder.isPending || sessionPending}
+              disabled={createFolder.isPending}
               type="submit"
             >
               Create

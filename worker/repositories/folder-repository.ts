@@ -1,5 +1,5 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
-import { eq, gt, sql, and } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { files, folders } from '../db/schema';
 import type { File } from '../../shared/schemas';
 
@@ -36,12 +36,12 @@ export const createFolder = async (
     name,
     creatorId,
     expiresAt,
-    effectiveQuotaTill,
+    creditCost,
   }: {
     name: string;
     creatorId: string;
     expiresAt: Date;
-    effectiveQuotaTill: Date;
+    creditCost: number;
   },
 ) => {
   const res = await db
@@ -51,7 +51,7 @@ export const createFolder = async (
       maxSize: 1024 ** 3,
       creatorId,
       expiresAt,
-      effectiveQuotaTill,
+      creditCost,
     })
     .returning()
     .get();
@@ -82,21 +82,5 @@ export const getFoldersByCreator = async (
     .select()
     .from(folders)
     .where(eq(folders.creatorId, creatorId))
-    .all();
-};
-
-export const getEffectiveQuotaFolders = async (
-  db: DrizzleD1Database & { $client: D1Database },
-  creatorId: string,
-) => {
-  return db
-    .select({ id: folders.id, effectiveQuotaTill: folders.effectiveQuotaTill })
-    .from(folders)
-    .where(
-      and(
-        eq(folders.creatorId, creatorId),
-        gt(folders.effectiveQuotaTill, new Date()),
-      ),
-    )
     .all();
 };

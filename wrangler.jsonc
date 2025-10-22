@@ -8,15 +8,15 @@
   "observability": {
     "logs": {
       "invocation_logs": true,
-      "enabled": true
-    }
+      "enabled": true,
+    },
   },
   "vars": {
     "SMTP_SERVER_NAME": "smtp.zeptomail.com",
     "SMTP_DOMAIN": "justsendto.me",
     "SMTP_USERNAME": "emailapikey",
     "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
-    "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387"
+    "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
   },
   "assets": {
     "directory": "./dist",
@@ -74,4 +74,25 @@
       },
     },
   ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "USER_CREDITS_OBJECT",
+        "class_name": "UserCreditsObject",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["UserCreditsObject"],
+    },
+  ],
+  "workflows": [
+    {
+      "name": "FOLDER_FLOW",
+      "binding": "FOLDER_FLOW",
+      "class_name": "FolderFlow"
+    }
+  ]
 }

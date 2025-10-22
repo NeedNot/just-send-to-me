@@ -14,8 +14,9 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
       planId: {
         fieldName: 'plan_id',
         type: 'string',
-        required: false,
+        required: true,
         input: false,
+        defaultValue: "FREE"
       },
     },
   },

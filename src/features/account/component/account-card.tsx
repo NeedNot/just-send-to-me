@@ -66,22 +66,22 @@ export function AccountCard({
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label className="font-medium">Folders used</Label>
+              <Label className="font-medium">Credits</Label>
               <span className="text-muted-foreground text-sm">
-                {data?.foldersUsed} of {data?.plan.maxFolders} used
+                {data?.remainingCredits}/{data?.plan.credits}
               </span>
             </div>
             <Progress
               value={
                 data
-                  ? Math.min(1, data?.foldersUsed / data?.plan.maxFolders) * 100
+                  ? Math.min(1, data?.remainingCredits / data?.plan.credits) *
+                    100
                   : 0
               }
               className="h-2"
             />
             <p className="text-muted-foreground text-xs">
-              The longer the folder expiration time is the longer the folder
-              counts against your account quota
+              Credits are reapplied to your account 30d after they are spent
             </p>
           </div>
 

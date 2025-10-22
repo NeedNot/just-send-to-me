@@ -34,6 +34,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           type: 'string',
           required: true,
           input: false,
+          defaultValue: "FREE",
         },
       },
     },
@@ -42,7 +43,6 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       autoSignIn: true,
       requireEmailVerification: true,
       async sendResetPassword({ user, token }) {
-        console.log('reset password');
         const { success } = await env.GENERAL_RATE_LIMITER.limit({
           key: user.email,
         });
@@ -99,11 +99,16 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           });
         }
       }),
-      after: createAuthMiddleware(async (ctx) => {
-        if (!ctx.path.startsWith('/sign-up')) {
-          return;
-        }
-      }),
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (ctx) => {
+            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id)
+            await stub.updateRemainingCredits(3) //todo don't hardcode
+          }
+        },
+      }
     },
     socialProviders: {
       google: {

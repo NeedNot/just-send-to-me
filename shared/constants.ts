@@ -6,7 +6,12 @@ export const MS_IN_MINUTE = 1000 * 60;
 
 export const EXPIRATION_DURATIONS: Record<ExpirationDuration, number> = {
   '1d': MS_IN_DAY * 1,
-  '2d': MS_IN_DAY * 2,
   '3d': MS_IN_DAY * 3,
   '7d': MS_IN_DAY * 7,
+};
+
+export const CREDIT_COSTS: Record<ExpirationDuration, number> = {
+  '1d': 1,
+  '3d': 2,
+  '7d': 3,
 };

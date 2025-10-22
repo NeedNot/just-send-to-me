@@ -1,6 +1,6 @@
 import { z } from '@hono/zod-openapi';
 
-export const folderExpirationDuration = z.enum(['1d', '2d', '3d', '7d']);
+export const folderExpirationDuration = z.enum(['1d', '3d', '7d']);
 
 export const fileSchema = z.object({
   id: z.string(),
@@ -91,7 +91,7 @@ export const planSchema = z
   .object({
     id: z.string(),
     name: z.string(),
-    maxFolders: z.number(),
+    credits: z.number(),
   })
   .openapi({
     type: 'object',
@@ -116,13 +116,12 @@ export const R2UploadedPartSchema = z.object({
 export const myFoldersResponseSchema = z.object({
   folders: z.array(folderSchema.omit({ files: true })),
   expiredFolders: z.array(folderSchema.omit({ files: true })),
-  usedFolders: z.number(),
 });
 
 export const myAccountResponseSchema = z.object({
   name: z.string(),
   email: z.string(),
-  foldersUsed: z.number(),
+  remainingCredits: z.number(),
   plan: planSchema,
 });
 

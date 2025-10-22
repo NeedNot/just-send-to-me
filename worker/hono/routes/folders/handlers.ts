@@ -2,11 +2,13 @@ import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
 import type { CreateFolderRoute, GetFolderRoute } from './routes';
 import {
-  getEffectiveQuotaFolders,
   getFolderById,
   createFolder as repositoryCreateFolder,
 } from '../../../repositories/folder-repository';
-import { EXPIRATION_DURATIONS, MS_IN_DAY } from '../../../../shared/constants';
+import {
+  CREDIT_COSTS,
+  EXPIRATION_DURATIONS,
+} from '../../../../shared/constants';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   const user = c.get('user');
@@ -15,20 +17,17 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   const { name, expiration } = c.req.valid('json');
   const duration = EXPIRATION_DURATIONS[expiration];
   const expiresAt = new Date(Date.now() + duration);
-  const effectiveQuotaTill = new Date(
-    Date.now() + Math.min(MS_IN_DAY * 30, duration * 15),
-  );
+  const creditCost = CREDIT_COSTS[expiration];
 
   const db = drizzle(c.env.DB);
 
-  const limit = 3;
-  const quotaFolders = await getEffectiveQuotaFolders(db, user.id);
+  const userCreditsObject = c.env.USER_CREDITS_OBJECT.getByName(user.id);
 
-  if (quotaFolders.length >= limit) {
+  if (!(await userCreditsObject.hasEnoughCredits(creditCost))) {
     return c.json(
       {
-        code: 'FOLDER_LIMIT_REACHED',
-        message: 'Please upgrade your account to create more folders',
+        code: 'INSUFFICIENT_CREDITS',
+        message: 'Insufficient credits to create folder',
       },
       403,
     );
@@ -38,8 +37,21 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
     name,
     creatorId: user.id,
     expiresAt,
-    effectiveQuotaTill,
+    creditCost,
   });
+
+  await userCreditsObject.spendCredits(creditCost)
+
+
+  await c.env.FOLDER_FLOW.create({
+    id: result.id,
+    params: {
+      folderId: result.id,
+      creditCost,
+      expiresAt,
+    },
+  });
+
   return c.json(result, 200);
 };
 

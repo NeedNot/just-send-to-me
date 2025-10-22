@@ -1,38 +1,9 @@
-import { OpenAPIHono } from '@hono/zod-openapi';
-import folderRoutes from './hono/routes/folders';
-import fileRoutes from './hono/routes/files';
-import accountRoutes from './hono/routes/account';
-import type { AppBindings, AppVariables } from './lib/types';
 import { drizzle } from 'drizzle-orm/d1/driver';
-import { auth } from './lib/better-auth';
 import { files, folders } from './db/schema';
 import { and, eq, inArray, lt } from 'drizzle-orm';
-
-const app = new OpenAPIHono<AppBindings & AppVariables>();
-
-app.on(['GET', 'POST'], '/api/auth/*', (c) => {
-  return auth(c.env).handler(c.req.raw);
-});
-app.use('/api/*', async (c, next) => {
-  const session = await auth(c.env).api.getSession({
-    headers: c.req.raw.headers,
-  });
-
-  if (!session) {
-    c.set('user', null);
-    c.set('session', null);
-    return next();
-  }
-
-  c.set('user', session.user);
-  c.set('session', session.session);
-  return next();
-});
-app.route('/api', folderRoutes);
-app.route('/api', fileRoutes);
-app.route('/api', accountRoutes);
-
-export { app };
+import { app } from './hono';
+import { UserCreditsObject } from './durable-objects/user-credits-object';
+import { FolderFlow } from './workflows/folder-flow';
 
 export default {
   scheduled: async (_, env, __) => {
@@ -74,3 +45,5 @@ export default {
   },
   fetch: app.fetch,
 } satisfies ExportedHandler<Env>;
+
+export { UserCreditsObject, FolderFlow };

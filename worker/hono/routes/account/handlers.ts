@@ -1,10 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
 import type { GetMyAccountRoute, GetMyFoldersRoute } from './routes';
-import {
-  getEffectiveQuotaFolders,
-  getFoldersByCreator,
-} from '../../../repositories/folder-repository';
+import { getFoldersByCreator } from '../../../repositories/folder-repository';
 import type { Folder } from '../../../../shared/schemas';
 import { getPlanById } from '../../../repositories/plan-repository';
 
@@ -32,17 +29,19 @@ export const getMyAccount: AppRouteHandler<GetMyAccountRoute> = async (c) => {
 
   const db = drizzle(c.env.DB);
   const plan = await getPlanById(db, user.planId);
-  const usedFolders = await getEffectiveQuotaFolders(db, user.id);
+
+  const userCreditsObject = c.env.USER_CREDITS_OBJECT.getByName(user.id);
+  const remainingCredits = await userCreditsObject.getRemainingCredits();
 
   return c.json(
     {
       name: user.name,
       email: user.email,
-      foldersUsed: usedFolders.length,
+      remainingCredits,
       plan: {
         id: plan?.id ?? '',
         name: plan?.name ?? 'Free',
-        maxFolders: plan?.maxFolderCount ?? 3,
+        credits: plan?.credits ?? 3,
       },
     },
     200,
