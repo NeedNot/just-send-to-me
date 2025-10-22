@@ -1,4 +1,3 @@
-import { Toaster } from '@/components/ui/sonner';
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
 import { createFileRoute } from '@tanstack/react-router';
 
@@ -18,7 +17,6 @@ function RouteComponent() {
           <ChangePasswordForm resetPasswordToken={token} />
         </div>
       </div>
-      <Toaster />
     </>
   );
 }

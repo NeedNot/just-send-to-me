@@ -1,6 +1,5 @@
 import { SignInForm } from '@/features/auth/components/sign-in-form';
 import { createFileRoute } from '@tanstack/react-router';
-import { Toaster } from 'sonner';
 
 export const Route = createFileRoute('/sign-in')({
   component: RouteComponent,
@@ -17,7 +16,6 @@ function RouteComponent() {
           <SignInForm />
         </div>
       </div>
-      <Toaster />
     </>
   );
 }

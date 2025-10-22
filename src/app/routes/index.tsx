@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { CreateFolderForm } from '../../features/folder/components/create-folder-form';
-import { Toaster } from 'sonner';
 
 export const Route = createFileRoute('/')({
   component: Index,
@@ -14,7 +13,6 @@ function Index() {
           <CreateFolderForm />
         </div>
       </div>
-      <Toaster />
     </>
   );
 }

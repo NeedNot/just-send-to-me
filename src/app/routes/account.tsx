@@ -1,4 +1,3 @@
-import { Toaster } from 'sonner';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { MyFoldersCard } from '@/features/account/component/my-folders-card';
 import { MyExpiredFoldersCard } from '@/features/account/component/my-expired-folders-card';
@@ -71,7 +70,6 @@ function RouteComponent() {
         </div>
         <Footer />
       </div>
-      <Toaster />
     </>
   );
 }
