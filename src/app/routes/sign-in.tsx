@@ -11,10 +11,8 @@ export const Route = createFileRoute('/sign-in')({
 function RouteComponent() {
   return (
     <>
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-sm">
-          <SignInForm />
-        </div>
+      <div className="mx-auto w-full max-w-sm">
+        <SignInForm />
       </div>
     </>
   );

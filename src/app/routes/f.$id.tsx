@@ -11,14 +11,12 @@ function RouteComponent() {
   const { data: folder } = useGetFolder({ folderId: id });
   return (
     <>
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-xl">
-          {folder ? (
-            <FolderCard className="max-h-3/4" folder={folder} />
-          ) : (
-            <div>No folder</div>
-          )}
-        </div>
+      <div className="mx-auto w-full max-w-xl">
+        {folder ? (
+          <FolderCard className="max-h-3/4" folder={folder} />
+        ) : (
+          <div>No folder</div>
+        )}
       </div>
     </>
   );

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 436.91 106.17">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-1, .cls-2, .cls-3 {
+        stroke: #231f20;
+        stroke-linejoin: round;
+        stroke-width: .5px;
+      }
+
+      .cls-2 {
+        fill: #f3bd2e;
+      }
+
+      .cls-4 {
+        font-family: Onest-Medium, Onest;
+        font-size: 60px;
+        font-variation-settings: 'wght' 500;
+        font-weight: 500;
+      }
+
+      .cls-4, .cls-3 {
+        fill: #f6d32f;
+      }
+
+      .cls-5 {
+        fill: none;
+        stroke: #fff;
+        stroke-dasharray: 6 4;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-6 {
+        letter-spacing: -.05em;
+      }
+
+      .cls-7 {
+        letter-spacing: 0em;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="62.16" y1="10.41" x2="71.02" y2="28.58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f6d32f"/>
+      <stop offset="1" stop-color="#daa228"/>
+    </linearGradient>
+  </defs>
+  <g id="Plane">
+    <g>
+      <polygon class="cls-1" points="82.99 .25 45.64 25.63 50.19 38.74 52.29 26.49 82.99 .25"/>
+      <polygon class="cls-3" points="32.37 23.89 45.65 25.62 45.64 25.63 82.99 .25 32.37 23.89"/>
+      <polygon class="cls-2" points="50.19 38.74 59.79 27.47 52.29 26.49 50.19 38.74"/>
+      <polygon class="cls-3" points="52.29 26.49 59.79 27.47 68.72 28.64 82.99 .25 52.29 26.49"/>
+    </g>
+  </g>
+  <g id="Layer_5" data-name="Layer 5">
+    <text class="cls-4" transform="translate(0 87.81)"><tspan x="0" y="0">Ju</tspan><tspan class="cls-7" x="68.76" y="0">s</tspan><tspan x="98.76" y="0">tSend</tspan><tspan class="cls-6" x="267.06" y="0">T</tspan><tspan x="298.74" y="0">o.Me</tspan></text>
+    <path class="cls-5" d="M8.94,101.39c43.48-27.86,21.7-38.75,16.34-38.28s-4.29,3.24-4.29,3.24c0,0,.17,3.71,5.78,3.71s14.75-19.59,23.42-31.33"/>
+  </g>
+</svg>

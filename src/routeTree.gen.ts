@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './app/routes/__root'
 import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
+import { Route as NewRouteImport } from './app/routes/new'
 import { Route as ChangePasswordRouteImport } from './app/routes/change-password'
 import { Route as AccountRouteImport } from './app/routes/account'
 import { Route as AboutRouteImport } from './app/routes/about'
@@ -25,6 +26,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const SignInRoute = SignInRouteImport.update({
   id: '/sign-in',
   path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewRoute = NewRouteImport.update({
+  id: '/new',
+  path: '/new',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
+  '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/f/$id': typeof FIdRoute
@@ -67,6 +74,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
+  '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/f/$id': typeof FIdRoute
@@ -77,6 +85,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
+  '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/f/$id': typeof FIdRoute
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/change-password'
+    | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/f/$id'
@@ -97,6 +107,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/change-password'
+    | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/f/$id'
@@ -106,6 +117,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/account'
     | '/change-password'
+    | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/f/$id'
@@ -116,6 +128,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AccountRoute: typeof AccountRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
+  NewRoute: typeof NewRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   FIdRoute: typeof FIdRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/sign-in'
       fullPath: '/sign-in'
       preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/new': {
+      id: '/new'
+      path: '/new'
+      fullPath: '/new'
+      preLoaderRoute: typeof NewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/change-password': {
@@ -180,6 +200,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AccountRoute: AccountRoute,
   ChangePasswordRoute: ChangePasswordRoute,
+  NewRoute: NewRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   FIdRoute: FIdRoute,

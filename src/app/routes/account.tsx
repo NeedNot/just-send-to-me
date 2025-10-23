@@ -1,12 +1,10 @@
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, redirect } from '@tanstack/react-router';
 import { MyFoldersCard } from '@/features/account/component/my-folders-card';
 import { MyExpiredFoldersCard } from '@/features/account/component/my-expired-folders-card';
 import { useMyFolders } from '@/features/account/api/my-folders';
 import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
-import { Navbar05 } from '@/components/ui/shadcn-io/navbar-05';
-import { Footer } from '@/components/footer';
 
 export const Route = createFileRoute('/account')({
   beforeLoad: async ({ location }) => {
@@ -22,53 +20,32 @@ export const Route = createFileRoute('/account')({
 });
 
 function RouteComponent() {
-  const navigate = useNavigate();
   const { data: myFolders } = useMyFolders();
 
   return (
     <>
-      <div className="bg-background flex min-h-screen flex-col gap-4">
-        <Navbar05
-          userName="Dalton"
-          userEmail="jv7Y2@example.com"
-          onNavItemClick={(item) => navigate({ to: item })}
-          onUserItemClick={(item) => {
-            if (item === 'sign-out') {
-              authClient.signOut();
-              // todo clear account data
-              navigate({
-                to: '/sign-in',
-                search: { redirect: location.pathname },
-              });
-              return;
-            }
-            navigate({ to: item });
-          }}
-        />
-        <div className="my-auto">
-          {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
-          {/* <TableOfContents
-            current="account"
-            className="mr-[15%] ml-auto hidden min-w-48 justify-self-end md:block"
-          /> */}
-          <div
-            id="content"
-            className="mx-auto w-full max-w-2xl space-y-4 justify-self-center"
-          >
-            <AccountCard id="account" data-section="Account" />
-            <MyFoldersCard
-              id="active-folders"
-              data-section="Active folders"
-              folders={myFolders?.folders ?? []}
-            />
-            <MyExpiredFoldersCard
-              id="expired-folders"
-              data-section="Expired folders"
-              folders={myFolders?.expiredFolders ?? []}
-            />
-          </div>
+      <div className="my-auto">
+        {/* <div className="[grid-template-columns:minmax(auto,1fr)_minmax(300px,700px)_minmax(auto,1fr)] items-start justify-center md:grid"> */}
+        {/* <TableOfContents
+          current="account"
+          className="mr-[15%] ml-auto hidden min-w-48 justify-self-end md:block"
+        /> */}
+        <div
+          id="content"
+          className="mx-auto w-full max-w-2xl space-y-4 justify-self-center"
+        >
+          <AccountCard id="account" data-section="Account" />
+          <MyFoldersCard
+            id="active-folders"
+            data-section="Active folders"
+            folders={myFolders?.folders ?? []}
+          />
+          <MyExpiredFoldersCard
+            id="expired-folders"
+            data-section="Expired folders"
+            folders={myFolders?.expiredFolders ?? []}
+          />
         </div>
-        <Footer />
       </div>
     </>
   );

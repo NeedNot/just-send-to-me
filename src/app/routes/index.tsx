@@ -8,7 +8,7 @@ export const Route = createFileRoute('/')({
 function Index() {
   return (
     <>
-      <div className="bg-background flex min-h-screen items-center justify-center">
+      <div className="flex items-center justify-center">
         <div className="w-full max-w-sm">
           <CreateFolderForm />
         </div>

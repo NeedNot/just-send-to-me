@@ -12,10 +12,8 @@ function RouteComponent() {
   const token = Route.useSearch().token;
   return (
     <>
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-sm">
-          <ChangePasswordForm resetPasswordToken={token} />
-        </div>
+      <div className="mx-auto w-full max-w-sm">
+        <ChangePasswordForm resetPasswordToken={token} />
       </div>
     </>
   );

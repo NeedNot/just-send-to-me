@@ -119,8 +119,8 @@ export const myFoldersResponseSchema = z.object({
 });
 
 export const myAccountResponseSchema = z.object({
-  name: z.string(),
-  email: z.string(),
+  name: z.string().nonempty(),
+  email: z.string().nonempty(),
   remainingCredits: z.number(),
   plan: planSchema,
 });
