@@ -108,6 +108,12 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
             await stub.updateRemainingCredits(3) //todo don't hardcode
           }
         },
+        delete: {
+          after: async (ctx) => {
+            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id)
+            await stub.deleteStorage()
+          }
+        }
       }
     },
     socialProviders: {
