@@ -3,7 +3,7 @@ import { NavbarSignedIn } from '@/components/navbar-signed-in';
 import { Navbar1 } from '@/components/navbar1';
 import { useMyAccount } from '@/features/account/api/my-account';
 import { authClient } from '@/lib/better-auth';
-import { createRootRoute, Outlet } from '@tanstack/react-router';
+import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
@@ -11,6 +11,7 @@ export const Route = createRootRoute({
     return (
       <>
         {/* <SignUpPrompterProvider> */}
+        <HeadContent />
         <div className="bg-background flex min-h-screen flex-col gap-4">
           <Navbar />
           <div className="my-auto">

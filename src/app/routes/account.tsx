@@ -7,6 +7,9 @@ import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
 
 export const Route = createFileRoute('/account')({
+  head: () => ({
+    meta: [{title: "Account | JustSendToMe", description: "View and manage your account", name:"My account"}]
+  }),
   beforeLoad: async ({ location }) => {
     const session = await authClient.getSession();
     if (!session.data) {

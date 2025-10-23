@@ -197,11 +197,13 @@ const Navbar1 = ({
               <SheetContent className="overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>
-                    <Link to={logo.url} className="flex items-center gap-2">
+                    <Link to={logo.url} className="inline-block h-8">
                       <img
                         src={logo.submarkSrc}
                         className="max-h-8"
                         alt={logo.alt}
+                        height={32}
+                        width={45}
                       />
                     </Link>
                   </SheetTitle>

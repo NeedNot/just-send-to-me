@@ -2,6 +2,13 @@ import { ChangePasswordForm } from '@/features/auth/components/change-password-f
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/change-password')({
+  head: () => ({
+    meta: [{
+      title: "Change password | JustSendToMe",
+      description: "Change your password",
+      name: "Change password"
+    }]
+  }),
   component: RouteComponent,
   validateSearch: (search) => ({
     token: search.token as string | undefined,
