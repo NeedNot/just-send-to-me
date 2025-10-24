@@ -35,7 +35,7 @@
   "r2_buckets": [
     {
       "bucket_name": "files-bucket",
-      "binding": "FILES_BUCKET", //todo change to caps
+      "binding": "FILES_BUCKET",
       "remote": true,
     },
   ],
@@ -92,7 +92,7 @@
     {
       "name": "FOLDER_FLOW",
       "binding": "FOLDER_FLOW",
-      "class_name": "FolderFlow"
-    }
-  ]
+      "class_name": "FolderFlow",
+    },
+  ],
 }

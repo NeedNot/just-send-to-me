@@ -7,9 +7,8 @@ import {
   CardHeader,
   CardTitle,
 } from '../../../components/ui/card';
-import CopyLinkButton from '../../../components/copy-link-button';
 import { Button } from '../../../components/ui/button';
-import { Check, Download, X } from 'lucide-react';
+import { Check, Download, Share, X } from 'lucide-react';
 import { Progress } from '../../../components/ui/progress';
 import { downloadFile, formatBytes } from '../../../lib/utils';
 import type { File, Folder } from '@shared/schemas';
@@ -25,6 +24,7 @@ import { useEffect, useMemo, useRef, type MouseEventHandler } from 'react';
 import { useCooldown } from '@/hooks/use-cooldown';
 import { getFileUrl } from '@/features/file/api/download-file';
 import { toast } from 'sonner';
+import { ShareDialog } from '@/components/share-dialog';
 
 export function FolderCard({
   folder,
@@ -35,6 +35,7 @@ export function FolderCard({
   const { upload, statuses, abort } = useFileUploader(folder.id);
   const { data: session } = authClient.useSession();
   const prevInprogressRef = useRef(new Set());
+  const shareUrl = window.location.origin + window.location.pathname;
 
   useEffect(() => {
     const prevInprogress = prevInprogressRef.current;
@@ -113,7 +114,11 @@ export function FolderCard({
           )}
         </CardDescription>
         <CardAction className="flex gap-2">
-          <CopyLinkButton variant={'outline'} link="todo here" />
+          <ShareDialog url={shareUrl}>
+            <Button size="sm" variant="outline">
+              <Share />
+            </Button>
+          </ShareDialog>
           <Button
             size="sm"
             disabled={!folder.files || downloading}

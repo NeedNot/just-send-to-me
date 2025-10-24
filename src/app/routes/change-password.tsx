@@ -3,11 +3,13 @@ import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/change-password')({
   head: () => ({
-    meta: [{
-      title: "Change password | JustSendToMe",
-      description: "Change your password",
-      name: "Change password"
-    }]
+    meta: [
+      {
+        title: 'Change password - JustSendToMe',
+        description: 'Change your password',
+        name: 'Change password',
+      },
+    ],
   }),
   component: RouteComponent,
   validateSearch: (search) => ({

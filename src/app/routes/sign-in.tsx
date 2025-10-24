@@ -3,11 +3,13 @@ import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/sign-in')({
   head: () => ({
-    meta: [{
-      title: "Sign in | JustSendToMe",
-      content: "Sign in form",
-      name: "Sign in"
-    }]
+    meta: [
+      {
+        title: 'Sign in - JustSendToMe',
+        content: 'Sign in form',
+        name: 'Sign in',
+      },
+    ],
   }),
   component: RouteComponent,
   validateSearch: (search) => ({

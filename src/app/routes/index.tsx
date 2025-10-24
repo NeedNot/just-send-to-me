@@ -3,11 +3,13 @@ import { CreateFolderForm } from '../../features/folder/components/create-folder
 
 export const Route = createFileRoute('/')({
   head: () => ({
-    meta: [{
-      title: "Create new folder | JustSendToMe",
-      description: "Input a title and duration to create a new folder.",
-      name: "Create folder"
-    }]
+    meta: [
+      {
+        title: 'Create new folder - JustSendToMe',
+        description: 'Input a title and duration to create a new folder.',
+        name: 'Create folder',
+      },
+    ],
   }),
   component: Index,
 });
