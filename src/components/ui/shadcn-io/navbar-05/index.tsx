@@ -139,12 +139,9 @@ const UserMenu = ({
       <DropdownMenuItem onClick={() => onItemClick?.('account')}>
         Account
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => onItemClick?.('billing')}>
-        Billing
-      </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuItem onClick={() => onItemClick?.('logout')}>
-        Log out
+      <DropdownMenuItem onClick={() => onItemClick?.('sign-out')}>
+        Sign out
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
