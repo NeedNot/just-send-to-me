@@ -28,8 +28,8 @@ interface ShareDialogProps {
 
 export function ShareDialog({
   url = typeof window !== 'undefined' ? window.location.href : '',
-  title = 'Check this out!',
-  text = '',
+  title = 'JustSendToMe',
+  text = 'You can send the files here',
   children,
   buttonVariant = 'default',
   buttonSize = 'default',
@@ -120,7 +120,7 @@ export function ShareDialog({
                 width: 40,
                 excavate: true,
               }}
-              level="Q"
+              level="H"
               boostLevel={true}
               fgColor="var(--color-background)"
               width={200}
