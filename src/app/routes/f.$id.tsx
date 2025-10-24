@@ -7,7 +7,7 @@ import {
 import { queryClient } from '@/lib/query-client';
 
 export const Route = createFileRoute('/f/$id')({
-  loader: async ({ params }) =>
+  loader: ({ params }) =>
     queryClient.ensureQueryData(folderQueryOptions(params.id)),
   errorComponent: () => <div>Folder not found</div>, //todo
   head: ({ loaderData }) => ({

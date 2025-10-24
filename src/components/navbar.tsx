@@ -2,17 +2,7 @@
 
 import type React from 'react';
 
-import {
-  Book,
-  FolderPlus,
-  HelpCircle,
-  LogOut,
-  Menu,
-  Sunset,
-  Trees,
-  User,
-  Zap,
-} from 'lucide-react';
+import { FolderPlus, HelpCircle, LogOut, Menu, User } from 'lucide-react';
 
 import {
   Accordion,
@@ -47,7 +37,6 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Skeleton } from './ui/skeleton';
 
 interface MenuItem {
   title: string;
@@ -57,7 +46,7 @@ interface MenuItem {
   items?: MenuItem[];
 }
 
-interface NavbarSignedInProps {
+interface NavbarProps {
   logo?: {
     url: string;
     src: string;
@@ -78,7 +67,7 @@ interface NavbarSignedInProps {
   onHelp?: () => void;
 }
 
-const NavbarSignedIn = ({
+const Navbar = ({
   logo = {
     url: '/',
     src: '/logo.svg',
@@ -87,91 +76,19 @@ const NavbarSignedIn = ({
     title: 'Justsendto.me',
   },
   menu = [
-    { title: 'Home', url: '#' },
-    {
-      title: 'Products',
-      url: '#',
-      items: [
-        {
-          title: 'Blog',
-          description: 'The latest industry news, updates, and info',
-          icon: <Book className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Company',
-          description: 'Our mission is to innovate and empower the world',
-          icon: <Trees className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Careers',
-          description: 'Browse job listing and discover our workspace',
-          icon: <Sunset className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Support',
-          description:
-            'Get in touch with our support team or visit our community forums',
-          icon: <Zap className="size-5 shrink-0" />,
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Resources',
-      url: '#',
-      items: [
-        {
-          title: 'Help Center',
-          description: 'Get all the answers you need right here',
-          icon: <Zap className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Contact Us',
-          description: 'We are here to help you with any questions you have',
-          icon: <Sunset className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Status',
-          description: 'Check the current status of our services and APIs',
-          icon: <Trees className="size-5 shrink-0" />,
-          url: '#',
-        },
-        {
-          title: 'Terms of Service',
-          description: 'Our terms and conditions for using our services',
-          icon: <Book className="size-5 shrink-0" />,
-          url: '#',
-        },
-      ],
-    },
-    {
-      title: 'Pricing',
-      url: '#',
-    },
-    {
-      title: 'Blog',
-      url: '#',
-    },
+    { title: 'Home', url: '/' },
+    { title: 'Features', url: '/features' },
+    { title: 'Pricing', url: '/pricing' },
+    { title: 'About', url: '/about' },
   ],
-  user = {
-    name: '',
-    email: '',
-    credits: 0,
-    maxCredits: 0,
-  },
-  isLoading = false,
+  user,
   onSignOut = () => console.log('Sign out clicked'),
   onHelp = () => console.log('Help clicked'),
-}: NavbarSignedInProps) => {
+}: NavbarProps) => {
   const navigate = useNavigate();
   const onCreateFolder = () => navigate({ to: '/new' });
-  const creditPercentage = (user.credits / user.maxCredits) * 100;
-  const userInitials = user.name
+  const creditPercentage = user && (user.credits / user.maxCredits) * 100;
+  const userInitials = user?.name
     .split(' ')
     .map((n) => n[0])
     .join('')
@@ -186,7 +103,7 @@ const NavbarSignedIn = ({
             {/* Logo */}
             <Link to={logo.url} className="flex items-center gap-2">
               <img
-                src={logo.src || '/placeholder.svg'}
+                src={logo.src}
                 className="max-h-8"
                 alt={logo.alt}
                 width={175}
@@ -200,138 +117,36 @@ const NavbarSignedIn = ({
               </NavigationMenu>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <Button onClick={onCreateFolder} size="sm" variant="outline">
-              <FolderPlus className="mr-2 size-4" />
-              Create Folder
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                {isLoading ? (
-                  <Skeleton className="size-9 rounded-full" />
-                ) : (
+          {user ? (
+            <div className="flex items-center gap-3">
+              <Button onClick={onCreateFolder} size="sm" variant="outline">
+                <FolderPlus className="mr-2 size-4" />
+                Create Folder
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
                   <Avatar className="size-9">
                     <AvatarFallback className="text-xs">
                       {userInitials}
                     </AvatarFallback>
                   </Avatar>
-                )}
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-72" align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-3">
-                    <div className="flex items-center gap-3">
-                      {isLoading ? (
-                        <Skeleton className="size-10 rounded-full" />
-                      ) : (
-                        <Avatar className="size-10">
-                          <AvatarFallback className="text-xs">
-                            {userInitials}
-                          </AvatarFallback>
-                        </Avatar>
-                      )}
-                      <div className="flex flex-col space-y-1">
-                        {isLoading ? (
-                          <Skeleton className="h-3.5 w-3/4" />
-                        ) : (
-                          <p className="text-sm leading-none font-semibold">
-                            {user.name}
-                          </p>
-                        )}
-                        {isLoading ? (
-                          <Skeleton className="h-3 w-40" />
-                        ) : (
-                          <p className="text-muted-foreground text-xs leading-none">
-                            {user.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">Credits</span>
-                        <span className="font-medium">
-                          {user.credits} / {user.maxCredits}
-                        </span>
-                      </div>
-                      <Progress value={creditPercentage} className="h-2" />
-                    </div>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate({ to: '/account' })}>
-                  <User className="mr-2 size-4" />
-                  Account
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onHelp}>
-                  <HelpCircle className="mr-2 size-4" />
-                  Help
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={onSignOut}>
-                  <LogOut className="mr-2 size-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </nav>
-
-        {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link to={logo.url} className="flex items-center gap-2">
-              <img
-                src={logo.src}
-                className="max-h-8"
-                width={175}
-                alt={logo.alt}
-              />
-            </Link>
-            <div className="mr-2 ml-auto flex items-center gap-2">
-              <Button onClick={onCreateFolder} size="sm" variant="outline">
-                <FolderPlus className="size-4" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  {isLoading ? (
-                    <Skeleton className="size-8 rounded-full" />
-                  ) : (
-                    <Avatar className="size-8">
-                      <AvatarFallback className="text-xs">
-                        {userInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-72" align="end">
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-3">
                       <div className="flex items-center gap-3">
-                        {isLoading ? (
-                          <Skeleton className="size-10 rounded-full" />
-                        ) : (
-                          <Avatar className="size-10">
-                            <AvatarFallback className="text-xs">
-                              {userInitials}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
+                        <Avatar className="size-10">
+                          <AvatarFallback className="text-xs">
+                            {userInitials}
+                          </AvatarFallback>
+                        </Avatar>
                         <div className="flex flex-col space-y-1">
-                          {isLoading ? (
-                            <Skeleton className="h-3.5 w-3/4" />
-                          ) : (
-                            <p className="text-sm leading-none font-semibold">
-                              {user.name}
-                            </p>
-                          )}
-                          {isLoading ? (
-                            <Skeleton className="h-3 w-40" />
-                          ) : (
-                            <p className="text-muted-foreground text-xs leading-none">
-                              {user.email}
-                            </p>
-                          )}
+                          <p className="text-sm leading-none font-semibold">
+                            {user.name}
+                          </p>
+                          <p className="text-muted-foreground text-xs leading-none">
+                            {user.email}
+                          </p>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -363,6 +178,111 @@ const NavbarSignedIn = ({
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button asChild variant="outline" size="sm">
+                <Link to={'/sign-in'} search={{ redirect: location.pathname }}>
+                  Sign in
+                </Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to={'/sign-up'} search={{ redirect: location.pathname }}>
+                  Sign up
+                </Link>
+              </Button>
+            </div>
+          )}
+        </nav>
+
+        {/* Mobile Menu */}
+        <div className="block lg:hidden">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <Link to={logo.url} className="flex items-center gap-2">
+              <img
+                src={logo.src}
+                className="max-h-8"
+                width={175}
+                alt={logo.alt}
+              />
+            </Link>
+            <div className="mr-2 ml-auto flex items-center gap-2">
+              {user ? (
+                <>
+                  <Button onClick={onCreateFolder} size="sm" variant="outline">
+                    <FolderPlus className="size-4" />
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Avatar className="size-8">
+                        <AvatarFallback className="text-xs">
+                          {userInitials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-72" align="end">
+                      <DropdownMenuLabel className="font-normal">
+                        <div className="flex flex-col space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="size-10">
+                              <AvatarFallback className="text-xs">
+                                {userInitials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col space-y-1">
+                              <p className="text-sm leading-none font-semibold">
+                                {user.name}
+                              </p>
+                              <p className="text-muted-foreground text-xs leading-none">
+                                {user.email}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">
+                                Credits
+                              </span>
+                              <span className="font-medium">
+                                {user.credits} / {user.maxCredits}
+                              </span>
+                            </div>
+                            <Progress
+                              value={creditPercentage}
+                              className="h-2"
+                            />
+                          </div>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => navigate({ to: '/account' })}
+                      >
+                        <User className="mr-2 size-4" />
+                        Account
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onHelp}>
+                        <HelpCircle className="mr-2 size-4" />
+                        Help
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onSignOut}>
+                        <LogOut className="mr-2 size-4" />
+                        Sign out
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </>
+              ) : (
+                <Button asChild size="sm">
+                  <Link
+                    to={'/sign-up'}
+                    search={{ redirect: location.pathname }}
+                  >
+                    Sign up
+                  </Link>
+                </Button>
+              )}
+            </div>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon">
@@ -391,10 +311,31 @@ const NavbarSignedIn = ({
                   >
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
-                  <Button onClick={onCreateFolder} variant="outline">
-                    <FolderPlus className="mr-2 size-4" />
-                    Create Folder
-                  </Button>
+                  {user ? (
+                    <Button onClick={onCreateFolder} variant="outline">
+                      <FolderPlus className="mr-2 size-4" />
+                      Create Folder
+                    </Button>
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      <Button asChild variant="outline">
+                        <Link
+                          to={'/sign-in'}
+                          search={{ redirect: location.pathname }}
+                        >
+                          Sign in
+                        </Link>
+                      </Button>
+                      <Button asChild>
+                        <Link
+                          to={'/sign-in'}
+                          search={{ redirect: location.pathname }}
+                        >
+                          Sign up
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </SheetContent>
             </Sheet>
@@ -424,10 +365,10 @@ const renderMenuItem = (item: MenuItem) => {
   return (
     <NavigationMenuItem key={item.title}>
       <NavigationMenuLink
-        href={item.url}
+        asChild
         className="bg-background hover:bg-muted hover:text-accent-foreground group inline-flex h-10 w-max items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors"
       >
-        {item.title}
+        <Link to={item.url}>{item.title}</Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
   );
@@ -450,17 +391,17 @@ const renderMobileMenuItem = (item: MenuItem) => {
   }
 
   return (
-    <a key={item.title} href={item.url} className="text-md font-semibold">
+    <Link key={item.title} to={item.url} className="text-md font-semibold">
       {item.title}
-    </a>
+    </Link>
   );
 };
 
 const SubMenuLink = ({ item }: { item: MenuItem }) => {
   return (
-    <a
+    <Link
       className="hover:bg-muted hover:text-accent-foreground flex min-w-80 flex-row gap-4 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none"
-      href={item.url}
+      to={item.url}
     >
       <div className="text-foreground">{item.icon}</div>
       <div>
@@ -471,8 +412,8 @@ const SubMenuLink = ({ item }: { item: MenuItem }) => {
           </p>
         )}
       </div>
-    </a>
+    </Link>
   );
 };
 
-export { NavbarSignedIn };
+export { Navbar };
