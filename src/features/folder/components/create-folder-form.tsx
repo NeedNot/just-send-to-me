@@ -15,8 +15,13 @@ import { useNavigate } from '@tanstack/react-router';
 import type { ExpirationDuration } from '@shared/schemas';
 import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/better-auth';
+import { useState } from 'react';
+
+  const PLACEHOLDERS = ['Hiking trip', 'Beach day', 'Art submissions', 'Family reunion', 'Birthday party', 'Project ideas']
+
 
 export function CreateFolderForm() {
+  const [placeholder, _] = useState(PLACEHOLDERS[Math.floor(Math.random()*PLACEHOLDERS.length)])
   const { data: session } = authClient.useSession();
   const navigate = useNavigate()
   const createFolder = useCreateFolder({
@@ -73,7 +78,7 @@ export function CreateFolderForm() {
               <Label htmlFor="name">Name</Label>
               <Input
                 name="name"
-                placeholder="Summer pictures" //todo have a random name generator
+                placeholder={placeholder}
                 type="text"
                 required
               />
@@ -86,9 +91,9 @@ export function CreateFolderForm() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="1d">1 Day</SelectItem>
-                    <SelectItem value="3d">3 Days</SelectItem>
-                    <SelectItem value="7d">7 Days</SelectItem>
+                    <SelectItem value="1d">1 Day <span className='text-muted-foreground'>1 Credit</span></SelectItem>
+                    <SelectItem value="3d">3 Days <span className='text-muted-foreground'>2 Credits</span></SelectItem>
+                    <SelectItem value="7d">7 Days <span className='text-muted-foreground'>3 Credits</span></SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>

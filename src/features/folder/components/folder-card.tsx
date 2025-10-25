@@ -22,7 +22,6 @@ import {
 } from '@/features/file/api/upload-file';
 import { useEffect, useMemo, useRef, type MouseEventHandler } from 'react';
 import { useCooldown } from '@/hooks/use-cooldown';
-import { getFileUrl } from '@/features/file/api/download-file';
 import { toast } from 'sonner';
 import { ShareDialog } from '@/components/share-dialog';
 
@@ -232,7 +231,7 @@ function FileDownloadButton({
   const { timeLeft, startCooldown } = useCooldown(2000);
 
   const handleDownload = () => {
-    downloadFile(name, getFileUrl(objectKey));
+    downloadFile(name, `${import.meta.env.VITE_R2_URL}/${objectKey}`);
     startCooldown();
   };
 

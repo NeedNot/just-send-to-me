@@ -6,7 +6,7 @@ import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
-  loader: () => queryClient.ensureQueryData(myAccountQuery),
+  loader: () => queryClient.ensureQueryData(myAccountQuery).catch(() => undefined),
   component: () => {
     const myAccount = Route.useLoaderData();
     return (

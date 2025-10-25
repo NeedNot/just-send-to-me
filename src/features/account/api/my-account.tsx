@@ -5,7 +5,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 async function getMyAccount(): Promise<MyAccountResponse> {
   const response = await fetch('/api/account');
   if (!response.ok) {
-    throw response;
+    throw response
   }
   return await response.json();
 }

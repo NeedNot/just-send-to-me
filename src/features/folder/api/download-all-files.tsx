@@ -1,5 +1,4 @@
 import type { Folder, File } from '@shared/schemas';
-import { getFileUrl } from '@/features/file/api/download-file';
 import JSZip from 'jszip';
 import { useState } from 'react';
 import { downloadFile } from '@/lib/utils';
@@ -43,7 +42,7 @@ async function downloadAndZipFiles(
     const fileContent = await new Promise<Blob>((resolve) => {
       let bytesTransferred = 0;
       const request = new XMLHttpRequest();
-      request.open('GET', getFileUrl(key));
+      request.open('GET', `${import.meta.env.VITE_R2_URL}/${key}`);
 
       request.onprogress = (event) => {
         bytesDownloaded += event.loaded - bytesTransferred;

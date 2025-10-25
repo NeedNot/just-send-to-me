@@ -1,7 +1,7 @@
 import { AwsClient } from 'aws4fetch';
 import { XMLParser } from 'fast-xml-parser';
 
-const S3_URL = `https://78382dff1e8ba1ce7ad866cb85aa5f39.r2.cloudflarestorage.com`; //todo get from env
+const S3_URL = `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`;
 
 export async function getObjectMetadata(
   client: AwsClient,
