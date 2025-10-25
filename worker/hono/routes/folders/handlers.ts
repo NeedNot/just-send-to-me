@@ -40,8 +40,7 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
     creditCost,
   });
 
-  await userCreditsObject.spendCredits(creditCost)
-
+  await userCreditsObject.spendCredits(creditCost);
 
   await c.env.FOLDER_FLOW.create({
     id: result.id,
@@ -61,5 +60,7 @@ export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
   const db = drizzle(c.env.DB);
   const result = await getFolderById(db, id, { withFiles: true });
   if (!result) return c.notFound();
+  if (result.expiresAt < new Date())
+    return c.json({ message: 'Folder expired' }, 410);
   return c.json(result, 200);
 };

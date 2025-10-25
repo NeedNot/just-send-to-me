@@ -29,7 +29,7 @@ interface ShareDialogProps {
 export function ShareDialog({
   url = typeof window !== 'undefined' ? window.location.href : '',
   title = 'JustSendToMe',
-  text = 'You can send the files here',
+  text = 'You can send files here!',
   children,
   buttonVariant = 'default',
   buttonSize = 'default',
