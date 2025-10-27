@@ -56,7 +56,7 @@ export default function ForgotPassword({url}: {url: string}) {
               <tr>
                 <td class="sm-p-6" style="border-radius: 12px; background-color: #171717; padding: 24px 36px; border: 1px solid #282828">
                   <a href="https://justsendto.me">
-                    <img src="https://justsendto.me/logo.jpg" height="48" alt="JustSendTo.Me logo" style="max-width: 100%; vertical-align: middle">
+                    <img src="https://justsendto.me/logo.png" height="48" alt="JustSendTo.Me logo" style="max-width: 100%; vertical-align: middle">
                   </a>
                   <div role="separator" style="line-height: 24px">&zwj;</div>
                   <h1 style="margin: 0 0 24px; font-size: 24px; line-height: 32px; font-weight: 600; color: #fafafa">
