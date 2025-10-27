@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import ForgotPassword from '../email-templates/forgot-password';
 
 const BLACKLIST_SOURCE =
   'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf';
@@ -44,7 +45,7 @@ export async function sendResetPasswordEmail(email: string, url: string) {
     from: `"Just send to me" <noreply@${SMTP_DOMAIN}>`,
     to: email,
     subject: 'Reset your password',
-    html: 'Please reset your password <a href="' + url + '">here</a>',
+    html: ForgotPassword({url}),
   };
   const info = await transport.sendMail(mailOptions);
   if (info.rejected.length > 0) throw Error(info.response);

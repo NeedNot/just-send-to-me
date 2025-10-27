@@ -3,7 +3,7 @@ import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
-import { isEmailDomainDisposable, sendVerificationEmail } from './email';
+import { isEmailDomainDisposable, sendResetPasswordEmail, sendVerificationEmail } from './email';
 import { captcha, emailOTP } from 'better-auth/plugins';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
@@ -50,8 +50,8 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         if (!success) {
           throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
         }
-        const url = `/change-password?token=${token}`;
-        await sendVerificationEmail(user.email, url);
+        const url = `https://justsendto.me/change-password?token=${token}`;
+        await sendResetPasswordEmail(user.email, url);
       },
     },
     emailVerification: {
