@@ -39,9 +39,6 @@
       "remote": true,
     },
   ],
-  "triggers": {
-    "crons": ["0 * * * *"],
-  },
   "kv_namespaces": [
     {
       "binding": "PENDING_FILE_UPLOADS",
