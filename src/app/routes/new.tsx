@@ -1,9 +1,27 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { CreateFolderForm } from '../../features/folder/components/create-folder-form';
 
 export const Route = createFileRoute('/new')({
-  component: RouteComponent,
+  head: () => ({
+    meta: [
+      {
+        title: 'Create new folder - JustSendToMe',
+        description: 'Input a title and duration to create a new folder.',
+        name: 'Create folder',
+      },
+    ],
+  }),
+  component: Index,
 });
 
-function RouteComponent() {
-  return <div>Hello "/new"!</div>;
+function Index() {
+  return (
+    <>
+      <div className="flex items-center justify-center">
+        <div className="w-full max-w-sm">
+          <CreateFolderForm />
+        </div>
+      </div>
+    </>
+  );
 }
