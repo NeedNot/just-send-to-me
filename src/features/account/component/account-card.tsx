@@ -12,9 +12,8 @@ import { Progress } from '@/components/ui/progress';
 import { Pencil, Crown, LogOut } from 'lucide-react';
 import React, { useState } from 'react';
 import { useMyAccount } from '../api/my-account';
-import { authClient } from '@/lib/better-auth';
-import { useNavigate } from '@tanstack/react-router';
 import { EditAccountDialog } from './edit-account-dialog';
+import { useSignOut } from '@/features/auth/api/sign-out';
 
 interface AccountCardProps {
   onUpgrade?: () => void;
@@ -26,7 +25,7 @@ export function AccountCard({
 }: AccountCardProps & React.ComponentProps<typeof Card>) {
   const { data } = useMyAccount();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const navigate = useNavigate();
+  const { mutate: signOut } = useSignOut();
 
   return (
     <>
@@ -86,13 +85,7 @@ export function AccountCard({
           </div>
 
           <Button
-            onClick={() => {
-              authClient.signOut();
-              navigate({
-                to: '/sign-in',
-                search: { redirect: location.pathname },
-              });
-            }}
+            onClick={() => signOut()}
             variant="outline"
             className="w-full bg-transparent"
             size="lg"

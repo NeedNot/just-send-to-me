@@ -5,7 +5,7 @@ export function PricingBlock() {
   const { data: account } = useMyAccount();
   return (
     <Pricing2
-      description="Any plan can be customized, contact us for more details"
+      description="Save 15 minutes of hassle for just $1."
       plans={[
         {
           id: 'free',

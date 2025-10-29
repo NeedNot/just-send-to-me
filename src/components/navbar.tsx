@@ -77,12 +77,11 @@ const Navbar = ({
   },
   menu = [
     { title: 'Home', url: '/' },
-    { title: 'Features', url: '/features' },
     { title: 'Pricing', url: '/#pricing' },
     { title: 'About', url: '/about' },
   ],
   user,
-  onSignOut = () => console.log('Sign out clicked'),
+  onSignOut,
   onHelp = () => console.log('Help clicked'),
 }: NavbarProps) => {
   const navigate = useNavigate();

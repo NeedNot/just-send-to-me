@@ -14,6 +14,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from './ui/badge';
+import { Link } from '@tanstack/react-router';
 
 interface PricingFeature {
   text: string;
@@ -111,17 +112,21 @@ const Pricing2 = ({
                 </CardContent>
                 <CardFooter className="mt-auto">
                   <Button
+                    asChild
                     disabled={plan.button.current}
                     variant={plan.button.current ? 'outline' : 'default'}
                     className="w-full disabled:opacity-100"
                   >
-                    {plan.button.text}
+                    <Link to={plan.button.url}>{plan.button.text}</Link>
                   </Button>
                 </CardFooter>
               </Card>
             ))}
           </div>
-          <span>All prices in USD</span>
+          <span>
+            All prices in USD. Any plan can be customized, contact us for more
+            details.
+          </span>
           <span className="text-muted-foreground text-sm">
             * When you spend a credit, that credit is temporarily deducted from
             your balance for 30 days. After the 30-day period, the credit is

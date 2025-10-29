@@ -1,14 +1,17 @@
 import { Footer } from '@/components/footer';
 import { Navbar } from '@/components/navbar';
 import { myAccountQuery } from '@/features/account/api/my-account';
+import { useSignOut } from '@/features/auth/api/sign-out';
 import { queryClient } from '@/lib/query-client';
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
-  loader: () => queryClient.ensureQueryData(myAccountQuery).catch(() => undefined),
+  loader: () =>
+    queryClient.ensureQueryData(myAccountQuery).catch(() => undefined),
   component: () => {
     const myAccount = Route.useLoaderData();
+    const { mutate: signOut } = useSignOut();
     return (
       <>
         {/* <SignUpPrompterProvider> */}
@@ -22,6 +25,7 @@ export const Route = createRootRoute({
                 maxCredits: myAccount?.plan.credits,
               }
             }
+            onSignOut={() => signOut()}
           />
           <div className="my-auto">
             <Outlet />
