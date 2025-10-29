@@ -1,6 +1,5 @@
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -13,10 +12,19 @@ export function Steps() {
         How it works
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-        <Step title="Step 1" description="Create a request folder" />
-        <Step title="Step 2" description="Share the folder link" />
-        <Step title="Step 3" description="Other people upload files" />
-        <Step title="Step 4" description="Download the files" />
+        <Step
+          title="Step 1"
+          description="Create a request folder. Choose how long the folder will be active."
+        />
+        <Step
+          title="Step 2"
+          description="Share the folder link or qr code with others."
+        />
+        <Step
+          title="Step 3"
+          description="Other people upload files without needing to create an account."
+        />
+        <Step title="Step 4" description="Download the files." />
       </div>
     </div>
   );
@@ -29,14 +37,11 @@ interface StepProps {
 
 function Step({ title, description }: StepProps) {
   return (
-    <Card className="bg-trasnparent border-none">
+    <Card className="bg-trasnparent w-sm border-none">
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <img src="/steps/step-1.png" alt="" />
-      </CardContent>
     </Card>
   );
 }
