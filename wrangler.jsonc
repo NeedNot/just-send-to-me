@@ -12,11 +12,12 @@
     },
   },
   "vars": {
+    "R2_FILES_BUCKET": "dev-files-bucket",
     "SMTP_SERVER_NAME": "smtp.zeptomail.com",
     "SMTP_DOMAIN": "justsendto.me",
     "SMTP_USERNAME": "emailapikey",
     "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
-    "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
+    "R2_ACCESS_KEY_ID": "9d67e3c3e9db13fe86d67fe250d6f9c5",
   },
   "assets": {
     "directory": "./dist",
@@ -35,6 +36,7 @@
   "r2_buckets": [
     {
       "bucket_name": "files-bucket",
+      "preview_bucket_name": "dev-files-bucket",
       "binding": "FILES_BUCKET",
       "remote": true,
     },
@@ -43,6 +45,8 @@
     {
       "binding": "PENDING_FILE_UPLOADS",
       "id": "1ec2a2d91b8e4ad08ab7bbcf9a1d360a",
+      "preview_id": "ed9539f8b9824e23bddc294514e35172",
+      "remote": true,
     },
   ],
   "ratelimits": [
@@ -92,4 +96,25 @@
       "class_name": "FolderFlow",
     },
   ],
+  "env": {
+    "production": {
+      "vars": {
+        "R2_FILES_BUCKET": "files-bucket",
+        "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
+        "SMTP_SERVER_NAME": "smtp.zeptomail.com",
+        "SMTP_DOMAIN": "justsendto.me",
+        "SMTP_USERNAME": "emailapikey",
+        "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "prod-db",
+          "database_id": "ccba53b2-b9eb-4848-8a8f-a53443ebc987",
+          "remote": true,
+          "migrations_dir": "./drizzle",
+        },
+      ],
+    },
+  },
 }

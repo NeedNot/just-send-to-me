@@ -20,7 +20,7 @@ import { insertFile } from '../../../repositories/file-repository';
 import type { Folder } from '../../../../shared/schemas';
 import { MS_IN_HOUR, MS_IN_MINUTE } from '../../../../shared/constants';
 
-const bucket = 'files-bucket';
+const bucket = process.env.R2_FILES_BUCKET!;
 const CHUNK_SIZE = 1024 * 1024 * 10;
 
 export type PendingFile = {
