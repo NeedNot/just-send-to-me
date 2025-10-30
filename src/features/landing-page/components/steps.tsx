@@ -1,17 +1,11 @@
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-
 export function Steps() {
   return (
-    <div className="bg-secondary/10 p-8">
+    <div className="bg-secondary/10 px-20 py-8">
       <h2 className="mb-6 text-center text-4xl font-semibold text-pretty lg:text-5xl">
         How it works
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+      {/* todo block needs to be narrower  */}
+      <div className="max-w-8xl grid grid-cols-1 gap-x-10 md:grid-cols-2 lg:grid-cols-4">
         <Step
           title="Step 1"
           description="Create a request folder. Choose how long the folder will be active."
@@ -37,11 +31,9 @@ interface StepProps {
 
 function Step({ title, description }: StepProps) {
   return (
-    <Card className="bg-trasnparent w-sm border-none">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-    </Card>
+    <div className="my-6 flex max-w-xs flex-col items-start gap-1.5">
+      <div className="leading-none font-semibold">{title}</div>
+      <div className="text-muted-foreground text-sm">{description}</div>
+    </div>
   );
 }
