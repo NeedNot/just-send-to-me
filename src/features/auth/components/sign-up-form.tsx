@@ -65,7 +65,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       throw Error('Unable to verify you are not a robot');
     }
     try {
-      await verifyOTP({ email: emailInput, otp });
+      await verifyOTP({ email: emailInput, otp, turnstileToken });
     } catch (e: any) {
       if (e.code === 'INVALID_OTP') return false;
       throw e;

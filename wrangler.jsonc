@@ -3,7 +3,9 @@
   "name": "just-send-to-me",
   "main": "./worker/index.ts",
   "compatibility_date": "2025-10-14",
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "logpush": true,
   "observability": {
     "logs": {
@@ -12,6 +14,7 @@
     },
   },
   "vars": {
+    "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
     "R2_FILES_BUCKET": "dev-files-bucket",
     "SMTP_SERVER_NAME": "smtp.zeptomail.com",
     "SMTP_DOMAIN": "justsendto.me",
@@ -21,7 +24,9 @@
   },
   "assets": {
     "directory": "./dist",
-    "run_worker_first": ["/api/*"],
+    "run_worker_first": [
+      "/api/*"
+    ],
     "not_found_handling": "single-page-application",
   },
   "d1_databases": [
@@ -35,8 +40,7 @@
   ],
   "r2_buckets": [
     {
-      "bucket_name": "files-bucket",
-      "preview_bucket_name": "dev-files-bucket",
+      "bucket_name": "dev-files-bucket",
       "binding": "FILES_BUCKET",
       "remote": true,
     },
@@ -44,8 +48,7 @@
   "kv_namespaces": [
     {
       "binding": "PENDING_FILE_UPLOADS",
-      "id": "1ec2a2d91b8e4ad08ab7bbcf9a1d360a",
-      "preview_id": "ed9539f8b9824e23bddc294514e35172",
+      "id": "ed9539f8b9824e23bddc294514e35172",
       "remote": true,
     },
   ],
@@ -86,7 +89,9 @@
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": ["UserCreditsObject"],
+      "new_classes": [
+        "UserCreditsObject"
+      ],
     },
   ],
   "workflows": [
@@ -99,6 +104,7 @@
   "env": {
     "production": {
       "vars": {
+        "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
         "R2_FILES_BUCKET": "files-bucket",
         "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
         "SMTP_SERVER_NAME": "smtp.zeptomail.com",
@@ -113,6 +119,69 @@
           "database_id": "ccba53b2-b9eb-4848-8a8f-a53443ebc987",
           "remote": true,
           "migrations_dir": "./drizzle",
+        },
+      ],
+      "r2_buckets": [
+        {
+          "bucket_name": "files-bucket",
+          "binding": "FILES_BUCKET",
+          "remote": true,
+        },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "PENDING_FILE_UPLOADS",
+          "id": "1ec2a2d91b8e4ad08ab7bbcf9a1d360a",
+          "remote": true,
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "FILE_DOWNLOAD_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 300,
+            "period": 60,
+          },
+        },
+        {
+          "name": "FILE_UPLOAD_RATE_LIMITER",
+          "namespace_id": "1002",
+          "simple": {
+            "limit": 110,
+            "period": 60,
+          },
+        },
+        {
+          "name": "GENERAL_RATE_LIMITER",
+          "namespace_id": "1003",
+          "simple": {
+            "limit": 10,
+            "period": 10,
+          },
+        },
+      ],
+      "durable_objects": {
+        "bindings": [
+          {
+            "name": "USER_CREDITS_OBJECT",
+            "class_name": "UserCreditsObject",
+          },
+        ],
+      },
+      "migrations": [
+        {
+          "tag": "v1",
+          "new_classes": [
+            "UserCreditsObject"
+          ],
+        },
+      ],
+      "workflows": [
+        {
+          "name": "FOLDER_FLOW",
+          "binding": "FOLDER_FLOW",
+          "class_name": "FolderFlow",
         },
       ],
     },
