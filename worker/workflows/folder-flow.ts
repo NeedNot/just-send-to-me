@@ -7,13 +7,13 @@ import { eq, inArray } from "drizzle-orm";
 type Params = {
   folderId: string;
   creditCost: number;
-  expiresAt: Date
+  expiresAt: string
 }
 
 export class FolderFlow extends WorkflowEntrypoint<Env, Params> {
   async run(event: Readonly<CloudflareWorkersModule.WorkflowEvent<Params>>, step: CloudflareWorkersModule.WorkflowStep) {
     // sleep till expiration
-    await step.sleepUntil('Folder expiration', event.payload.expiresAt)
+    await step.sleepUntil('Folder expiration', new Date(event.payload.expiresAt))
     await step.do('Delete files', async () => {
       const db = drizzle(this.env.DB)
       const expiredFiles = await db
