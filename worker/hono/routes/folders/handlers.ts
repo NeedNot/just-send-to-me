@@ -9,9 +9,10 @@ import {
   CREDIT_COSTS,
   EXPIRATION_DURATIONS,
 } from '../../../../shared/constants';
+import type { User } from 'better-auth';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
-  const user = c.get('user');
+  const user = c.get('user') as (User & { planId: string }) | null;
   if (!user) return c.body(null, 401);
 
   const { name, expiration } = c.req.valid('json');
@@ -35,7 +36,7 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
 
   const result = await repositoryCreateFolder(db, {
     name,
-    creatorId: user.id,
+    creator: user,
     expiresAt,
     creditCost,
   });

@@ -1,0 +1,1 @@
+ALTER TABLE `folders` ADD `maxFiles` integer DEFAULT 100 NOT NULL;

@@ -78,10 +78,12 @@ export const folderSchema = z
     name: z.string().max(128),
     files: z.array(fileSchema).optional(),
     fileCount: z.number(),
+    maxFiles: z.number(),
     expiresAt: z.date().or(z.string()),
     maxSize: z.number(),
     size: z.number(),
     createdAt: z.date(),
+    creditCost: z.number(),
   })
   .openapi({
     type: 'object',

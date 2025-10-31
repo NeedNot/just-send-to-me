@@ -219,7 +219,7 @@ function FileListItem({
           </span>
         )}
 
-        {'progress' in file && !file.error && (
+        {'progress' in file && !file.error && file.status !== 'complete' && (
           <span className="pt-2">
             <Progress value={file.progress} />
           </span>

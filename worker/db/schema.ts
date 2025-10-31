@@ -13,9 +13,12 @@ export const folders = sqliteTable('folders', {
   maxSize: integer().notNull(),
   size: integer().default(0).notNull(),
   fileCount: integer().default(0).notNull(),
+  maxFiles: integer().default(100).notNull(),
   filesDeleted: integer({ mode: 'boolean' }).default(false).notNull(),
   expiresAt: integer({ mode: 'timestamp_ms' }).notNull(),
-  creatorId: text().references(() => user.id).notNull(),
+  creatorId: text()
+    .references(() => user.id)
+    .notNull(),
   createdAt: integer({ mode: 'timestamp_ms' })
     .notNull()
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
@@ -47,7 +50,7 @@ export const plans = sqliteTable('plans', {
   maxStoragePerFolder: integer('max_storage').notNull(), //in bytes
   maxFileCountPerFolder: integer('max_file_count').notNull(),
   credits: integer('credits').notNull(),
-  stripePriceId: text('stripe_price_id'),
+  stripeId: text('stripe_id'),
   createdAt: integer('created_at', { mode: 'timestamp_ms' })
     .notNull()
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),

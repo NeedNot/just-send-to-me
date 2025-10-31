@@ -148,6 +148,20 @@
       "when": 1761119456732,
       "tag": "0020_glamorous_micromacro",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1761876055135,
+      "tag": "0021_kind_supernaut",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1761937432431,
+      "tag": "0022_whole_proteus",
+      "breakpoints": true
     }
   ]
 }

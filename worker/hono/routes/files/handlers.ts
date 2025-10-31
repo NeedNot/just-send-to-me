@@ -49,19 +49,38 @@ export const uploadNewFile: AppRouteHandler<UploadNewFileRoute> = async (c) => {
     prefix: folder.creatorId + '/' + folder.id,
   });
 
-  const pendingFiles = multipartUploads.Upload
-    ? await c.env.PENDING_FILE_UPLOADS.get(
-        multipartUploads.Upload.map((u) => u.Key),
-        'json',
-      ).then(
-        (r) =>
-          new Map<string, PendingFile>(
-            [...r]
-              .filter((f) => f[1] !== null)
-              .map((f) => [f[0], f[1] as PendingFile] as [string, PendingFile]),
-          ),
-      )
-    : null;
+  const getPendingFiles = async () => {
+    const batchSize = 100;
+    const batches = [];
+    for (let i = 0; i < multipartUploads.Upload!.length; i += batchSize) {
+      const batch = multipartUploads.Upload!.slice(i, i + batchSize);
+      batches.push(batch);
+    }
+    const maps = await Promise.all(
+      batches.map((b) =>
+        c.env.PENDING_FILE_UPLOADS.get(
+          b.map((u) => u.Key),
+          'json',
+        ).then(
+          (r) =>
+            new Map<string, PendingFile>(
+              [...r]
+                .filter((f) => f[1] !== null)
+                .map(
+                  (f_1) =>
+                    [f_1[0], f_1[1] as PendingFile] as [string, PendingFile],
+                ),
+            ),
+        ),
+      ),
+    );
+    return maps.reduce((acc, m) => {
+      m.forEach((v, k) => acc.set(k, v));
+      return acc;
+    }, new Map<string, PendingFile>());
+  };
+
+  const pendingFiles = multipartUploads.Upload ? await getPendingFiles() : null;
 
   if (pendingFiles) {
     const cancellableItems = findCancellableUploadsForSpace(

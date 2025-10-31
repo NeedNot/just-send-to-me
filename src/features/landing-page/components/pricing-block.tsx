@@ -14,7 +14,7 @@ export function PricingBlock() {
           monthlyPrice: '$0',
           yearlyPrice: '$0',
           features: [
-            { text: '1GB storage per folder' },
+            { text: '1 GB storage per folder' },
             { text: '3 credits per month*' },
             { text: '100 files per folder' },
           ],
@@ -32,7 +32,7 @@ export function PricingBlock() {
           monthlyPrice: '$1',
           yearlyPrice: '$10',
           features: [
-            { text: '5GB storage per folder' },
+            { text: '5 GB storage per folder' },
             { text: '10 credits per month*' },
             { text: '100 files per folder' },
           ],
@@ -48,7 +48,7 @@ export function PricingBlock() {
           monthlyPrice: '$5',
           yearlyPrice: '$50',
           features: [
-            { text: '20GB storage per folder' },
+            { text: '20 GB storage per folder' },
             { text: '25 credits per month*' },
             { text: '1000 files per folder' },
           ],

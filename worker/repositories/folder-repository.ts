@@ -1,6 +1,6 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { eq, sql } from 'drizzle-orm';
-import { files, folders } from '../db/schema';
+import { files, folders, plans } from '../db/schema';
 import type { File } from '../../shared/schemas';
 
 export const getFolderById = async (
@@ -34,22 +34,31 @@ export const createFolder = async (
   db: DrizzleD1Database & { $client: D1Database },
   {
     name,
-    creatorId,
+    creator,
     expiresAt,
     creditCost,
   }: {
     name: string;
-    creatorId: string;
+    creator: { id: string; planId: string };
     expiresAt: Date;
     creditCost: number;
   },
 ) => {
+  const subQuery = db
+    .select({
+      maxFiles: plans.maxFileCountPerFolder,
+      maxSize: plans.maxStoragePerFolder,
+    })
+    .from(plans)
+    .where(eq(plans.id, creator.planId))
+    .as('subQuery');
   const res = await db
     .insert(folders)
     .values({
       name,
-      maxSize: 1024 ** 3,
-      creatorId,
+      maxFiles: sql`(select ${subQuery.maxFiles} from ${subQuery})`,
+      maxSize: sql`(select ${subQuery.maxSize} from ${subQuery})`,
+      creatorId: creator.id,
       expiresAt,
       creditCost,
     })

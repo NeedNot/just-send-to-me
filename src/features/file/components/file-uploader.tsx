@@ -17,6 +17,22 @@ export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
     const valid: File[] = [];
     const rejected: FileRejection[] = [];
 
+    const pendingUploads = statuses.filter(
+      (f) => f.status === 'preparing' || f.status === 'uploading',
+    ).length;
+    if ((folder.files?.length ?? 0) + pendingUploads >= folder.maxFiles) {
+      rejected.push({
+        file: files[0],
+        errors: [
+          {
+            message: 'Folder is full',
+            code: ErrorCode.TooManyFiles,
+          },
+        ],
+      });
+      return [valid, rejected];
+    }
+
     let remainingSpace =
       folder.maxSize -
       (statuses.reduce(
@@ -65,7 +81,7 @@ export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
           </div>
           <p className="text-sm font-medium">Drag & drop files here</p>
           <p className="text-muted-foreground text-xs">
-            Or click to browse (max 100 files, up to{' '}
+            Or click to browse (max {folder.maxFiles} files, up to{' '}
             {formatBytes(folder.maxSize)} total)
           </p>
         </div>

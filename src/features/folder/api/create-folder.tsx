@@ -3,7 +3,11 @@ import {
   useQueryClient,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { type CreateFolderInput, type Folder } from '@shared/schemas';
+import {
+  type CreateFolderInput,
+  type Folder,
+  type MyAccountResponse,
+} from '@shared/schemas';
 
 export async function createFolder(data: CreateFolderInput) {
   const res = await fetch('/api/folders/new', {
@@ -36,6 +40,10 @@ export function useCreateFolder(
     ...mutationConfig,
     onSuccess: (...args) => {
       queryClient.setQueryData(['folder', args[0].id], args[0]);
+      queryClient.setQueryData(['account'], (prev: MyAccountResponse) => ({
+        ...prev,
+        remainingCredits: prev.remainingCredits - args[0].creditCost,
+      }));
       onSuccess?.(...args);
     },
   });
