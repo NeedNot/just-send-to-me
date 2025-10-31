@@ -24,6 +24,13 @@ import { useEffect, useMemo, useRef, type MouseEventHandler } from 'react';
 import { useCooldown } from '@/hooks/use-cooldown';
 import { toast } from 'sonner';
 import { ShareDialog } from '@/components/share-dialog';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 export function FolderCard({
   folder,
@@ -138,11 +145,8 @@ export function FolderCard({
       </CardHeader>
       <CardContent>
         {/* empty folder */}
-        {(folder.files ?? []).length == 0 && isOwner && EmptyList()}
-        {!isOwner && (
-          <FileUploader folder={folder} upload={upload} statuses={statuses} />
-        )}
-
+        <FileUploader folder={folder} upload={upload} statuses={statuses} />
+        {(folder.files ?? []).length == 0 && isOwner && <EmptyFolder />}
         {!!fileList.length && (
           <ul className="mt-2 max-h-96 overflow-scroll">
             {fileList.map((f) => (
@@ -163,14 +167,24 @@ export function FolderCard({
   );
 }
 
-function EmptyList() {
+function EmptyFolder() {
   return (
-    <div className="flex h-20 w-full flex-col items-center justify-center">
-      <p className="font-medium">No files uploaded yet</p>
-      <p className="text-muted-foreground">
-        Share this folder with someone so they can upload files
-      </p>
-    </div>
+    <Empty>
+      <EmptyHeader>
+        <EmptyTitle>Folder is empty</EmptyTitle>
+        <EmptyDescription>
+          Share the folder with others so they can upload files
+        </EmptyDescription>
+      </EmptyHeader>
+      <EmptyContent>
+        <ShareDialog url={window.location.origin + window.location.pathname}>
+          <Button size="sm" variant="outline">
+            <Share />
+            Share
+          </Button>
+        </ShareDialog>
+      </EmptyContent>
+    </Empty>
   );
 }
 
@@ -193,8 +207,10 @@ function FileListItem({
           alt=""
         />
       )}
-      <div className="flex flex-1 flex-col">
-        <span className="truncate text-sm font-medium">{file.name}</span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="max-w-full truncate text-sm font-medium">
+          {file.name}
+        </span>
         {'error' in file ? (
           <span className="text-xs text-red-500">{file.error}</span>
         ) : (
