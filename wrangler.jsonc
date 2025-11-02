@@ -166,6 +166,10 @@
           "tag": "v1",
           "new_classes": ["UserCreditsObject"],
         },
+        {
+          "tag": "v2",
+          "new_sqlite_classes": ["FolderUploadsObject"]
+        }
       ],
       "workflows": [
         {

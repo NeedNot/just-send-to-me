@@ -54,10 +54,10 @@ export function createPresignedPartUploadUrl(
     contentLength: string;
   },
 ) {
-  const url = `${S3_URL}/${bucket}/${key}?partNumber=${partNumber}&uploadId=${uploadId}`;
+  const url = `${S3_URL}/${bucket}/${key}?partNumber=${partNumber}&uploadId=${uploadId}&X-Amz-Expires=${15*60}`;
   return client.sign(url, {
     aws: { signQuery: true, allHeaders: true },
     headers: { 'Content-Length': contentLength },
-    method: 'PUT',
+    method: 'PUT', 
   });
 }

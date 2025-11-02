@@ -13,8 +13,8 @@ import {
 } from '../repositories/s3-repository';
 import { insertFile } from '../repositories/file-repository';
 
-// todo needs a way to self delete
-interface PendingFile {
+type PendingFile = {
+  key: string;
   size: number;
   lastActive: number;
 }
@@ -27,7 +27,6 @@ export class FolderUploadsObject extends DurableObject<Env> {
   initialized = false;
   remainingFiles: number = 0;
   remainingSpace: number = 0;
-  pendingFiles: Map<string, PendingFile> = new Map(); //todo delete?
   sql: SqlStorage;
 
   constructor(ctx: DurableObjectState, env: Env) {
@@ -44,19 +43,6 @@ export class FolderUploadsObject extends DurableObject<Env> {
       this.initialized = true;
       this.remainingFiles = (await this.ctx.storage.get('remainingFiles')) || 0;
       this.remainingSpace = (await this.ctx.storage.get('remainingSpace')) || 0;
-      const pendingFilesRes = this.sql
-        .exec<{
-          key: string;
-          size: number;
-          last_active: number;
-        }>('SELECT * FROM pending_files')
-        .toArray();
-      this.pendingFiles = new Map(
-        pendingFilesRes.map((r) => [
-          r.key,
-          { size: r.size, lastActive: r['last_active'] },
-        ]),
-      );
     });
   }
 
@@ -78,10 +64,11 @@ export class FolderUploadsObject extends DurableObject<Env> {
   }
 
   async alarm(_?: AlarmInvocationInfo): Promise<void> {
-    const queue = this.sql
-      .exec<{ key: string }>('DELETE FROM abort_queue RETURNING *')
+    const expired = this.sql.exec<{key:string}>('DELETE FROM pending_files WHERE last_active < ? RETURNING key', Date.now()-15*MS_IN_MINUTE).toArray().map((r) => r.key)
+    const queue = [...this.sql
+      .exec<{ key: string }>('DELETE FROM abort_queue RETURNING key')
       .toArray()
-      .map((r) => r.key);
+      .map((r) => r.key), ...expired];
     if (queue.length === 0) return;
 
     const awsClient = createAwsClient(this.env);
@@ -98,9 +85,17 @@ export class FolderUploadsObject extends DurableObject<Env> {
         key,
         upload.Upload[0].UploadId,
       );
+      console.log("Aborting", key)
       await session.abort();
     });
     await Promise.all(promises);
+    const pendingFiles = this.sql.exec<PendingFile>('SELECT * FROM pending_files ORDER BY last_active ASC').toArray()
+    if (pendingFiles.length === 0) {
+      console.log("No active uploads, deleting now.")
+      this.ctx.storage.deleteAll()
+      return
+    }
+    this.ctx.storage.setAlarm(new Date(pendingFiles[0].lastActive+(16*MS_IN_MINUTE)))
   }
 
   async startNewUpload(
@@ -112,9 +107,11 @@ export class FolderUploadsObject extends DurableObject<Env> {
       await this.ctx.blockConcurrencyWhile(() => this.init(folderId));
     }
 
+    const pendingFiles = this.sql.exec<PendingFile>('SELECT * FROM pending_files').toArray()
+
     // upload not possible unless a file is canceled
     if (this.remainingFiles <= 0 || this.remainingSpace < file.size) {
-      if (this.pendingFiles.size === 0)
+      if (pendingFiles.length === 0)
         throw new Error(
           this.remainingSpace <= 0
             ? 'File is too large for folder'
@@ -123,13 +120,14 @@ export class FolderUploadsObject extends DurableObject<Env> {
 
       const cancellableUploads = this.findCancellableUploads(file.size);
       cancellableUploads.forEach((key) => {
+        const pendingFile = pendingFiles.find((f) => f.key === key)
+        if (!pendingFile) return
         this.sql.exec(
           'INSERT OR IGNORE INTO abort_queue (key) VALUES (?)',
           key,
         );
         this.remainingFiles += 1;
-        this.remainingSpace += this.pendingFiles.get(key)!.size;
-        this.pendingFiles.delete(key);
+        this.remainingSpace += pendingFile.size;
         this.ctx.storage.put('remainingFiles', this.remainingFiles);
         this.ctx.storage.put('remainingSpace', this.remainingSpace);
         this.sql.exec('DELETE FROM pending_files WHERE key = ?', key);
@@ -154,10 +152,6 @@ export class FolderUploadsObject extends DurableObject<Env> {
         contentDisposition: `attachment; filename="${file.name}"`,
       },
     });
-    this.pendingFiles.set(key, {
-      size: file.size,
-      lastActive: Date.now(),
-    });
     this.remainingFiles -= 1;
     this.remainingSpace -= file.size;
 
@@ -172,11 +166,14 @@ export class FolderUploadsObject extends DurableObject<Env> {
       this.ctx.storage.put('remainingSpace', this.remainingSpace),
     ]);
 
+    if (!await this.ctx.storage.getAlarm()) {
+      this.ctx.storage.setAlarm(16*MS_IN_MINUTE)
+    }
     return { uploadId: res.uploadId, key: res.key };
   }
 
   async getPartUploadUrl(key: string, uploadId: string, partNumber: string) {
-    const upload = this.pendingFiles.get(key);
+    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
     if (!upload) throw Error('Upload not found');
 
     if (Math.ceil(upload.size / CHUNK_SIZE) < parseInt(partNumber)) {
@@ -198,16 +195,15 @@ export class FolderUploadsObject extends DurableObject<Env> {
       contentLength,
     });
 
-    this.pendingFiles.set(key, {
-      ...upload,
-      lastActive: Date.now(),
-    });
-
     this.sql.exec(
       'UPDATE pending_files SET last_active = ? WHERE key = ?',
       Date.now(),
       key,
     );
+
+    if (!await this.ctx.storage.getAlarm()) {
+      this.ctx.storage.setAlarm(16*MS_IN_MINUTE)
+    }
 
     return signedUrl.url;
   }
@@ -223,7 +219,7 @@ export class FolderUploadsObject extends DurableObject<Env> {
     }
 
     const objectHead = await this.env.FILES_BUCKET.head(key);
-    const upload = this.pendingFiles.get(key);
+    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
 
     if (
       !upload ||
@@ -238,7 +234,6 @@ export class FolderUploadsObject extends DurableObject<Env> {
     try {
       const res = await insertFile(db, objectHead);
       await addFileMetaToFolder(db, res);
-      this.pendingFiles.delete(key);
       this.sql.exec('DELETE FROM pending_files WHERE key = ?', key);
       return res;
     } catch (e) {
@@ -251,9 +246,8 @@ export class FolderUploadsObject extends DurableObject<Env> {
   async abortUpload(key: string, uploadId: string) {
     const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
     session.abort();
-    const upload = this.pendingFiles.get(key);
+    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
     if (upload) {
-      this.pendingFiles.delete(key);
       this.remainingFiles += 1;
       this.remainingSpace += upload.size;
       this.sql.exec('DELETE FROM pending_files WHERE key = ?', key);
@@ -265,25 +259,21 @@ export class FolderUploadsObject extends DurableObject<Env> {
   private findCancellableUploads(size: number): Set<string> {
     const cutoff = Date.now() - 1.5 * MS_IN_MINUTE;
 
-    const pendingEntries = Array.from(this.pendingFiles.entries());
-
     const overflow = size - this.remainingSpace;
 
     if (overflow <= 0 && this.remainingFiles > 0) {
       return new Set();
     }
 
-    const cancellable = pendingEntries
-      .filter(([, f]) => f.lastActive < cutoff)
-      .sort((a, b) => b[1].size - a[1].size);
+    const cancellable = this.sql.exec<PendingFile>('SELECT key, size FROM pending_files WHERE last_active < ? ORDER BY size DESC', cutoff).toArray()
 
     let freedSpace = 0;
     let freedFiles = 0;
     const toAbort = new Set<string>();
 
-    for (const [key, file] of cancellable) {
+    for (const {key, size} of cancellable) {
       toAbort.add(key);
-      freedSpace += file.size;
+      freedSpace += size;
       freedFiles += 1;
       if (freedSpace >= overflow && this.remainingFiles + freedFiles > 0) break;
     }

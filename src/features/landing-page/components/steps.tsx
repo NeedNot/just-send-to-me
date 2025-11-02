@@ -4,7 +4,6 @@ export function Steps() {
       <h2 className="mb-6 text-center text-4xl font-semibold text-pretty lg:text-5xl">
         How it works
       </h2>
-      {/* todo block needs to be narrower  */}
       <div className="max-w-8xl grid grid-cols-1 gap-x-10 md:grid-cols-2 lg:grid-cols-4">
         <Step
           title="Step 1"
