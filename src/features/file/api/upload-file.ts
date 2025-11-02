@@ -1,7 +1,8 @@
-import { uploadWithProgress } from '@/lib/utils';
+import { retry, uploadWithProgress } from '@/lib/utils';
 import type { Folder } from '@shared/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
+import pLimit from 'p-limit';
 
 type UploadStatus = 'preparing' | 'uploading' | 'failed' | 'complete';
 
@@ -125,39 +126,52 @@ async function uploadMultipartFile(
 
     ({ uploadId, key } = await res.json());
 
+    let uploadedBytes = 0;
+    const uploadedMap = new Map<number, number>();
+
+    function updateProgress(partIndex: number, loaded: number) {
+      const prev = uploadedMap.get(partIndex) ?? 0;
+      uploadedBytes += loaded - prev;
+      uploadedMap.set(partIndex, loaded);
+      onProgress(Math.min(100, (uploadedBytes / file.size) * 100));
+    }
+
     const partCount = Math.ceil(file.size / CHUNK_SIZE);
     const uploadedParts: UploadedPart[] = [];
 
-    for (let i = 0; i < partCount; i++) {
-      const start = i * CHUNK_SIZE;
-      const end = Math.min(start + CHUNK_SIZE, file.size);
-      const blob = file.slice(start, end);
+    const limit = pLimit(5);
+    await Promise.all(
+      Array.from({ length: partCount }, (_, i) =>
+        limit(async () => {
+          const start = i * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const blob = file.slice(start, end);
 
-      const res = await fetch(
-        `/api/files/upload/part/${i + 1}?uploadId=${uploadId}&key=${key}`,
-        { method: 'GET', signal: abortSignal },
-      );
+          const etag = await retry(async () => {
+            const res = await fetch(
+              `/api/files/upload/part/${i + 1}?uploadId=${uploadId}&key=${key}`,
+              { method: 'GET', signal: abortSignal },
+            );
 
-      if (!res.ok) {
-        throw new Error(res.statusText || 'Failed to fetch part');
-      }
-      const { url } = await res.json();
+            if (!res.ok) {
+              throw new Error(
+                res.statusText || `Failed to get part ${i + 1} URL`,
+              );
+            }
+            const { url } = await res.json();
 
-      const etag = await uploadWithProgress(
-        url,
-        blob,
-        (e) => {
-          const totalUploaded = i * CHUNK_SIZE + e.loaded;
-          onProgress(Math.min(100, (totalUploaded / file.size) * 100));
-        },
-        abortSignal,
-      );
+            return await uploadWithProgress(
+              url,
+              blob,
+              (e) => updateProgress(i, e.loaded),
+              abortSignal,
+            );
+          });
 
-      uploadedParts.push({
-        partNumber: i + 1,
-        etag,
-      });
-    }
+          uploadedParts[i] = { partNumber: i + 1, etag };
+        }),
+      ),
+    );
 
     return fetch(`/api/files/upload/complete?key=${key}&uploadId=${uploadId}`, {
       method: 'POST',

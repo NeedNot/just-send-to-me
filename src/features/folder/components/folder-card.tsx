@@ -146,7 +146,7 @@ export function FolderCard({
       <CardContent>
         {/* empty folder */}
         <FileUploader folder={folder} upload={upload} statuses={statuses} />
-        {(folder.files ?? []).length == 0 && isOwner && <EmptyFolder />}
+        {fileList.length == 0 && isOwner && <EmptyFolder />}
         {!!fileList.length && (
           <ul className="mt-2 max-h-96 overflow-scroll">
             {fileList.map((f) => (

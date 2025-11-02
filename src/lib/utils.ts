@@ -73,3 +73,19 @@ export function uploadWithProgress(
     xhr.send(blob);
   });
 }
+
+export function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+export async function retry<T>(fn: () => Promise<T>, retries = 5): Promise<T> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === retries) throw err;
+      await sleep(1000 * (attempt + 1));
+    }
+  }
+  throw new Error('unreachable');
+}
