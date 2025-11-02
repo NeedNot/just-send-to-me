@@ -11,14 +11,13 @@ export class UserCreditsObject extends DurableObject<Env> {
   }
 
   async updateRemainingCredits(credits: number) {
-    console.log("updating remaining credits", credits)
     this.remainingCredits = credits;
     await this.ctx.storage.put('remainingCredits', credits);
   }
 
   async spendCredits(credits: number) {
     this.remainingCredits -= credits;
-    await this.ctx.storage.put('remainingCredits', this.remainingCredits)
+    await this.ctx.storage.put('remainingCredits', this.remainingCredits);
   }
 
   async hasEnoughCredits(credits: number) {
@@ -31,10 +30,10 @@ export class UserCreditsObject extends DurableObject<Env> {
   }
 
   async getRemainingCredits() {
-    return this.remainingCredits
+    return this.remainingCredits;
   }
 
   async deleteStorage() {
-    this.ctx.storage.deleteAll()
-  } 
+    this.ctx.storage.deleteAll();
+  }
 }

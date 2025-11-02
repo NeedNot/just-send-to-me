@@ -3,9 +3,7 @@
   "name": "just-send-to-me",
   "main": "./worker/index.ts",
   "compatibility_date": "2025-10-14",
-  "compatibility_flags": [
-    "nodejs_compat"
-  ],
+  "compatibility_flags": ["nodejs_compat"],
   "logpush": true,
   "observability": {
     "logs": {
@@ -24,9 +22,7 @@
   },
   "assets": {
     "directory": "./dist",
-    "run_worker_first": [
-      "/api/*"
-    ],
+    "run_worker_first": ["/api/*"],
     "not_found_handling": "single-page-application",
   },
   "d1_databases": [
@@ -42,13 +38,6 @@
     {
       "bucket_name": "dev-files-bucket",
       "binding": "FILES_BUCKET",
-      "remote": true,
-    },
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "PENDING_FILE_UPLOADS",
-      "id": "ed9539f8b9824e23bddc294514e35172",
       "remote": true,
     },
   ],
@@ -84,14 +73,20 @@
         "name": "USER_CREDITS_OBJECT",
         "class_name": "UserCreditsObject",
       },
+      {
+        "name": "FOLDER_UPLOADS_OBJECT",
+        "class_name": "FolderUploadsObject",
+      },
     ],
   },
   "migrations": [
     {
       "tag": "v1",
-      "new_classes": [
-        "UserCreditsObject"
-      ],
+      "new_classes": ["UserCreditsObject"],
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["FolderUploadsObject"],
     },
   ],
   "workflows": [
@@ -128,13 +123,6 @@
           "remote": true,
         },
       ],
-      "kv_namespaces": [
-        {
-          "binding": "PENDING_FILE_UPLOADS",
-          "id": "1ec2a2d91b8e4ad08ab7bbcf9a1d360a",
-          "remote": true,
-        },
-      ],
       "ratelimits": [
         {
           "name": "FILE_DOWNLOAD_RATE_LIMITER",
@@ -167,14 +155,16 @@
             "name": "USER_CREDITS_OBJECT",
             "class_name": "UserCreditsObject",
           },
+          {
+            "name": "FOLDER_UPLOADS_OBJECT",
+            "class_name": "FolderUploadsObject",
+          },
         ],
       },
       "migrations": [
         {
           "tag": "v1",
-          "new_classes": [
-            "UserCreditsObject"
-          ],
+          "new_classes": ["UserCreditsObject"],
         },
       ],
       "workflows": [
