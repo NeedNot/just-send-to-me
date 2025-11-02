@@ -59,7 +59,7 @@ export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
     return [valid, rejected];
   };
 
-  const onAcceptFile = async (file: File) => upload(file);
+  const onAcceptFile = (file: File) => upload(file);
 
   const onRejectFile = (rejection: FileRejection) => {
     toast.error(`Unable to upload ${rejection.file.name}`, {

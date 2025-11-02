@@ -21,6 +21,8 @@ interface UploadedPart {
   etag: string;
 }
 
+const limit = pLimit(5)
+
 export function useFileUploader(folderId: string) {
   const queryClient = useQueryClient();
   const [uploads, setUploads] = useState<FileStatus[]>([]);
@@ -42,16 +44,17 @@ export function useFileUploader(folderId: string) {
     ]);
 
     try {
-      const newFile = await uploadMultipartFile(
-        folderId,
-        file,
-        (progress) => {
-          setUploads((prev) =>
-            prev.map((f) => (f.id === id ? { ...f, progress } : f)),
-          );
-        },
-        controller.signal,
-      );
+      const newFile = await limit(() =>
+        uploadMultipartFile(
+          folderId,
+          file,
+          (progress) => {
+            setUploads((prev) =>
+              prev.map((f) => (f.id === id ? { ...f, progress } : f)),
+            );
+          },
+          controller.signal,
+        ));
 
       queryClient.setQueryData(['folder', folderId], (prev: Folder) => ({
         ...prev,
