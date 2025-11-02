@@ -1,5 +1,5 @@
 import { authClient } from '@/lib/better-auth';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 async function signOut() {
   const { error } = await authClient.signOut();
@@ -8,12 +8,13 @@ async function signOut() {
   }
 }
 
-export function useSignOut() {
+export function useSignOut(config: UseMutationOptions = {}) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: signOut,
-    onSuccess: () => {
+    onSuccess: (...data) => {
       queryClient.removeQueries({ queryKey: ['account'] });
+      config?.onSuccess?.(...data)
     },
   });
 }

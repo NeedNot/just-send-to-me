@@ -14,6 +14,7 @@ import React, { useState } from 'react';
 import { useMyAccount } from '../api/my-account';
 import { EditAccountDialog } from './edit-account-dialog';
 import { useSignOut } from '@/features/auth/api/sign-out';
+import { useNavigate } from '@tanstack/react-router';
 
 interface AccountCardProps {
   onUpgrade?: () => void;
@@ -25,7 +26,12 @@ export function AccountCard({
 }: AccountCardProps & React.ComponentProps<typeof Card>) {
   const { data } = useMyAccount();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const { mutate: signOut } = useSignOut();
+  const navigate = useNavigate()
+  const { mutate: signOut } = useSignOut({
+    onSuccess: () => {
+      navigate({ to: '/sign-in', search: { redirect: '/account' } })
+    }
+  });
 
   return (
     <>
@@ -74,7 +80,7 @@ export function AccountCard({
               value={
                 data
                   ? Math.min(1, data?.remainingCredits / data?.plan.credits) *
-                    100
+                  100
                   : 0
               }
               className="h-2"
