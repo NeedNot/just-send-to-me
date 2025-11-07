@@ -127,6 +127,15 @@ export const myAccountResponseSchema = z.object({
   plan: planSchema,
 });
 
+export const createCheckoutSessionSchema = z.object({
+  planId: z.string().nonempty(),
+  interval: z.enum(['month', 'year']),
+});
+
+export const createCheckoutSessionResponseSchema = z.object({
+  url: z.string(),
+});
+
 export type UploadNewFileSchema = z.infer<typeof uploadNewFileSchema>;
 export type UploadNewFileResponseSchema = z.infer<
   typeof uploadNewFileResponseSchema
@@ -145,3 +154,10 @@ export type CompleteFileUploadRequest = z.infer<
 >;
 export type MyFoldersReponse = z.infer<typeof myFoldersResponseSchema>;
 export type MyAccountResponse = z.infer<typeof myAccountResponseSchema>;
+
+export type CreateCheckoutSessionRequest = z.infer<
+  typeof createCheckoutSessionSchema
+>;
+export type CreateCheckoutSessionResponse = z.infer<
+  typeof createCheckoutSessionResponseSchema
+>;

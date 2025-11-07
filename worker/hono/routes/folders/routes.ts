@@ -4,8 +4,10 @@ import {
   folderSchema,
   IdParamSchema,
 } from '../../../../shared/schemas';
+import { requireUser } from '../../middleware/require-user';
 
 export const createFolder = createRoute({
+  middleware: requireUser,
   method: 'post',
   path: '/folders/new',
   request: {

@@ -1,8 +1,25 @@
 import { Pricing2 } from '@/components/pricing2';
 import { useMyAccount } from '@/features/account/api/my-account';
+import { useCheckout } from '@/features/billing/api/checkout';
+import { useNavigate } from '@tanstack/react-router';
+import { useState } from 'react';
 
 export function PricingBlock() {
+  const [isYearly, setIsYearly] = useState(true);
   const { data: account } = useMyAccount();
+  const { mutateAsync: checkout } = useCheckout();
+  const navigate = useNavigate();
+  const subscribe = async (planId: string) => {
+    if (!account) {
+      navigate({ to: '/sign-up', search: { redirect: undefined } }); //todo navigate to /subscribe
+      return;
+    }
+    await checkout({ planId, interval: isYearly ? 'year' : 'month' }).then(
+      ({ url }) => {
+        window.location.href = url;
+      },
+    );
+  };
   return (
     <Pricing2
       description="Save 15 minutes of hassle for just $1."
@@ -38,7 +55,7 @@ export function PricingBlock() {
           ],
           button: {
             text: 'Get started',
-            url: '/sign-up',
+            onClick: () => subscribe('PLUS'),
           },
         },
         {
@@ -54,10 +71,12 @@ export function PricingBlock() {
           ],
           button: {
             text: 'Get started',
-            url: '/sign-up',
+            onClick: () => subscribe('PRO'),
           },
         },
       ]}
+      isYearly={isYearly}
+      onIsYearlyChange={setIsYearly}
     />
   );
 }

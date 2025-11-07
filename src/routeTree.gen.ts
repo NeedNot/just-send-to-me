@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './app/routes/__root'
+import { Route as SuccessRouteImport } from './app/routes/success'
+import { Route as SubscribeRouteImport } from './app/routes/subscribe'
 import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
 import { Route as NewRouteImport } from './app/routes/new'
@@ -18,6 +20,16 @@ import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
 import { Route as FIdRouteImport } from './app/routes/f.$id'
 
+const SuccessRoute = SuccessRouteImport.update({
+  id: '/success',
+  path: '/success',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SubscribeRoute = SubscribeRouteImport.update({
+  id: '/subscribe',
+  path: '/subscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
   path: '/sign-up',
@@ -67,6 +79,8 @@ export interface FileRoutesByFullPath {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/subscribe': typeof SubscribeRoute
+  '/success': typeof SuccessRoute
   '/f/$id': typeof FIdRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +91,8 @@ export interface FileRoutesByTo {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/subscribe': typeof SubscribeRoute
+  '/success': typeof SuccessRoute
   '/f/$id': typeof FIdRoute
 }
 export interface FileRoutesById {
@@ -88,6 +104,8 @@ export interface FileRoutesById {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/subscribe': typeof SubscribeRoute
+  '/success': typeof SuccessRoute
   '/f/$id': typeof FIdRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +118,8 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
+    | '/subscribe'
+    | '/success'
     | '/f/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +130,8 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
+    | '/subscribe'
+    | '/success'
     | '/f/$id'
   id:
     | '__root__'
@@ -120,6 +142,8 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
+    | '/subscribe'
+    | '/success'
     | '/f/$id'
   fileRoutesById: FileRoutesById
 }
@@ -131,11 +155,27 @@ export interface RootRouteChildren {
   NewRoute: typeof NewRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  SubscribeRoute: typeof SubscribeRoute
+  SuccessRoute: typeof SuccessRoute
   FIdRoute: typeof FIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/success': {
+      id: '/success'
+      path: '/success'
+      fullPath: '/success'
+      preLoaderRoute: typeof SuccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/subscribe': {
+      id: '/subscribe'
+      path: '/subscribe'
+      fullPath: '/subscribe'
+      preLoaderRoute: typeof SubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-up': {
       id: '/sign-up'
       path: '/sign-up'
@@ -203,6 +243,8 @@ const rootRouteChildren: RootRouteChildren = {
   NewRoute: NewRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  SubscribeRoute: SubscribeRoute,
+  SuccessRoute: SuccessRoute,
   FIdRoute: FIdRoute,
 }
 export const routeTree = rootRouteImport

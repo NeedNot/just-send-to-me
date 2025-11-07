@@ -121,6 +121,7 @@ const Navbar = ({
               <Button onClick={onCreateFolder} size="sm" variant="outline">
                 <FolderPlus className="mr-2 size-4" />
                 Create Folder
+                {/* todo use asChild and link */}
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

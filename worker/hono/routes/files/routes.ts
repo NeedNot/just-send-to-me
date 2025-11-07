@@ -17,6 +17,7 @@ export const uploadNewFile = createRoute({
           schema: uploadNewFileSchema,
         },
       },
+      required: true,
     },
   },
   responses: {
@@ -148,6 +149,7 @@ export const completeFileUpload = createRoute({
           schema: z.array(R2UploadedPartSchema),
         },
       },
+      required: true,
     },
   },
   responses: {

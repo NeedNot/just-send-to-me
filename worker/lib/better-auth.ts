@@ -3,7 +3,11 @@ import { createAuthMiddleware, APIError } from 'better-auth/api';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import * as schema from '../db/auth-schema';
-import { isEmailDomainDisposable, sendResetPasswordEmail, sendVerificationEmail } from './email';
+import {
+  isEmailDomainDisposable,
+  sendResetPasswordEmail,
+  sendVerificationEmail,
+} from './email';
 import { captcha, emailOTP } from 'better-auth/plugins';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
@@ -34,7 +38,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           type: 'string',
           required: true,
           input: false,
-          defaultValue: "FREE",
+          defaultValue: 'FREE',
         },
       },
     },
@@ -104,17 +108,17 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       user: {
         create: {
           after: async (ctx) => {
-            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id)
-            await stub.updateRemainingCredits(3) //todo don't hardcode
-          }
+            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
+            await stub.updateRemainingCredits(3); //todo don't hardcode
+          },
         },
         delete: {
           after: async (ctx) => {
-            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id)
-            await stub.deleteStorage()
-          }
-        }
-      }
+            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
+            await stub.deleteStorage();
+          },
+        },
+      },
     },
     socialProviders: {
       google: {

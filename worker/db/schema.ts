@@ -45,8 +45,8 @@ export const plans = sqliteTable('plans', {
     .$defaultFn(() => createId())
     .primaryKey(),
   name: text({ length: 128 }).notNull(),
-  priceMonthly: integer('price_monthly').notNull(), // in cents
-  priceYearly: integer('price_yearly').notNull(), // in cents
+  priceIdMonthly: text('price_id_monthly'),
+  priceIdYearly: text('price_id_yearly'),
   maxStoragePerFolder: integer('max_storage').notNull(), //in bytes
   maxFileCountPerFolder: integer('max_file_count').notNull(),
   credits: integer('credits').notNull(),
@@ -59,27 +59,17 @@ export const plans = sqliteTable('plans', {
     .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
 });
 
-export const userSubscriptions = sqliteTable('user_subscriptions', {
-  id: text()
-    .$defaultFn(() => createId())
-    .primaryKey(),
-  userId: text()
+export const subscriptions = sqliteTable('subscriptions', {
+  id: text().primaryKey(),
+  userId: text('user_id')
     .references(() => user.id)
     .notNull(),
-  planId: text()
+  planId: text('plan_id')
     .references(() => plans.id)
     .notNull(),
-  status: text('status', {
-    enum: ['active', 'canceled', 'incomplete', 'incomplete_expired'],
-  }).notNull(),
-  stripeSubscriptionId: text('stripe_subscription_id').notNull(),
-  start: integer({ mode: 'timestamp_ms' }).notNull(),
-  end: integer({ mode: 'timestamp_ms' }).notNull(),
-  cancelAt: integer('cancel_at', { mode: 'timestamp_ms' }).notNull(),
-  createdAt: integer('created_at', { mode: 'timestamp_ms' })
-    .notNull()
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-  updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
-    .notNull()
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+  currentPeriodStart: integer('current_period_start', { mode: 'timestamp_ms' }),
+  currentPeriodEnd: integer('current_period_end', { mode: 'timestamp_ms' }),
+  lastRenewal: integer('last_renewal', { mode: 'timestamp_ms' }),
+  status: text('status').notNull(),
 });

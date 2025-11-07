@@ -12,8 +12,7 @@ import {
 import type { User } from 'better-auth';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
-  const user = c.get('user') as (User & { planId: string }) | null;
-  if (!user) return c.body(null, 401);
+  const user = c.get('user') as User & { planId: string };
 
   const { name, expiration } = c.req.valid('json');
   const duration = EXPIRATION_DURATIONS[expiration];
@@ -42,15 +41,6 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   });
 
   await userCreditsObject.spendCredits(creditCost);
-
-  await c.env.FOLDER_FLOW.create({
-    id: result.id,
-    params: {
-      folderId: result.id,
-      creditCost,
-      expiresAt,
-    },
-  });
 
   return c.json(result, 200);
 };

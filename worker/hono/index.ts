@@ -4,6 +4,7 @@ import { auth } from '../lib/better-auth';
 import folderRoutes from './routes/folders';
 import fileRoutes from './routes/files';
 import accountRoutes from './routes/account';
+import billingRoutes from './routes/billing'
 
 export const app = new OpenAPIHono<AppBindings & AppVariables>();
 
@@ -28,3 +29,4 @@ app.use('/api/*', async (c, next) => {
 app.route('/api', folderRoutes);
 app.route('/api', fileRoutes);
 app.route('/api', accountRoutes);
+app.route('/api', billingRoutes)

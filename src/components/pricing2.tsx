@@ -30,8 +30,9 @@ interface PricingPlan {
   features: PricingFeature[];
   button: {
     text: string;
-    url: string;
+    url?: string;
     current?: boolean;
+    onClick?: () => void;
   };
 }
 
@@ -39,14 +40,22 @@ interface Pricing2Props {
   heading?: string;
   description?: string;
   plans: PricingPlan[];
+  isYearly?: boolean;
+  onIsYearlyChange?: (isYearly: boolean) => void;
 }
 
 const Pricing2 = ({
   heading = 'Pricing',
   description,
   plans,
+  isYearly: controlledIsYearly,
+  onIsYearlyChange,
 }: Pricing2Props) => {
-  const [isYearly, setIsYearly] = useState(false);
+  const [uncontrolledIsYearly, setUncontrolledIsYearly] = useState(false);
+  const isControlled = controlledIsYearly !== undefined;
+  const isYearly = isControlled ? controlledIsYearly : uncontrolledIsYearly;
+  const setIsYearly = isControlled ? onIsYearlyChange : setUncontrolledIsYearly;
+
   return (
     <section className="py-32">
       <div className="container">
@@ -59,7 +68,7 @@ const Pricing2 = ({
             Monthly
             <Switch
               checked={isYearly}
-              onCheckedChange={() => setIsYearly(!isYearly)}
+              onCheckedChange={() => setIsYearly?.(!isYearly)}
             />
             Yearly <Badge>2 months free</Badge>
           </div>
@@ -112,12 +121,17 @@ const Pricing2 = ({
                 </CardContent>
                 <CardFooter className="mt-auto">
                   <Button
-                    asChild
+                    asChild={!plan.button.onClick}
                     disabled={plan.button.current}
                     variant={plan.button.current ? 'outline' : 'default'}
+                    onClick={plan.button.onClick}
                     className="w-full disabled:opacity-100"
                   >
-                    <Link to={plan.button.url}>{plan.button.text}</Link>
+                    {plan.button.onClick ? (
+                      plan.button.text
+                    ) : (
+                      <Link to={plan.button.url}>{plan.button.text}</Link>
+                    )}
                   </Button>
                 </CardFooter>
               </Card>

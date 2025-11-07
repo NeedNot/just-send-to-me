@@ -12,6 +12,7 @@
     },
   },
   "vars": {
+    "IS_DEV": true,
     "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
     "R2_FILES_BUCKET": "dev-files-bucket",
     "SMTP_SERVER_NAME": "smtp.zeptomail.com",
@@ -99,6 +100,7 @@
   "env": {
     "production": {
       "vars": {
+        "IS_DEV": false,
         "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
         "R2_FILES_BUCKET": "files-bucket",
         "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
@@ -168,8 +170,8 @@
         },
         {
           "tag": "v2",
-          "new_sqlite_classes": ["FolderUploadsObject"]
-        }
+          "new_sqlite_classes": ["FolderUploadsObject"],
+        },
       ],
       "workflows": [
         {
