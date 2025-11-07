@@ -48,7 +48,7 @@ export const createCheckoutSession: AppRouteHandler<
     ],
     customer_email: user.email,
     metadata: {
-      userId: user.id, //todo is only shown on session completed
+      userId: user.id,
     },
   });
   return c.json({ url: session.url }, 200);

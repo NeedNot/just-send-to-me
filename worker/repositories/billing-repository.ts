@@ -91,8 +91,10 @@ export async function updateSubscription(
     .returning({ userId: subscriptions.userId, planId: subscriptions.planId })
     .get();
   console.log(planId, userId);
-  // todo when plan is canceled set to free
-  await updateUserPlan(db, userId, planId);
+  const newPlanId = ['active', 'trialing'].includes(subscription.status)
+    ? planId
+    : 'FREE';
+  await updateUserPlan(db, userId, newPlanId);
 }
 
 export function updateUserPlan(
