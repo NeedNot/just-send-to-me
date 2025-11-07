@@ -176,10 +176,10 @@
       ],
       "durable_objects": {
         "bindings": [
-          {
-            "name": "USER_CREDITS_OBJECT",
-            "class_name": "UserCreditsObject",
-          },
+          // {
+          //   "name": "USER_CREDITS_OBJECT",
+          //   "class_name": "UserCreditsObject",
+          // },
           {
             "name": "FOLDER_UPLOADS_OBJECT",
             "class_name": "FolderUploadsObject",
@@ -199,12 +199,12 @@
             "UserCreditsObject"
           ],
         },
-        {
-          "tag": "v4",
-          "new_sqlite_classes": [
-            "UserCreditsObject"
-          ]
-        }
+        // {
+        //   "tag": "v4",
+        //   "new_sqlite_classes": [
+        //     "UserCreditsObject"
+        //   ]
+        // }
       ],
     },
   },
