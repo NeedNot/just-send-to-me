@@ -199,12 +199,12 @@
             "UserCreditsObject"
           ],
         },
-        // {
-        //   "tag": "v4",
-        //   "new_sqlite_classes": [
-        //     "UserCreditsObject"
-        //   ]
-        // }
+        {
+          "tag": "v4",
+          "new_sqlite_classes": [
+            "UserCreditsObject"
+          ]
+        }
       ],
     },
   },
