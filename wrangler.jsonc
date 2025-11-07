@@ -68,6 +68,12 @@
       },
     },
   ],
+  "kv_namespaces": [
+    {
+      "binding": "STRIPE_CHECKOUT",
+      "id": "ab775508c37b4a889f0b1638ac1bcea4",
+    },
+  ],
   "durable_objects": {
     "bindings": [
       {

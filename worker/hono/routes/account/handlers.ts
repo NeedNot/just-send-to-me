@@ -3,7 +3,7 @@ import type { AppRouteHandler } from '../../../lib/types';
 import type { GetMyAccountRoute, GetMyFoldersRoute } from './routes';
 import { getFoldersByCreator } from '../../../repositories/folder-repository';
 import type { Folder } from '../../../../shared/schemas';
-import { getPlanById } from '../../../repositories/plan-repository';
+import { getPlanById } from '../../../repositories/billing-repository';
 
 export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const user = c.get('user')!;

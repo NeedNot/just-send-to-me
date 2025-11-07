@@ -1,11 +1,13 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
-import { getPlanById } from '../../../repositories/plan-repository';
 import type { CreateCheckoutSessionRoute, StripeWebhookRoute } from './routes';
 import { Stripe } from 'stripe';
 import {
   createSubscription,
+  getPlanById,
+  getPlanByPriceId,
   updateSubscription,
+  updateUserPlan,
 } from '../../../repositories/billing-repository';
 
 // stripe webhook ips
@@ -90,11 +92,30 @@ export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
       );
 
       console.log('subscription created');
-      await createSubscription(db, { userId, subscription });
+      const priceId = subscription.items.data[0].price.id
+      const plan = await getPlanByPriceId(db, priceId)
+      if (!plan) {
+        throw Error(`No plan with priceId ${priceId} found`)
+      }
+      await createSubscription(db, { userId, planId: plan.id, subscription });
+      await updateUserPlan(db, userId, plan.id);
+      const stub = c.env.USER_CREDITS_OBJECT.getByName(userId)
+      await stub.updateRemainingCredits(plan.credits)
     } else if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;
+      const priceId = subscription.items.data[0].price.id
+      const plan = await getPlanByPriceId(db, priceId)
+      if (!plan) {
+        throw Error(`No plan with priceId ${priceId} found`)
+      }
       console.log('subscription updated');
-      updateSubscription(db, { subscription });
+      const sub = await updateSubscription(db, { subscription, planId: plan.id });
+      const newPlanId = ['active', 'trialing'].includes(subscription.status)
+        ? sub.userId
+        : 'FREE';
+      await updateUserPlan(db, sub.userId, newPlanId);
+      const stub = c.env.USER_CREDITS_OBJECT.getByName(sub.userId);
+      stub.updateRemainingCredits(plan?.credits || 3)
     }
     return c.newResponse(null, 200);
   } catch (e) {
