@@ -26,6 +26,9 @@
     "run_worker_first": ["/api/*"],
     "not_found_handling": "single-page-application",
   },
+  "triggers": {
+    "crons": ["0 * * * *"],
+  },
   "d1_databases": [
     {
       "binding": "DB",
@@ -88,23 +91,19 @@
   },
   "migrations": [
     {
-      "tag": "v1",
-      "new_classes": ["UserCreditsObject"],
-    },
-    {
       "tag": "v2",
       "new_sqlite_classes": ["FolderUploadsObject"],
     },
-  ],
-  "workflows": [
     {
-      "name": "FOLDER_FLOW",
-      "binding": "FOLDER_FLOW",
-      "class_name": "FolderFlow",
-    },
+      "tag": "v3",
+      "new_sqlite_classes": ["UserCreditsObject"]
+    }
   ],
   "env": {
     "production": {
+      "triggers": {
+        "crons": ["0 * * * *"],
+      },
       "vars": {
         "IS_DEV": false,
         "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
@@ -177,13 +176,6 @@
         {
           "tag": "v2",
           "new_sqlite_classes": ["FolderUploadsObject"],
-        },
-      ],
-      "workflows": [
-        {
-          "name": "FOLDER_FLOW",
-          "binding": "FOLDER_FLOW",
-          "class_name": "FolderFlow",
         },
       ],
     },

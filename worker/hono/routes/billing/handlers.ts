@@ -100,7 +100,7 @@ export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
       await createSubscription(db, { userId, planId: plan.id, subscription });
       await updateUserPlan(db, userId, plan.id);
       const stub = c.env.USER_CREDITS_OBJECT.getByName(userId)
-      await stub.updateRemainingCredits(plan.credits)
+      await stub.updateMaxCredits(plan.credits)
     } else if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;
       const priceId = subscription.items.data[0].price.id
@@ -115,7 +115,7 @@ export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
         : 'FREE';
       await updateUserPlan(db, sub.userId, newPlanId);
       const stub = c.env.USER_CREDITS_OBJECT.getByName(sub.userId);
-      stub.updateRemainingCredits(plan?.credits || 3)
+      stub.updateMaxCredits(plan?.credits || 3)
     }
     return c.newResponse(null, 200);
   } catch (e) {

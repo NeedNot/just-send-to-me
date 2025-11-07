@@ -1,4 +1,3 @@
-import { DurableObject } from 'cloudflare:workers';
 import {
   addFileMetaToFolder,
   getFolderById,
@@ -12,17 +11,20 @@ import {
   listMultipartUploads,
 } from '../repositories/s3-repository';
 import { insertFile } from '../repositories/file-repository';
+import { Alarms } from '@cloudflare/actors/alarms';
+import { Storage } from '@cloudflare/actors/storage';
+import { AlarmDO } from './alarm-do';
 
 type PendingFile = {
   key: string;
   size: number;
   lastActive: number;
-}
+};
 
 const CHUNK_SIZE = 1024 ** 2 * 10;
 const bucket = process.env.R2_FILES_BUCKET!;
 
-export class FolderUploadsObject extends DurableObject<Env> {
+export class FolderUploadsObject extends AlarmDO {
   // states are optimistic
   initialized = false;
   remainingFiles: number = 0;
@@ -31,6 +33,8 @@ export class FolderUploadsObject extends DurableObject<Env> {
 
   constructor(ctx: DurableObjectState, env: Env) {
     super(ctx, env);
+    this.storage = new Storage(ctx.storage);
+    this.alarms = new Alarms(ctx, this);
     this.sql = this.ctx.storage.sql;
     this.sql.exec(
       `CREATE TABLE IF NOT EXISTS pending_files(key TEXT PRIMARY KEY, size INTEGER, last_active INTEGER); CREATE TABLE IF NOT EXISTS abort_queue (key TEXT PRIMARY KEY)`,
@@ -63,12 +67,22 @@ export class FolderUploadsObject extends DurableObject<Env> {
     ]);
   }
 
-  async alarm(_?: AlarmInvocationInfo): Promise<void> {
-    const expired = this.sql.exec<{key:string}>('DELETE FROM pending_files WHERE last_active < ? RETURNING key', Date.now()-15*MS_IN_MINUTE).toArray().map((r) => r.key)
-    const queue = [...this.sql
-      .exec<{ key: string }>('DELETE FROM abort_queue RETURNING key')
+  async handleCancelAlarm() {
+    this.ctx.storage.put('cancelAlarm', false);
+    const expired = this.sql
+      .exec<{ key: string }>(
+        'DELETE FROM pending_files WHERE last_active < ? RETURNING key',
+        Date.now() - 15 * MS_IN_MINUTE,
+      )
       .toArray()
-      .map((r) => r.key), ...expired];
+      .map((r) => r.key);
+    const queue = [
+      ...this.sql
+        .exec<{ key: string }>('DELETE FROM abort_queue RETURNING key')
+        .toArray()
+        .map((r) => r.key),
+      ...expired,
+    ];
     if (queue.length === 0) return;
 
     const awsClient = createAwsClient(this.env);
@@ -85,17 +99,26 @@ export class FolderUploadsObject extends DurableObject<Env> {
         key,
         upload.Upload[0].UploadId,
       );
-      console.log("Aborting", key)
+      console.log('Aborting', key);
       await session.abort();
     });
+
     await Promise.all(promises);
-    const pendingFiles = this.sql.exec<PendingFile>('SELECT * FROM pending_files ORDER BY last_active ASC').toArray()
-    if (pendingFiles.length === 0) {
-      console.log("No active uploads, deleting now.")
-      this.ctx.storage.deleteAll()
-      return
-    }
-    this.ctx.storage.setAlarm(new Date(pendingFiles[0].lastActive+(16*MS_IN_MINUTE)))
+  }
+
+  async handleCleanUpAlarm() {
+    console.log('Cleaning up');
+    await this.ctx.blockConcurrencyWhile(async () => {
+      this.ctx.storage.put('cleanUpAlarm', false);
+      const pendingFiles = this.sql
+        .exec<{ key: string }>('SELECT key FROM pending_files')
+        .toArray();
+      if (pendingFiles.length > 0) return;
+
+      console.log('No active uploads, deleting now.');
+      this.ctx.storage.deleteAll();
+      return;
+    });
   }
 
   async startNewUpload(
@@ -107,7 +130,9 @@ export class FolderUploadsObject extends DurableObject<Env> {
       await this.ctx.blockConcurrencyWhile(() => this.init(folderId));
     }
 
-    const pendingFiles = this.sql.exec<PendingFile>('SELECT * FROM pending_files').toArray()
+    const pendingFiles = this.sql
+      .exec<PendingFile>('SELECT * FROM pending_files')
+      .toArray();
 
     // upload not possible unless a file is canceled
     if (this.remainingFiles <= 0 || this.remainingSpace < file.size) {
@@ -120,8 +145,8 @@ export class FolderUploadsObject extends DurableObject<Env> {
 
       const cancellableUploads = this.findCancellableUploads(file.size);
       cancellableUploads.forEach((key) => {
-        const pendingFile = pendingFiles.find((f) => f.key === key)
-        if (!pendingFile) return
+        const pendingFile = pendingFiles.find((f) => f.key === key);
+        if (!pendingFile) return;
         this.sql.exec(
           'INSERT OR IGNORE INTO abort_queue (key) VALUES (?)',
           key,
@@ -133,10 +158,11 @@ export class FolderUploadsObject extends DurableObject<Env> {
         this.sql.exec('DELETE FROM pending_files WHERE key = ?', key);
       });
 
-      const currentAlarm = await this.ctx.storage.getAlarm();
+      const currentAlarm: boolean =
+        (await this.ctx.storage.get('cancelAlarm')) || false;
       if (!currentAlarm) {
-        const timeInFuture = Date.now() + MS_IN_MINUTE / 2;
-        await this.ctx.storage.setAlarm(timeInFuture);
+        this.ctx.storage.put('cancelAlarm', true);
+        await this.alarms.schedule(10, 'handleCancelAlarm');
       }
     }
 
@@ -166,14 +192,14 @@ export class FolderUploadsObject extends DurableObject<Env> {
       this.ctx.storage.put('remainingSpace', this.remainingSpace),
     ]);
 
-    if (!await this.ctx.storage.getAlarm()) {
-      this.ctx.storage.setAlarm(16*MS_IN_MINUTE)
-    }
+    await this.updateCleanUpAlarm();
     return { uploadId: res.uploadId, key: res.key };
   }
 
   async getPartUploadUrl(key: string, uploadId: string, partNumber: string) {
-    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
+    const upload = this.sql
+      .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
+      .next().value;
     if (!upload) throw Error('Upload not found');
 
     if (Math.ceil(upload.size / CHUNK_SIZE) < parseInt(partNumber)) {
@@ -201,9 +227,7 @@ export class FolderUploadsObject extends DurableObject<Env> {
       key,
     );
 
-    if (!await this.ctx.storage.getAlarm()) {
-      this.ctx.storage.setAlarm(16*MS_IN_MINUTE)
-    }
+    await this.updateCleanUpAlarm();
 
     return signedUrl.url;
   }
@@ -219,7 +243,9 @@ export class FolderUploadsObject extends DurableObject<Env> {
     }
 
     const objectHead = await this.env.FILES_BUCKET.head(key);
-    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
+    const upload = this.sql
+      .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
+      .next().value;
 
     if (
       !upload ||
@@ -246,7 +272,9 @@ export class FolderUploadsObject extends DurableObject<Env> {
   async abortUpload(key: string, uploadId: string) {
     const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
     session.abort();
-    const upload = this.sql.exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key).next().value
+    const upload = this.sql
+      .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
+      .next().value;
     if (upload) {
       this.remainingFiles += 1;
       this.remainingSpace += upload.size;
@@ -265,13 +293,18 @@ export class FolderUploadsObject extends DurableObject<Env> {
       return new Set();
     }
 
-    const cancellable = this.sql.exec<PendingFile>('SELECT key, size FROM pending_files WHERE last_active < ? ORDER BY size DESC', cutoff).toArray()
+    const cancellable = this.sql
+      .exec<PendingFile>(
+        'SELECT key, size FROM pending_files WHERE last_active < ? ORDER BY size DESC',
+        cutoff,
+      )
+      .toArray();
 
     let freedSpace = 0;
     let freedFiles = 0;
     const toAbort = new Set<string>();
 
-    for (const {key, size} of cancellable) {
+    for (const { key, size } of cancellable) {
       toAbort.add(key);
       freedSpace += size;
       freedFiles += 1;
@@ -286,5 +319,17 @@ export class FolderUploadsObject extends DurableObject<Env> {
     }
 
     return toAbort;
+  }
+
+  private async updateCleanUpAlarm() {
+    const cleanUpAlarm: string | undefined =
+      await this.ctx.storage.get('cleanUpAlarm');
+    if (cleanUpAlarm) {
+      this.alarms.cancelSchedule(cleanUpAlarm);
+    }
+    await this.ctx.storage.put(
+      'cleanUpAlarm',
+      (await this.alarms.schedule(16 * 60, 'handleCleanUpAlarm')).id,
+    );
   }
 }

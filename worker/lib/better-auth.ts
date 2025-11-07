@@ -109,7 +109,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         create: {
           after: async (ctx) => {
             const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
-            await stub.updateRemainingCredits(3); //todo don't hardcode
+            await stub.updateMaxCredits(3); //todo don't hardcode
           },
         },
         delete: {
