@@ -15,10 +15,11 @@ import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
 import { Route as NewRouteImport } from './app/routes/new'
 import { Route as ChangePasswordRouteImport } from './app/routes/change-password'
-import { Route as AccountRouteImport } from './app/routes/account'
 import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
+import { Route as AccountIndexRouteImport } from './app/routes/account/index'
 import { Route as FIdRouteImport } from './app/routes/f.$id'
+import { Route as AccountSubscriptionRouteImport } from './app/routes/account/subscription'
 
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
@@ -50,11 +51,6 @@ const ChangePasswordRoute = ChangePasswordRouteImport.update({
   path: '/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -65,99 +61,116 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FIdRoute = FIdRouteImport.update({
   id: '/f/$id',
   path: '/f/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSubscriptionRoute = AccountSubscriptionRouteImport.update({
+  id: '/account/subscription',
+  path: '/account/subscription',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
+  '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
+  '/account': typeof AccountIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
+  '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
+  '/account': typeof AccountIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/account': typeof AccountRoute
   '/change-password': typeof ChangePasswordRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
+  '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
+  '/account/': typeof AccountIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/account'
     | '/change-password'
     | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/subscribe'
     | '/success'
+    | '/account/subscription'
     | '/f/$id'
+    | '/account'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/account'
     | '/change-password'
     | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/subscribe'
     | '/success'
+    | '/account/subscription'
     | '/f/$id'
+    | '/account'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/account'
     | '/change-password'
     | '/new'
     | '/sign-in'
     | '/sign-up'
     | '/subscribe'
     | '/success'
+    | '/account/subscription'
     | '/f/$id'
+    | '/account/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AccountRoute: typeof AccountRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
   NewRoute: typeof NewRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   SubscribeRoute: typeof SubscribeRoute
   SuccessRoute: typeof SuccessRoute
+  AccountSubscriptionRoute: typeof AccountSubscriptionRoute
   FIdRoute: typeof FIdRoute
+  AccountIndexRoute: typeof AccountIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,13 +217,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -225,11 +231,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/f/$id': {
       id: '/f/$id'
       path: '/f/$id'
       fullPath: '/f/$id'
       preLoaderRoute: typeof FIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/subscription': {
+      id: '/account/subscription'
+      path: '/account/subscription'
+      fullPath: '/account/subscription'
+      preLoaderRoute: typeof AccountSubscriptionRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -238,14 +258,15 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AccountRoute: AccountRoute,
   ChangePasswordRoute: ChangePasswordRoute,
   NewRoute: NewRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   SubscribeRoute: SubscribeRoute,
   SuccessRoute: SuccessRoute,
+  AccountSubscriptionRoute: AccountSubscriptionRoute,
   FIdRoute: FIdRoute,
+  AccountIndexRoute: AccountIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

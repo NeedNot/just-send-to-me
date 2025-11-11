@@ -140,6 +140,13 @@ export const createPortalSessionResponseSchema = z.object({
   url: z.string(),
 });
 
+export const subscriptionResponseSchema = z.object({
+  planId: z.string(),
+  createdAt: z.date(),
+  currentPeriodEnd: z.date(),
+  status: z.enum(['active', 'inactive']),
+});
+
 export type UploadNewFileSchema = z.infer<typeof uploadNewFileSchema>;
 export type UploadNewFileResponseSchema = z.infer<
   typeof uploadNewFileResponseSchema
@@ -169,3 +176,5 @@ export type CreateCheckoutSessionResponse = z.infer<
 export type CreatePortalSessionResponse = z.infer<
   typeof createPortalSessionResponseSchema
 >;
+
+export type SubscriptionResponse = z.infer<typeof subscriptionResponseSchema>;

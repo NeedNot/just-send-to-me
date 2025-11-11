@@ -16,18 +16,14 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from './ui/badge';
 import { Link } from '@tanstack/react-router';
 
-interface PricingFeature {
-  text: string;
-}
-
 interface PricingPlan {
   id: string;
   name: string;
   description: string;
-  monthlyPrice: string;
-  yearlyPrice: string;
+  priceMonthly: string;
+  priceYearly: string;
   discount?: string;
-  features: PricingFeature[];
+  features: string[];
   button: {
     text: string;
     url?: string;
@@ -38,16 +34,16 @@ interface PricingPlan {
 
 interface Pricing2Props {
   heading?: string;
-  description?: string;
   plans: PricingPlan[];
+  description?: string;
   isYearly?: boolean;
   onIsYearlyChange?: (isYearly: boolean) => void;
 }
 
 const Pricing2 = ({
   heading = 'Pricing',
-  description,
   plans,
+  description,
   isYearly: controlledIsYearly,
   onIsYearlyChange,
 }: Pricing2Props) => {
@@ -74,67 +70,7 @@ const Pricing2 = ({
           </div>
           <div className="flex flex-col flex-wrap items-stretch justify-center gap-6 md:flex-row">
             {plans.map((plan) => (
-              <Card
-                key={plan.id}
-                className="flex w-80 flex-col justify-between text-left"
-              >
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <p>{plan.name}</p>
-                    {plan.discount && (
-                      <Badge variant="default">{plan.discount}</Badge>
-                    )}
-                  </CardTitle>
-                  <p className="text-muted-foreground text-sm">
-                    {plan.description}
-                  </p>
-                  <div className="flex items-end">
-                    {plan.id !== 'custom' ? (
-                      <>
-                        <span className="text-4xl font-semibold">
-                          {isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-                        </span>
-                        <span className="text-muted-foreground text-2xl font-semibold">
-                          {isYearly ? '/yr' : '/mo'}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground text-4xl font-semibold">
-                        Custom
-                      </span>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Separator className="mb-6" />
-                  <ul className="space-y-4">
-                    {plan.features.map((feature, index) => (
-                      <li
-                        key={index}
-                        className="flex items-center gap-2 text-sm"
-                      >
-                        <CircleCheck className="size-4" />
-                        <span>{feature.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="mt-auto">
-                  <Button
-                    asChild={!plan.button.onClick && !plan.button.current}
-                    disabled={plan.button.current}
-                    variant={plan.button.current ? 'outline' : 'default'}
-                    onClick={plan.button.onClick}
-                    className="w-full disabled:opacity-100"
-                  >
-                    {plan.button.onClick || plan.button.current ? (
-                      plan.button.text
-                    ) : (
-                      <Link to={plan.button.url}>{plan.button.text}</Link>
-                    )}
-                  </Button>
-                </CardFooter>
-              </Card>
+              <PlanCard plan={plan} key={plan.id} isYearly={isYearly} />
             ))}
           </div>
           <span>
@@ -151,5 +87,70 @@ const Pricing2 = ({
     </section>
   );
 };
+
+export function PlanCard({
+  plan,
+  isYearly,
+}: {
+  plan: PricingPlan;
+  isYearly: boolean;
+}) {
+  return (
+    <Card
+      key={plan.id}
+      className="flex w-80 flex-col justify-between text-left"
+    >
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <p>{plan.name}</p>
+          {plan.discount && <Badge variant="default">{plan.discount}</Badge>}
+        </CardTitle>
+        <p className="text-muted-foreground text-sm">{plan.description}</p>
+        <div className="flex items-end">
+          {plan.id !== 'custom' ? (
+            <>
+              <span className="text-4xl font-semibold">
+                {isYearly ? plan.priceYearly : plan.priceMonthly}
+              </span>
+              <span className="text-muted-foreground text-2xl font-semibold">
+                {isYearly ? '/yr' : '/mo'}
+              </span>
+            </>
+          ) : (
+            <span className="text-muted-foreground text-4xl font-semibold">
+              Custom
+            </span>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Separator className="mb-6" />
+        <ul className="space-y-4">
+          {plan.features.map((feature, index) => (
+            <li key={index} className="flex items-center gap-2 text-sm">
+              <CircleCheck className="size-4" />
+              <span>{feature}</span>
+            </li>
+          ))}
+        </ul>
+      </CardContent>
+      <CardFooter className="mt-auto">
+        <Button
+          asChild={!plan.button.onClick && !plan.button.current}
+          disabled={plan.button.current}
+          variant={plan.button.current ? 'outline' : 'default'}
+          onClick={plan.button.onClick}
+          className="w-full disabled:opacity-100"
+        >
+          {plan.button.onClick || plan.button.current ? (
+            plan.button.text
+          ) : (
+            <Link to={plan.button.url}>{plan.button.text}</Link>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export { Pricing2 };

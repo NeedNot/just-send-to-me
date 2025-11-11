@@ -64,8 +64,7 @@ export const subscriptions = sqliteTable('subscriptions', {
   customerId: text('customer_id').notNull().unique(),
   userId: text('user_id')
     .references(() => user.id)
-    .notNull()
-    .unique(),
+    .notNull(),
   planId: text('plan_id')
     .references(() => plans.id)
     .notNull(),
@@ -73,5 +72,5 @@ export const subscriptions = sqliteTable('subscriptions', {
   currentPeriodStart: integer('current_period_start', { mode: 'timestamp_ms' }),
   currentPeriodEnd: integer('current_period_end', { mode: 'timestamp_ms' }),
   lastRenewal: integer('last_renewal', { mode: 'timestamp_ms' }),
-  status: text('status').notNull(),
+  status: text('status', { enum: ['active', 'inactive'] }).notNull(),
 });

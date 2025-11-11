@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
 
-export const Route = createFileRoute('/account')({
+export const Route = createFileRoute('/account/')({
   head: () => ({
     meta: [
       {

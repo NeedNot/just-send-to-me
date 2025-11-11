@@ -1,6 +1,7 @@
 import { Pricing2 } from '@/components/pricing2';
 import { useMyAccount } from '@/features/account/api/my-account';
 import { useCheckout } from '@/features/billing/api/checkout';
+import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -40,16 +41,7 @@ export function PricingBlock() {
       description="Save 15 minutes of hassle for just $1."
       plans={[
         {
-          id: 'free',
-          name: 'Free',
-          description: 'Free forever',
-          monthlyPrice: '$0',
-          yearlyPrice: '$0',
-          features: [
-            { text: '1 GB storage per folder' },
-            { text: '3 credits per month*' },
-            { text: '100 files per folder' },
-          ],
+          ...SUBSCRIPTION_PLANS.find((plan) => plan.id === 'FREE')!,
           button: {
             text: getPlanText('FREE'),
             url: '/sign-up',
@@ -57,17 +49,7 @@ export function PricingBlock() {
           },
         },
         {
-          id: 'plus',
-          name: 'Plus',
-          discount: 'Limited time 50% off',
-          description: 'Most common',
-          monthlyPrice: '$1',
-          yearlyPrice: '$10',
-          features: [
-            { text: '5 GB storage per folder' },
-            { text: '10 credits per month*' },
-            { text: '100 files per folder' },
-          ],
+          ...SUBSCRIPTION_PLANS.find((plan) => plan.id === 'PLUS')!,
           button: {
             text: getPlanText('PLUS'),
             current: account?.plan.id === 'PLUS',
@@ -75,16 +57,7 @@ export function PricingBlock() {
           },
         },
         {
-          id: 'pro',
-          name: 'Pro',
-          description: 'Covers most use cases',
-          monthlyPrice: '$5',
-          yearlyPrice: '$50',
-          features: [
-            { text: '20 GB storage per folder' },
-            { text: '25 credits per month*' },
-            { text: '1000 files per folder' },
-          ],
+          ...SUBSCRIPTION_PLANS.find((plan) => plan.id === 'PRO')!,
           button: {
             text: getPlanText('PRO'),
             onClick: () => subscribe('PRO'),

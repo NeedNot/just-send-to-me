@@ -1,7 +1,7 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { plans, subscriptions } from '../db/schema';
 import type Stripe from 'stripe';
-import { eq, or } from 'drizzle-orm';
+import { and, eq, or } from 'drizzle-orm';
 import { user } from '../db/auth-schema';
 
 /**
@@ -51,7 +51,9 @@ export async function createSubscription(
       lastRenewal: new Date(
         subscription.items.data[0].current_period_start * 1000,
       ),
-      status: subscription.status,
+      status: ['active', 'trialing'].includes(subscription.status)
+        ? 'active'
+        : 'inactive',
       planId,
     })
     .onConflictDoNothing({
@@ -76,7 +78,9 @@ export async function updateSubscription(
       lastRenewal: new Date(
         subscription.items.data[0].current_period_start * 1000,
       ),
-      status: subscription.status,
+      status: ['active', 'trialing'].includes(subscription.status)
+        ? 'active'
+        : 'inactive',
       planId,
     })
     .where(eq(subscriptions.id, subscription.id))
@@ -93,7 +97,9 @@ export async function getUserSubscription(
   return db
     .select()
     .from(subscriptions)
-    .where(eq(subscriptions.userId, userId))
+    .where(
+      and(eq(subscriptions.userId, userId), eq(subscriptions.status, 'active')),
+    )
     .get();
 }
 

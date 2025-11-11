@@ -6,4 +6,5 @@ import * as handlers from './handlers';
 export default new OpenAPIHono<AppBindings & AppVariables>()
   .openapi(routes.createCheckoutSession, handlers.createCheckoutSession)
   .openapi(routes.stripeWebhook, handlers.stripeWebHook)
-  .openapi(routes.stripeBillingPortal, handlers.stripeBillingPortal);
+  .openapi(routes.stripeBillingPortal, handlers.stripeBillingPortal)
+  .openapi(routes.mySubscription, handlers.mySubscription);

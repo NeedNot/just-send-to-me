@@ -3,7 +3,12 @@ import { Navbar } from '@/components/navbar';
 import { myAccountQuery } from '@/features/account/api/my-account';
 import { useSignOut } from '@/features/auth/api/sign-out';
 import { queryClient } from '@/lib/query-client';
-import { createRootRoute, HeadContent, Outlet, useNavigate } from '@tanstack/react-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  useNavigate,
+} from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
@@ -11,11 +16,11 @@ export const Route = createRootRoute({
     queryClient.ensureQueryData(myAccountQuery).catch(() => undefined),
   component: () => {
     const myAccount = Route.useLoaderData();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { mutate: signOut } = useSignOut({
       onSuccess: () => {
-        navigate({ to: '/sign-in', search: { redirect: '/account' } })
-      }
+        navigate({ to: '/sign-in', search: { redirect: '/account' } });
+      },
     });
     return (
       <>
@@ -38,6 +43,7 @@ export const Route = createRootRoute({
           <Footer />
         </div>
         <TanStackRouterDevtools />
+
         {/* </SignUpPrompterProvider> */}
       </>
     );

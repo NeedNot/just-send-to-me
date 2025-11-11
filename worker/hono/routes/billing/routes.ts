@@ -2,6 +2,8 @@ import { createRoute, z } from '@hono/zod-openapi';
 import {
   createCheckoutSessionResponseSchema,
   createCheckoutSessionSchema,
+  createPortalSessionResponseSchema,
+  subscriptionResponseSchema,
 } from '../../../../shared/schemas';
 import { requireUser } from '../../middleware/require-user';
 
@@ -63,7 +65,31 @@ export const stripeBillingPortal = createRoute({
   path: '/billing/portal',
   responses: {
     200: {
+      content: {
+        'application/json': {
+          schema: createPortalSessionResponseSchema,
+        },
+      },
       description: 'Success',
+    },
+    400: {
+      description: 'Bad request',
+    },
+  },
+});
+
+export const mySubscription = createRoute({
+  middleware: requireUser,
+  method: 'get',
+  path: '/billing/subscription',
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: subscriptionResponseSchema,
+        },
+      },
+      description: "the user's subscription",
     },
   },
 });
@@ -71,3 +97,4 @@ export const stripeBillingPortal = createRoute({
 export type CreateCheckoutSessionRoute = typeof createCheckoutSession;
 export type StripeWebhookRoute = typeof stripeWebhook;
 export type StripeBillingPortalRoute = typeof stripeBillingPortal;
+export type MySubscriptionRoute = typeof mySubscription;

@@ -9,14 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Pencil, Crown, LogOut, Loader2 } from 'lucide-react';
+import { Pencil, Crown, LogOut } from 'lucide-react';
 import React, { useState } from 'react';
 import { useMyAccount } from '../api/my-account';
 import { EditAccountDialog } from './edit-account-dialog';
 import { useSignOut } from '@/features/auth/api/sign-out';
-import { useNavigate } from '@tanstack/react-router';
-import { usePortal } from '@/features/billing/api/portal';
-import { toast } from 'sonner';
+import { Link, useNavigate } from '@tanstack/react-router';
 
 interface AccountCardProps {
   onUpgrade?: () => void;
@@ -34,16 +32,6 @@ export function AccountCard({
       navigate({ to: '/sign-in', search: { redirect: '/account' } });
     },
   });
-  const { mutateAsync: getPortalSession, isPending: isPortalPending } =
-    usePortal((e) =>
-      toast.error('Unable to open billing portal', { description: e.message }),
-    );
-
-  const manageBilling = async () => {
-    const { url } = await getPortalSession();
-    window.location.href = url;
-  };
-
   return (
     <>
       <EditAccountDialog
@@ -69,23 +57,17 @@ export function AccountCard({
             >
               <Pencil className="h-4 w-4" />
             </Button>
-            {data?.plan.name === 'Free' ? (
-              <Button onClick={onUpgrade} size="sm">
-                <Crown className="mr-2 h-4 w-4" />
-                Upgrade
-              </Button>
-            ) : (
-              <Button
-                disabled={isPortalPending}
-                onClick={manageBilling}
-                size="sm"
-              >
-                {isPortalPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Button asChild size="sm">
+              <Link to="/account/subscription">
+                {data?.plan.id === 'FREE' ? (
+                  <>
+                    <Crown className="mr-2 h-4 w-4" /> Upgrade
+                  </>
+                ) : (
+                  'Manage plan'
                 )}
-                Manage subscription
-              </Button>
-            )}
+              </Link>
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
