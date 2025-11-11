@@ -16,6 +16,7 @@ export default {
       )
       .then((r) => r.map((f) => f.id));
 
+    console.log(`${expiredFolderIds.length} expired folders`);
     if (expiredFolderIds.length === 0) return;
 
     const expiredFiles = await db
@@ -23,6 +24,8 @@ export default {
       .from(files)
       .where(inArray(files.folderId, expiredFolderIds))
       .limit(1000);
+
+    console.log(`${expiredFiles.length} expired files`);
 
     const chunkSize = 90;
     for (let i = 0; i < expiredFiles.length; i += chunkSize) {
