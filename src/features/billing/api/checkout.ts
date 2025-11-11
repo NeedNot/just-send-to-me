@@ -18,8 +18,9 @@ async function fetchCheckoutSession(
   return await response.json();
 }
 
-export function useCheckout() {
+export function useCheckout(onError?: (error: Error) => void) {
   return useMutation({
     mutationFn: fetchCheckoutSession,
+    onError,
   });
 }

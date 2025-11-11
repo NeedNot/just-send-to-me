@@ -9,12 +9,14 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { Pencil, Crown, LogOut } from 'lucide-react';
+import { Pencil, Crown, LogOut, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useMyAccount } from '../api/my-account';
 import { EditAccountDialog } from './edit-account-dialog';
 import { useSignOut } from '@/features/auth/api/sign-out';
 import { useNavigate } from '@tanstack/react-router';
+import { usePortal } from '@/features/billing/api/portal';
+import { toast } from 'sonner';
 
 interface AccountCardProps {
   onUpgrade?: () => void;
@@ -26,12 +28,21 @@ export function AccountCard({
 }: AccountCardProps & React.ComponentProps<typeof Card>) {
   const { data } = useMyAccount();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { mutate: signOut } = useSignOut({
     onSuccess: () => {
-      navigate({ to: '/sign-in', search: { redirect: '/account' } })
-    }
+      navigate({ to: '/sign-in', search: { redirect: '/account' } });
+    },
   });
+  const { mutateAsync: getPortalSession, isPending: isPortalPending } =
+    usePortal((e) =>
+      toast.error('Unable to open billing portal', { description: e.message }),
+    );
+
+  const manageBilling = async () => {
+    const { url } = await getPortalSession();
+    window.location.href = url;
+  };
 
   return (
     <>
@@ -64,7 +75,16 @@ export function AccountCard({
                 Upgrade
               </Button>
             ) : (
-              <Button size="sm">Manage subscription</Button>
+              <Button
+                disabled={isPortalPending}
+                onClick={manageBilling}
+                size="sm"
+              >
+                {isPortalPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Manage subscription
+              </Button>
             )}
           </div>
         </CardHeader>
@@ -80,7 +100,7 @@ export function AccountCard({
               value={
                 data
                   ? Math.min(1, data?.remainingCredits / data?.plan.credits) *
-                  100
+                    100
                   : 0
               }
               className="h-2"

@@ -121,13 +121,13 @@ const Pricing2 = ({
                 </CardContent>
                 <CardFooter className="mt-auto">
                   <Button
-                    asChild={!plan.button.onClick}
+                    asChild={!plan.button.onClick && !plan.button.current}
                     disabled={plan.button.current}
                     variant={plan.button.current ? 'outline' : 'default'}
                     onClick={plan.button.onClick}
                     className="w-full disabled:opacity-100"
                   >
-                    {plan.button.onClick ? (
+                    {plan.button.onClick || plan.button.current ? (
                       plan.button.text
                     ) : (
                       <Link to={plan.button.url}>{plan.button.text}</Link>

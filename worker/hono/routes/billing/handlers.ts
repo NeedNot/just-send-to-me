@@ -1,11 +1,16 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
-import type { CreateCheckoutSessionRoute, StripeWebhookRoute } from './routes';
+import type {
+  CreateCheckoutSessionRoute,
+  StripeBillingPortalRoute,
+  StripeWebhookRoute,
+} from './routes';
 import { Stripe } from 'stripe';
 import {
   createSubscription,
   getPlanById,
   getPlanByPriceId,
+  getUserSubscription,
   updateSubscription,
   updateUserPlan,
 } from '../../../repositories/billing-repository';
@@ -30,7 +35,7 @@ export const createCheckoutSession: AppRouteHandler<
   CreateCheckoutSessionRoute
 > = async (c) => {
   const user = c.get('user')!;
-  const { planId, interval } = c.req.valid('json');
+  const { planId, duration } = c.req.valid('json');
 
   const db = drizzle(c.env.DB);
   const plan = await getPlanById(db, planId);
@@ -44,7 +49,7 @@ export const createCheckoutSession: AppRouteHandler<
     success_url: 'https://justsendto.me/success', //todo env
     line_items: [
       {
-        price: interval === 'year' ? plan.priceIdYearly : plan.priceIdMonthly,
+        price: duration === 'year' ? plan.priceIdYearly : plan.priceIdMonthly,
         quantity: 1,
       },
     ],
@@ -86,40 +91,63 @@ export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
         };
       };
 
+      const customerId = checkoutEvent.customer! as string;
       const userId = checkoutEvent.metadata.userId;
       const subscription = await stripe.subscriptions.retrieve(
         checkoutEvent.subscription as string,
       );
 
       console.log('subscription created');
-      const priceId = subscription.items.data[0].price.id
-      const plan = await getPlanByPriceId(db, priceId)
+      const priceId = subscription.items.data[0].price.id;
+      const plan = await getPlanByPriceId(db, priceId);
       if (!plan) {
-        throw Error(`No plan with priceId ${priceId} found`)
+        throw Error(`No plan with priceId ${priceId} found`);
       }
-      await createSubscription(db, { userId, planId: plan.id, subscription });
+      await createSubscription(db, {
+        customerId,
+        userId,
+        planId: plan.id,
+        subscription,
+      });
       await updateUserPlan(db, userId, plan.id);
-      const stub = c.env.USER_CREDITS_OBJECT.getByName(userId)
-      await stub.updateMaxCredits(plan.credits)
+      const stub = c.env.USER_CREDITS_OBJECT.getByName(userId);
+      await stub.updateMaxCredits(plan.credits);
     } else if (event.type === 'customer.subscription.updated') {
       const subscription = event.data.object;
-      const priceId = subscription.items.data[0].price.id
-      const plan = await getPlanByPriceId(db, priceId)
+      const priceId = subscription.items.data[0].price.id;
+      const plan = await getPlanByPriceId(db, priceId);
       if (!plan) {
-        throw Error(`No plan with priceId ${priceId} found`)
+        throw Error(`No plan with priceId ${priceId} found`);
       }
       console.log('subscription updated');
-      const sub = await updateSubscription(db, { subscription, planId: plan.id });
+      const sub = await updateSubscription(db, {
+        subscription,
+        planId: plan.id,
+      });
       const newPlanId = ['active', 'trialing'].includes(subscription.status)
-        ? sub.userId
+        ? plan.id
         : 'FREE';
       await updateUserPlan(db, sub.userId, newPlanId);
       const stub = c.env.USER_CREDITS_OBJECT.getByName(sub.userId);
-      stub.updateMaxCredits(plan?.credits || 3)
+      stub.updateMaxCredits(plan?.credits || 3);
     }
     return c.newResponse(null, 200);
   } catch (e) {
     console.log(e);
     return c.newResponse(null, 400);
   }
+};
+
+export const stripeBillingPortal: AppRouteHandler<
+  StripeBillingPortalRoute
+> = async (c) => {
+  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
+  const user = c.get('user')!;
+  const sub = await getUserSubscription(drizzle(c.env.DB), user.id);
+  if (!sub) return c.json({ error: 'No subscription found' }, 400);
+  const session = await stripe.billingPortal.sessions.create({
+    customer: sub.customerId,
+    return_url: 'https://justsendto.me/account',
+  });
+  return c.json({ url: session.url }, 200);
 };

@@ -57,5 +57,17 @@ export const stripeWebhook = createRoute({
   },
 });
 
+export const stripeBillingPortal = createRoute({
+  middleware: requireUser,
+  method: 'get',
+  path: '/billing/portal',
+  responses: {
+    200: {
+      description: 'Success',
+    },
+  },
+});
+
 export type CreateCheckoutSessionRoute = typeof createCheckoutSession;
 export type StripeWebhookRoute = typeof stripeWebhook;
+export type StripeBillingPortalRoute = typeof stripeBillingPortal;

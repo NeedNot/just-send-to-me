@@ -24,15 +24,22 @@ import { user } from '../db/auth-schema';
 export async function createSubscription(
   db: DrizzleD1Database & { $client: D1Database },
   {
+    customerId,
     userId,
     planId,
     subscription,
-  }: { userId: string; planId: string; subscription: Stripe.Subscription },
+  }: {
+    customerId: string;
+    userId: string;
+    planId: string;
+    subscription: Stripe.Subscription;
+  },
 ) {
   await db
     .insert(subscriptions)
     .values({
       id: subscription.id,
+      customerId,
       createdAt: new Date(subscription.created * 1000),
       userId,
       currentPeriodStart: new Date(
@@ -51,12 +58,14 @@ export async function createSubscription(
       target: subscriptions.id,
     })
     .get();
-
 }
 
 export async function updateSubscription(
   db: DrizzleD1Database & { $client: D1Database },
-  { subscription, planId }: { subscription: Stripe.Subscription; planId: string },
+  {
+    subscription,
+    planId,
+  }: { subscription: Stripe.Subscription; planId: string },
 ) {
   const sub = await db
     .update(subscriptions)
@@ -74,7 +83,18 @@ export async function updateSubscription(
     .returning({ userId: subscriptions.userId })
     .get();
 
-  return sub
+  return sub;
+}
+
+export async function getUserSubscription(
+  db: DrizzleD1Database & { $client: D1Database },
+  userId: string,
+) {
+  return db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .get();
 }
 
 export function updateUserPlan(
@@ -92,10 +112,15 @@ export const getPlanById = async (
   return db.select().from(plans).where(eq(plans.id, planId)).get();
 };
 
-
 export const getPlanByPriceId = async (
-  db: DrizzleD1Database & {$client: D1Database},
-  priceId: string
+  db: DrizzleD1Database & { $client: D1Database },
+  priceId: string,
 ) => {
-  return db.select().from(plans).where(or(eq(plans.priceIdMonthly, priceId), eq(plans.priceIdYearly, priceId))).get()
-}
+  return db
+    .select()
+    .from(plans)
+    .where(
+      or(eq(plans.priceIdMonthly, priceId), eq(plans.priceIdYearly, priceId)),
+    )
+    .get();
+};

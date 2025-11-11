@@ -3,22 +3,37 @@ import { useMyAccount } from '@/features/account/api/my-account';
 import { useCheckout } from '@/features/billing/api/checkout';
 import { useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 export function PricingBlock() {
   const [isYearly, setIsYearly] = useState(true);
   const { data: account } = useMyAccount();
-  const { mutateAsync: checkout } = useCheckout();
+  const { mutateAsync: checkout } = useCheckout((e) => {
+    toast.error('Unable to go to checkout', { description: e.message });
+  });
   const navigate = useNavigate();
   const subscribe = async (planId: string) => {
     if (!account) {
       navigate({ to: '/sign-up', search: { redirect: undefined } }); //todo navigate to /subscribe
       return;
     }
-    await checkout({ planId, interval: isYearly ? 'year' : 'month' }).then(
+    await checkout({ planId, duration: isYearly ? 'year' : 'month' }).then(
       ({ url }) => {
         window.location.href = url;
       },
     );
+  };
+  const currentPlanId = account?.plan.id;
+  const plans = ['FREE', 'PLUS', 'PRO'];
+
+  const getPlanText = (planId: string) => {
+    if (!currentPlanId) return 'Get started';
+    const index = plans.indexOf(planId);
+    const currentIndex = plans.indexOf(currentPlanId);
+    const diff = index - currentIndex;
+    if (diff == 0) return 'Current';
+    if (diff > 0) return 'Upgrade';
+    return 'Current plan is better';
   };
   return (
     <Pricing2
@@ -36,9 +51,9 @@ export function PricingBlock() {
             { text: '100 files per folder' },
           ],
           button: {
-            text: account?.plan.id === 'FREE' ? 'Current' : 'Sign up',
+            text: getPlanText('FREE'),
             url: '/sign-up',
-            current: account?.plan.id === 'FREE',
+            current: !!account,
           },
         },
         {
@@ -54,7 +69,8 @@ export function PricingBlock() {
             { text: '100 files per folder' },
           ],
           button: {
-            text: 'Get started',
+            text: getPlanText('PLUS'),
+            current: account?.plan.id === 'PLUS',
             onClick: () => subscribe('PLUS'),
           },
         },
@@ -70,7 +86,7 @@ export function PricingBlock() {
             { text: '1000 files per folder' },
           ],
           button: {
-            text: 'Get started',
+            text: getPlanText('PRO'),
             onClick: () => subscribe('PRO'),
           },
         },

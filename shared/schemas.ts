@@ -129,10 +129,14 @@ export const myAccountResponseSchema = z.object({
 
 export const createCheckoutSessionSchema = z.object({
   planId: z.string().nonempty(),
-  interval: z.enum(['month', 'year']),
+  duration: z.enum(['month', 'year']),
 });
 
 export const createCheckoutSessionResponseSchema = z.object({
+  url: z.string(),
+});
+
+export const createPortalSessionResponseSchema = z.object({
   url: z.string(),
 });
 
@@ -160,4 +164,8 @@ export type CreateCheckoutSessionRequest = z.infer<
 >;
 export type CreateCheckoutSessionResponse = z.infer<
   typeof createCheckoutSessionResponseSchema
+>;
+
+export type CreatePortalSessionResponse = z.infer<
+  typeof createPortalSessionResponseSchema
 >;

@@ -61,9 +61,11 @@ export const plans = sqliteTable('plans', {
 
 export const subscriptions = sqliteTable('subscriptions', {
   id: text().primaryKey(),
+  customerId: text('customer_id').notNull().unique(),
   userId: text('user_id')
     .references(() => user.id)
-    .notNull(),
+    .notNull()
+    .unique(),
   planId: text('plan_id')
     .references(() => plans.id)
     .notNull(),
