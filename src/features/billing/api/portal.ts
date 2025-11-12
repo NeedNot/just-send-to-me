@@ -9,9 +9,8 @@ async function fetchPortalSession(): Promise<CreatePortalSessionResponse> {
   return await response.json();
 }
 
-export function usePortal(onError?: (error: Error) => void) {
+export function usePortal() {
   return useMutation({
     mutationFn: fetchPortalSession,
-    onError,
   });
 }

@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -7,20 +8,36 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
-import { CircleCheck, ExternalLink } from 'lucide-react';
+import type { SubscriptionResponse } from '@shared/schemas';
+import { CircleCheck, ExternalLink, Loader2 } from 'lucide-react';
 import type React from 'react';
+import { usePortal } from '../api/portal';
+import { toast } from 'sonner';
 
 export interface PlanManagmentCardProps
   extends React.ComponentProps<typeof Card> {
-  currentPlanId: string;
+  subscription: SubscriptionResponse;
 }
 
 export function PlanManagmentCard({
-  currentPlanId,
+  subscription,
   ...props
 }: PlanManagmentCardProps) {
+  const { mutateAsync: getPortal, isPending: isPortalPending } = usePortal();
+
+  const handleOpenPortal = async () => {
+    try {
+      const { url } = await getPortal();
+      window.location.href = url;
+    } catch (error: any) {
+      toast.error('Unable to open billing portal', {
+        description: error?.message,
+      });
+    }
+  };
+
   const currentPlan = SUBSCRIPTION_PLANS.find(
-    (plan) => plan.id === currentPlanId,
+    (plan) => plan.id === (subscription.planId || 'FREE'),
   );
   return (
     <Card {...props}>
@@ -30,6 +47,13 @@ export function PlanManagmentCard({
             <CardTitle className="text-2xl">Current plan</CardTitle>
             <CardDescription>Manage your plan and billing</CardDescription>
           </div>
+          <Badge variant="secondary">
+            {subscription.planId === 'FREE'
+              ? 'Free forever'
+              : `${
+                  subscription.cancelsAtPeriodEnd ? 'Ends on' : 'Renews on'
+                } ${new Date(subscription.currentPeriodEnd).toLocaleDateString()}`}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -47,8 +71,16 @@ export function PlanManagmentCard({
             ))}
           </ul>
         </div>
-        <Button variant="default">
-          <ExternalLink />
+        <Button
+          onClick={handleOpenPortal}
+          disabled={isPortalPending}
+          variant="default"
+        >
+          {isPortalPending ? (
+            <Loader2 className="mr-2 animate-spin" />
+          ) : (
+            <ExternalLink />
+          )}
           Go to Stripe billing portal
         </Button>
       </CardContent>

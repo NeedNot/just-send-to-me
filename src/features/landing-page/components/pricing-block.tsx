@@ -9,20 +9,26 @@ import { toast } from 'sonner';
 export function PricingBlock() {
   const [isYearly, setIsYearly] = useState(true);
   const { data: account } = useMyAccount();
-  const { mutateAsync: checkout } = useCheckout((e) => {
-    toast.error('Unable to go to checkout', { description: e.message });
-  });
+  const { mutateAsync: checkout } = useCheckout();
   const navigate = useNavigate();
   const subscribe = async (planId: string) => {
     if (!account) {
       navigate({ to: '/sign-up', search: { redirect: undefined } }); //todo navigate to /subscribe
       return;
     }
-    await checkout({ planId, duration: isYearly ? 'year' : 'month' }).then(
-      ({ url }) => {
-        window.location.href = url;
-      },
-    );
+    if (account.plan.id !== 'FREE') {
+      navigate({ to: '/account/subscription' });
+      return;
+    }
+    try {
+      await checkout({ planId, duration: isYearly ? 'year' : 'month' }).then(
+        ({ url }) => {
+          window.location.href = url;
+        },
+      );
+    } catch (e: any) {
+      toast.error('Unable to go to checkout', { description: e.message });
+    }
   };
   const currentPlanId = account?.plan.id;
   const plans = ['FREE', 'PLUS', 'PRO'];

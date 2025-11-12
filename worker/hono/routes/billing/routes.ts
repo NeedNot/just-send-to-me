@@ -10,7 +10,7 @@ import { requireUser } from '../../middleware/require-user';
 export const createCheckoutSession = createRoute({
   method: 'post',
   middleware: requireUser,
-  path: '/billing/create-checkout-session',
+  path: '/billing/checkout',
   request: {
     body: {
       content: {
@@ -78,7 +78,7 @@ export const stripeBillingPortal = createRoute({
   },
 });
 
-export const mySubscription = createRoute({
+export const getSubscription = createRoute({
   middleware: requireUser,
   method: 'get',
   path: '/billing/subscription',
@@ -97,4 +97,4 @@ export const mySubscription = createRoute({
 export type CreateCheckoutSessionRoute = typeof createCheckoutSession;
 export type StripeWebhookRoute = typeof stripeWebhook;
 export type StripeBillingPortalRoute = typeof stripeBillingPortal;
-export type MySubscriptionRoute = typeof mySubscription;
+export type GetSubscriptionRoute = typeof getSubscription;

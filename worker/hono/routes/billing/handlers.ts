@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
 import type {
   CreateCheckoutSessionRoute,
-  MySubscriptionRoute,
+  GetSubscriptionRoute,
   StripeBillingPortalRoute,
   StripeWebhookRoute,
 } from './routes';
@@ -153,7 +153,7 @@ export const stripeBillingPortal: AppRouteHandler<
   return c.json({ url: session.url }, 200);
 };
 
-export const mySubscription: AppRouteHandler<MySubscriptionRoute> = async (
+export const getSubscription: AppRouteHandler<GetSubscriptionRoute> = async (
   c,
 ) => {
   const user = c.get('user')!;
@@ -166,10 +166,14 @@ export const mySubscription: AppRouteHandler<MySubscriptionRoute> = async (
         createdAt: new Date(Number.MIN_SAFE_INTEGER),
         status: 'active',
         currentPeriodEnd: new Date(Number.MAX_SAFE_INTEGER),
+        cancelsAtPeriodEnd: false,
       },
       200,
     );
   }
+
+  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
+  const stripeSub = await stripe.subscriptions.retrieve(sub.id);
 
   // Normalize to the expected response schema: strings for dates and non-null currentPeriodEnd
   const createdAt = new Date(sub.createdAt);
@@ -183,6 +187,7 @@ export const mySubscription: AppRouteHandler<MySubscriptionRoute> = async (
       createdAt,
       status: sub.status,
       currentPeriodEnd,
+      cancelsAtPeriodEnd: !!stripeSub.cancel_at,
     },
     200,
   );

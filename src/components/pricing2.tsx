@@ -24,7 +24,7 @@ interface PricingPlan {
   priceYearly: string;
   discount?: string;
   features: string[];
-  button: {
+  button?: {
     text: string;
     url?: string;
     current?: boolean;
@@ -126,7 +126,7 @@ export function PlanCard({
       <CardContent>
         <Separator className="mb-6" />
         <ul className="space-y-4">
-          {plan.features.map((feature, index) => (
+          {plan?.features?.map((feature, index) => (
             <li key={index} className="flex items-center gap-2 text-sm">
               <CircleCheck className="size-4" />
               <span>{feature}</span>
@@ -134,21 +134,23 @@ export function PlanCard({
           ))}
         </ul>
       </CardContent>
-      <CardFooter className="mt-auto">
-        <Button
-          asChild={!plan.button.onClick && !plan.button.current}
-          disabled={plan.button.current}
-          variant={plan.button.current ? 'outline' : 'default'}
-          onClick={plan.button.onClick}
-          className="w-full disabled:opacity-100"
-        >
-          {plan.button.onClick || plan.button.current ? (
-            plan.button.text
-          ) : (
-            <Link to={plan.button.url}>{plan.button.text}</Link>
-          )}
-        </Button>
-      </CardFooter>
+      {plan.button && (
+        <CardFooter className="mt-auto">
+          <Button
+            asChild={!plan.button.onClick && !plan.button.current}
+            disabled={plan.button.current}
+            variant={plan.button.current ? 'outline' : 'default'}
+            onClick={plan.button.onClick}
+            className="w-full disabled:opacity-100"
+          >
+            {plan.button.onClick || plan.button.current ? (
+              plan.button.text
+            ) : (
+              <Link to={plan.button.url}>{plan.button.text}</Link>
+            )}
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }

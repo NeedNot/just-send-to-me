@@ -7,7 +7,7 @@ import { useMutation } from '@tanstack/react-query';
 async function fetchCheckoutSession(
   params: CreateCheckoutSessionRequest,
 ): Promise<CreateCheckoutSessionResponse> {
-  const response = await fetch('/api/billing/create-checkout-session', {
+  const response = await fetch('/api/billing/checkout', {
     method: 'POST',
     body: JSON.stringify(params),
     headers: { 'Content-Type': 'application/json' },
@@ -18,9 +18,8 @@ async function fetchCheckoutSession(
   return await response.json();
 }
 
-export function useCheckout(onError?: (error: Error) => void) {
+export function useCheckout() {
   return useMutation({
     mutationFn: fetchCheckoutSession,
-    onError,
   });
 }

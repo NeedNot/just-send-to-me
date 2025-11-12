@@ -145,6 +145,7 @@ export const subscriptionResponseSchema = z.object({
   createdAt: z.date(),
   currentPeriodEnd: z.date(),
   status: z.enum(['active', 'inactive']),
+  cancelsAtPeriodEnd: z.boolean(),
 });
 
 export type UploadNewFileSchema = z.infer<typeof uploadNewFileSchema>;

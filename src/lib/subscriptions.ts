@@ -35,7 +35,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     ],
   },
   {
-    id: 'pro',
+    id: 'PRO',
     name: 'Pro',
     description: 'Covers most use cases',
     priceMonthly: '$5',
