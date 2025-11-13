@@ -36,7 +36,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
+import { Route as AccountRoute } from '../app/routes/account';
 
 interface MenuItem {
   title: string;
@@ -82,10 +83,8 @@ const Navbar = ({
   ],
   user,
   onSignOut,
-  onHelp = () => console.log('Help clicked'),
+  onHelp = () => console.log('Help clicked'), //todo
 }: NavbarProps) => {
-  const navigate = useNavigate();
-  const onCreateFolder = () => navigate({ to: '/new' });
   const creditPercentage = user && (user.credits / user.maxCredits) * 100;
   const userInitials = user?.name
     .split(' ')
@@ -118,10 +117,11 @@ const Navbar = ({
           </div>
           {user ? (
             <div className="flex items-center gap-3">
-              <Button onClick={onCreateFolder} size="sm" variant="outline">
-                <FolderPlus className="mr-2 size-4" />
-                Create Folder
-                {/* todo use asChild and link */}
+              <Button asChild size="sm" variant="outline">
+                <Link to="/new">
+                  <FolderPlus className="mr-2 size-4" />
+                  Create Folder
+                </Link>
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -161,11 +161,11 @@ const Navbar = ({
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => navigate({ to: '/account' })}
-                  >
-                    <User className="mr-2 size-4" />
-                    Account
+                  <DropdownMenuItem asChild>
+                    <Link to={AccountRoute.to}>
+                      <User className="mr-2 size-4" />
+                      Account
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onHelp}>
                     <HelpCircle className="mr-2 size-4" />
@@ -209,8 +209,10 @@ const Navbar = ({
             <div className="mr-2 ml-auto flex items-center gap-2">
               {user ? (
                 <>
-                  <Button onClick={onCreateFolder} size="sm" variant="outline">
-                    <FolderPlus className="size-4" />
+                  <Button asChild size="sm" variant="outline">
+                    <Link to="/new">
+                      <FolderPlus className="size-4" />
+                    </Link>
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -255,11 +257,11 @@ const Navbar = ({
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => navigate({ to: '/account' })}
-                      >
-                        <User className="mr-2 size-4" />
-                        Account
+                      <DropdownMenuItem asChild>
+                        <Link to="/account">
+                          <User className="mr-2 size-4" />
+                          Account
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={onHelp}>
                         <HelpCircle className="mr-2 size-4" />
@@ -312,9 +314,11 @@ const Navbar = ({
                     {menu.map((item) => renderMobileMenuItem(item))}
                   </Accordion>
                   {user ? (
-                    <Button onClick={onCreateFolder} variant="outline">
-                      <FolderPlus className="mr-2 size-4" />
-                      Create Folder
+                    <Button asChild variant="outline">
+                      <Link to="/new">
+                        <FolderPlus className="mr-2 size-4" />
+                        Create Folder
+                      </Link>
                     </Button>
                   ) : (
                     <div className="flex flex-col gap-3">

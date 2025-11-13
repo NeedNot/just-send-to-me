@@ -60,7 +60,6 @@ export function VerifyOtpDialog({
         await onResend?.();
         startCooldown();
       } catch (e) {
-        // todo if status is 429 apply cooldown
         setError('Error sending verification code. Please try again');
       }
       setOtp('');

@@ -74,18 +74,15 @@ function ErrorComponent({ error }: { error: Error }) {
       </EmptyHeader>
       <EmptyContent>
         <div className="flex gap-2">
-          <Button>
+          {/* todo make all buttons with links childas */}
+          <Button asChild>
             <Link to="/">Go home</Link>
           </Button>
-          <Button variant="outline">Create folder</Button>
+          <Button variant="outline">
+            <Link to="/new">Create new folder</Link>
+          </Button>
         </div>
       </EmptyContent>
-      <Button
-        variant="link"
-        asChild
-        className="text-muted-foreground"
-        size="sm"
-      ></Button>
     </Empty>
   );
 }

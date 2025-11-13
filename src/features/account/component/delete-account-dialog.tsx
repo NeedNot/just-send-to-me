@@ -16,8 +16,10 @@ import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useCooldown } from '@/hooks/use-cooldown';
+import { useSubscription } from '@/features/billing/api/subscription';
 
 export function DeleteAccountDialog() {
+  const { data: subscription } = useSubscription();
   const [isOpen, setIsOpen] = useState(false);
   const [password, setPassword] = useState('');
   const { timeLeft, startCooldown } = useCooldown(10 * 1000);
@@ -32,6 +34,9 @@ export function DeleteAccountDialog() {
       });
     },
   });
+
+  const hasSubscription =
+    subscription?.planId !== 'FREE' && !subscription?.cancelsAtPeriodEnd;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -102,6 +107,13 @@ export function DeleteAccountDialog() {
               Warning: This will permanently delete all your data
             </p>
           </div>
+          {hasSubscription && (
+            <div className="border-destructive/50 bg-destructive/5 rounded-lg border p-3">
+              <p className="text-destructive text-sm font-medium">
+                Error: You must cancel your subscription to delete your account
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -114,7 +126,7 @@ export function DeleteAccountDialog() {
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={isPending}
+            disabled={isPending || hasSubscription}
             className="w-full"
           />
           <p className="text-muted-foreground text-xs">

@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `deleting_at` integer;

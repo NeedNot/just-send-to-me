@@ -11,6 +11,7 @@ import {
   createSubscription,
   getPlanById,
   getPlanByPriceId,
+  getUserCustomerId,
   getUserSubscription,
   updateSubscription,
   updateUserPlan,
@@ -55,6 +56,7 @@ export const createCheckoutSession: AppRouteHandler<
       },
     ],
     customer_email: user.email,
+    customer: await getUserCustomerId(db, user.id),
     metadata: {
       userId: user.id,
     },
@@ -144,10 +146,10 @@ export const stripeBillingPortal: AppRouteHandler<
 > = async (c) => {
   const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
   const user = c.get('user')!;
-  const sub = await getUserSubscription(drizzle(c.env.DB), user.id);
-  if (!sub) return c.json({ error: 'No subscription found' }, 400);
+  const customerId = await getUserCustomerId(drizzle(c.env.DB), user.id);
+  if (!customerId) return c.json({ error: 'No subscription found' }, 400);
   const session = await stripe.billingPortal.sessions.create({
-    customer: sub.customerId,
+    customer: customerId,
     return_url: 'https://justsendto.me/account',
   });
   return c.json({ url: session.url }, 200);
@@ -159,7 +161,7 @@ export const getSubscription: AppRouteHandler<GetSubscriptionRoute> = async (
   const user = c.get('user')!;
   const sub = await getUserSubscription(drizzle(c.env.DB), user.id);
 
-  if (!sub) {
+  if (!(sub?.status === 'active')) {
     return c.json(
       {
         planId: 'FREE',
@@ -167,6 +169,7 @@ export const getSubscription: AppRouteHandler<GetSubscriptionRoute> = async (
         status: 'active',
         currentPeriodEnd: new Date(Number.MAX_SAFE_INTEGER),
         cancelsAtPeriodEnd: false,
+        existingCustomer: !!sub?.customerId,
       },
       200,
     );
@@ -188,6 +191,7 @@ export const getSubscription: AppRouteHandler<GetSubscriptionRoute> = async (
       status: sub.status,
       currentPeriodEnd,
       cancelsAtPeriodEnd: !!stripeSub.cancel_at,
+      existingCustomer: true,
     },
     200,
   );

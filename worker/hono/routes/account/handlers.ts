@@ -1,9 +1,17 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
-import type { GetMyAccountRoute, GetMyFoldersRoute } from './routes';
+import type {
+  DeleteMyAccountRoute,
+  GetMyAccountRoute,
+  GetMyFoldersRoute,
+} from './routes';
 import { getFoldersByCreator } from '../../../repositories/folder-repository';
 import type { Folder } from '../../../../shared/schemas';
-import { getPlanById } from '../../../repositories/billing-repository';
+import {
+  getPlanById,
+  getUserSubscription,
+} from '../../../repositories/billing-repository';
+import Stripe from 'stripe';
 
 export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const user = c.get('user')!;
@@ -46,4 +54,31 @@ export const getMyAccount: AppRouteHandler<GetMyAccountRoute> = async (c) => {
     },
     200,
   );
+};
+
+export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
+  c,
+) => {
+  const user: any = c.get('user')!;
+  const db = drizzle(c.env.DB);
+
+  if (user.deletes_at) {
+    return c.json(
+      { error: 'Your account is already scheduled to be deleted' },
+      400,
+    );
+  }
+
+  // verify user has no subscriptions
+  const sub = await getUserSubscription(db, user.id);
+  if (sub?.status === 'active') {
+    const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
+    const stripeSub = await stripe.subscriptions.retrieve(sub.id);
+    const canceled = stripeSub.cancel_at || stripeSub.canceled_at;
+    if (!canceled) {
+      return c.json({ error: 'You must cancel your subscription first' }, 403);
+    }
+  }
+
+  return c.newResponse(null, 200);
 };

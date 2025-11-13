@@ -18,6 +18,13 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
         input: false,
         defaultValue: 'FREE',
       },
+      deletingAt: {
+        fieldName: 'deleting_at',
+        type: 'date',
+        required: false,
+        input: false,
+        defaultValue: null,
+      },
     },
   },
 });

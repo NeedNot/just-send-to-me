@@ -9,6 +9,7 @@ import {
   Outlet,
   useNavigate,
 } from '@tanstack/react-router';
+import { Route as SignInRoute } from './sign-in';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 
 export const Route = createRootRoute({
@@ -19,7 +20,7 @@ export const Route = createRootRoute({
     const navigate = useNavigate();
     const { mutate: signOut } = useSignOut({
       onSuccess: () => {
-        navigate({ to: '/sign-in', search: { redirect: '/account' } });
+        navigate({ to: SignInRoute.to, search: { redirect: '/account' } });
       },
     });
     return (

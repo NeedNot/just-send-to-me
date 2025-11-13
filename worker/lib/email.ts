@@ -31,7 +31,7 @@ function createTransport() {
 export async function sendVerificationEmail(email: string, otp: string) {
   const transport = createTransport();
   const mailOptions = {
-    from: `"Just send to me" <noreply@${SMTP_DOMAIN}>`,
+    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
     to: email,
     subject: 'Verify your email address',
     html: VerifyEmailOTP({ otp }),
@@ -43,10 +43,22 @@ export async function sendVerificationEmail(email: string, otp: string) {
 export async function sendResetPasswordEmail(email: string, url: string) {
   const transport = createTransport();
   const mailOptions = {
-    from: `"Just send to me" <noreply@${SMTP_DOMAIN}>`,
+    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
     to: email,
     subject: 'Reset your password',
     html: ForgotPassword({ url }),
+  };
+  const info = await transport.sendMail(mailOptions);
+  if (info.rejected.length > 0) throw Error(info.response);
+}
+
+export async function sendEmail(email: string, subject: string, html: string) {
+  const transport = createTransport();
+  const mailOptions = {
+    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
+    to: email,
+    subject,
+    html,
   };
   const info = await transport.sendMail(mailOptions);
   if (info.rejected.length > 0) throw Error(info.response);

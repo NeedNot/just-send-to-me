@@ -4,6 +4,7 @@ import {
   myFoldersResponseSchema,
 } from '../../../../shared/schemas';
 import { generalRateLimiter } from '../../middleware/rate-limiters';
+import { requireUser } from '../../middleware/require-user';
 
 export const getMyFolders = createRoute({
   middleware: generalRateLimiter,
@@ -42,5 +43,23 @@ export const getMyAccount = createRoute({
   },
 });
 
+export const deleteMyAccount = createRoute({
+  middleware: requireUser,
+  method: 'delete',
+  path: '/account',
+  responses: {
+    200: {
+      description: 'Account deleted',
+    },
+    400: {
+      description: 'Bad request',
+    },
+    403: {
+      description: 'User still has subscriptions',
+    },
+  },
+});
+
 export type GetMyFoldersRoute = typeof getMyFolders;
 export type GetMyAccountRoute = typeof getMyAccount;
+export type DeleteMyAccountRoute = typeof deleteMyAccount;

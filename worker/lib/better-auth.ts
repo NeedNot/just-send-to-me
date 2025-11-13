@@ -9,6 +9,7 @@ import {
   sendVerificationEmail,
 } from './email';
 import { captcha, emailOTP } from 'better-auth/plugins';
+import { getPlanById } from '../repositories/billing-repository';
 
 export const auth = (env: Env): ReturnType<typeof betterAuth> => {
   const db = drizzle(env.DB);
@@ -39,6 +40,13 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
           required: true,
           input: false,
           defaultValue: 'FREE',
+        },
+        deletingAt: {
+          fieldName: 'deleting_at',
+          type: 'date',
+          required: false,
+          input: false,
+          defaultValue: null,
         },
       },
     },
@@ -108,8 +116,9 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
       user: {
         create: {
           after: async (ctx) => {
+            const freePlan = await getPlanById(db, 'FREE');
             const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
-            await stub.updateMaxCredits(3); //todo don't hardcode
+            await stub.updateMaxCredits(freePlan?.credits ?? 3);
           },
         },
         delete: {

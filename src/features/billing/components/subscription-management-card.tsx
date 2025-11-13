@@ -71,18 +71,20 @@ export function PlanManagmentCard({
             ))}
           </ul>
         </div>
-        <Button
-          onClick={handleOpenPortal}
-          disabled={isPortalPending}
-          variant="default"
-        >
-          {isPortalPending ? (
-            <Loader2 className="mr-2 animate-spin" />
-          ) : (
-            <ExternalLink />
-          )}
-          Go to Stripe billing portal
-        </Button>
+        {subscription.existingCustomer && (
+          <Button
+            onClick={handleOpenPortal}
+            disabled={isPortalPending}
+            variant="default"
+          >
+            {isPortalPending ? (
+              <Loader2 className="mr-2 animate-spin" />
+            ) : (
+              <ExternalLink />
+            )}
+            Go to Stripe billing portal
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

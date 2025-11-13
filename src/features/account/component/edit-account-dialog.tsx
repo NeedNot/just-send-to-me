@@ -66,12 +66,12 @@ export function EditAccountDialog({
           </div>
         </div>
         <DialogFooter>
-          <Link to="/change-password" search={{ token: undefined }}>
-            <Button variant="link" className="w-full">
+          <Button asChild variant="link" className="w-full">
+            <Link to="/change-password" search={{ token: undefined }}>
               Change Password
               <ArrowUpRight />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button
             disabled={isPending || name === newName || newName.length < 1}
             type="submit"

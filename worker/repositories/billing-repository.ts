@@ -1,7 +1,7 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { plans, subscriptions } from '../db/schema';
 import type Stripe from 'stripe';
-import { and, eq, or } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 import { user } from '../db/auth-schema';
 
 /**
@@ -97,10 +97,20 @@ export async function getUserSubscription(
   return db
     .select()
     .from(subscriptions)
-    .where(
-      and(eq(subscriptions.userId, userId), eq(subscriptions.status, 'active')),
-    )
+    .where(eq(subscriptions.userId, userId))
     .get();
+}
+
+export async function getUserCustomerId(
+  db: DrizzleD1Database & { $client: D1Database },
+  userId: string,
+) {
+  return db
+    .select({ customerId: subscriptions.customerId })
+    .from(subscriptions)
+    .where(eq(subscriptions.userId, userId))
+    .get()
+    .then((res) => res?.customerId);
 }
 
 export function updateUserPlan(

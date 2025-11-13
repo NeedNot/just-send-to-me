@@ -1,6 +1,7 @@
 import { PlanCard } from '@/components/pricing2';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { useCheckout } from '@/features/billing/api/checkout';
 import { subscriptionQuery } from '@/features/billing/api/subscription';
 import { PlanManagmentCard } from '@/features/billing/components/subscription-management-card';
 import { authClient } from '@/lib/better-auth';
@@ -26,6 +27,20 @@ export const Route = createFileRoute('/account/subscription')({
 function RouteComponent() {
   const mySubscription = Route.useLoaderData();
   const currentPlanId = mySubscription.planId || 'FREE';
+  const { mutateAsync: checkout } = useCheckout();
+
+  const goToCheckout = async (planId: string) => {
+    try {
+      await checkout({
+        planId: planId,
+        duration: isYearly ? 'year' : 'month',
+      }).then(({ url }) => {
+        window.location.href = url;
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const [isYearly, setIsYearly] = useState(false);
 
@@ -48,6 +63,13 @@ function RouteComponent() {
               key={plan.id}
               plan={{
                 ...plan,
+                button:
+                  currentPlanId === 'FREE'
+                    ? {
+                        text: 'Subscribe',
+                        onClick: () => goToCheckout(plan.id),
+                      }
+                    : undefined,
               }}
               isYearly={isYearly}
             />
