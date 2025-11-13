@@ -66,7 +66,7 @@ export function EditAccountDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button asChild variant="link" className="w-full">
+          <Button asChild variant="link" className="mr-auto">
             <Link to="/change-password" search={{ token: undefined }}>
               Change Password
               <ArrowUpRight />
