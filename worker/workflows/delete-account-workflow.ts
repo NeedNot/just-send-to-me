@@ -7,32 +7,21 @@ import { sendEmail } from '../lib/email';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { user } from '../db/auth-schema';
 import { and, eq, lt } from 'drizzle-orm';
-import { MS_IN_DAY } from '../../shared/constants';
 import { DeleteAccountConfirmation } from '../email-templates/delete-account-confirmation';
 
 export class DeleteAccountWorkflow extends WorkflowEntrypoint<
   Env,
-  { id: string }
+  { userId: string }
 > {
   async run(
-    event: Readonly<WorkflowEvent<{ id: string }>>,
+    event: Readonly<WorkflowEvent<{ userId: string }>>,
     step: WorkflowStep,
   ) {
-    console.log('Deleting account', event.payload.id);
-    await step.do('Mark set deletion date', async () => {
-      const db = drizzle(this.env.DB);
-      await db
-        .update(user)
-        .set({
-          deleting_at: new Date(Date.now() + MS_IN_DAY * 30),
-          updatedAt: new Date(),
-        })
-        .where(eq(user.id, event.payload.id));
-    });
+    console.log('Deleting account', event.payload.userId);
     await step.do('Send warning email', async () => {
-      const email = await this.getUserEmail(event.payload.id);
+      const email = await this.getUserEmail(event.payload.userId);
       if (!email) {
-        console.log('No email found for user', event.payload.id);
+        console.log('No email found for user', event.payload.userId);
         return;
       }
       sendEmail(
@@ -45,9 +34,9 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
     await step.sleep('Wait 27 days', '27 days');
 
     await step.do('Send 3 day warning email', async () => {
-      const email = await this.getUserEmail(event.payload.id);
+      const email = await this.getUserEmail(event.payload.userId);
       if (!email) {
-        console.log('No email found for user', event.payload.id);
+        console.log('No email found for user', event.payload.userId);
         return;
       }
       sendEmail(
@@ -65,12 +54,17 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
       const deletedUser = await db
         .delete(user)
         .where(
-          and(eq(user.id, event.payload.id), lt(user.deleting_at, new Date())),
+          and(
+            eq(user.id, event.payload.userId),
+            lt(user.deleting_at, new Date()),
+          ),
         )
         .returning()
         .get();
       if (deletedUser) {
-        const stub = this.env.USER_CREDITS_OBJECT.getByName(event.payload.id);
+        const stub = this.env.USER_CREDITS_OBJECT.getByName(
+          event.payload.userId,
+        );
         await stub.deleteStorage();
       }
     });

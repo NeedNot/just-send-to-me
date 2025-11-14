@@ -110,6 +110,14 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
     }
   }
 
+  await db
+    .update(userTable)
+    .set({
+      deleting_at: new Date(Date.now() + MS_IN_DAY * 30),
+      updatedAt: new Date(),
+    })
+    .where(eq(userTable.id, user.id));
+
   await c.env.DELETE_ACCOUNT_WORKFLOW.create({
     id: user.id,
     params: { userId: user.id },
@@ -136,7 +144,7 @@ export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
   const db = drizzle(c.env.DB);
   await db
     .update(userTable)
-    .set({ deleting_at: null })
+    .set({ deleting_at: null, updatedAt: new Date() })
     .where(eq(userTable.id, user.id));
   await workflow;
 
