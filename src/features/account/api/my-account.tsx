@@ -5,7 +5,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 async function getMyAccount(): Promise<MyAccountResponse> {
   const response = await fetch('/api/account');
   if (!response.ok) {
-    throw response
+    throw response;
   }
   return await response.json();
 }
@@ -13,6 +13,13 @@ async function getMyAccount(): Promise<MyAccountResponse> {
 export const myAccountQuery = queryOptions({
   queryFn: getMyAccount,
   queryKey: ['account'],
+  retry: (_, error) => {
+    if (error instanceof Response) {
+      return error.status !== 401;
+    }
+
+    return true;
+  },
   staleTime: 5 * MS_IN_MINUTE,
   refetchOnWindowFocus: false,
   refetchOnMount: false,

@@ -125,6 +125,7 @@ export const myAccountResponseSchema = z.object({
   email: z.string().nonempty(),
   remainingCredits: z.number(),
   plan: planSchema,
+  deletingAt: z.date(),
 });
 
 export const createCheckoutSessionSchema = z.object({

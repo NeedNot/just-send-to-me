@@ -4,6 +4,7 @@ import { FolderUploadsObject } from './durable-objects/folder-uploads-object';
 import { files, folders } from './db/schema';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { and, eq, inArray, lt } from 'drizzle-orm';
+import { DeleteAccountWorkflow } from './workflows/delete-account-workflow';
 
 export default {
   scheduled: async (_, env, __) => {
@@ -49,4 +50,4 @@ export default {
   fetch: app.fetch,
 } satisfies ExportedHandler<Env>;
 
-export { UserCreditsObject, FolderUploadsObject };
+export { UserCreditsObject, FolderUploadsObject, DeleteAccountWorkflow };

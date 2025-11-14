@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
 import type {
+  RestoreAccountRoute,
   DeleteMyAccountRoute,
   GetMyAccountRoute,
   GetMyFoldersRoute,
@@ -12,6 +13,9 @@ import {
   getUserSubscription,
 } from '../../../repositories/billing-repository';
 import Stripe from 'stripe';
+import { account, user as userTable } from '../../../db/auth-schema';
+import { and, eq } from 'drizzle-orm';
+import { MS_IN_DAY } from '../../../../shared/constants';
 
 export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const user = c.get('user')!;
@@ -33,7 +37,8 @@ export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
 };
 
 export const getMyAccount: AppRouteHandler<GetMyAccountRoute> = async (c) => {
-  const user: any = c.get('user')!;
+  const user: any = c.get('user');
+  if (!user) return c.body(null, 401);
 
   const db = drizzle(c.env.DB);
   const plan = await getPlanById(db, user.planId);
@@ -46,6 +51,7 @@ export const getMyAccount: AppRouteHandler<GetMyAccountRoute> = async (c) => {
       name: user.name,
       email: user.email,
       remainingCredits,
+      deletingAt: user.deletingAt,
       plan: {
         id: plan?.id ?? '',
         name: plan?.name ?? 'Free',
@@ -62,11 +68,35 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
   const user: any = c.get('user')!;
   const db = drizzle(c.env.DB);
 
-  if (user.deletes_at) {
+  if (user.deletingAt) {
     return c.json(
       { error: 'Your account is already scheduled to be deleted' },
       400,
     );
+  }
+
+  // verify password
+  const { password } = c.req.valid('json');
+  const auth = c.get('auth')!;
+  const hash = await db
+    .select({ hash: account.password })
+    .from(account)
+    .where(
+      and(eq(account.userId, user.id), eq(account.providerId, 'credential')),
+    )
+    .get()
+    .then((account) => account?.hash);
+  if (!hash)
+    return c.json({ error: 'No password is set for this account' }, 400);
+  const isPasswordValid = await (
+    await auth.$context
+  ).password.verify({
+    password,
+    hash,
+  });
+
+  if (!isPasswordValid) {
+    return c.json({ error: 'Password is incorrect' }, 401);
   }
 
   // verify user has no subscriptions
@@ -80,5 +110,35 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
     }
   }
 
-  return c.newResponse(null, 200);
+  await c.env.DELETE_ACCOUNT_WORKFLOW.create({
+    id: user.id,
+    params: { userId: user.id },
+  });
+
+  return c.json({ deletingAt: new Date(Date.now() + 30 * MS_IN_DAY) }, 200);
+};
+
+export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
+  c,
+) => {
+  const user: any = c.get('user');
+  if (!user) return c.body(null, 401);
+
+  if (!user.deletingAt)
+    return c.json(
+      { message: 'Your account is not scheduled to be deleted' },
+      200,
+    );
+
+  const workflow = c.env.DELETE_ACCOUNT_WORKFLOW.get(user.id).then((wf) =>
+    wf.terminate(),
+  );
+  const db = drizzle(c.env.DB);
+  await db
+    .update(userTable)
+    .set({ deleting_at: null })
+    .where(eq(userTable.id, user.id));
+  await workflow;
+
+  return c.json({ deletingAt: null }, 200);
 };

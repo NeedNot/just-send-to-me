@@ -29,7 +29,7 @@ export function DeleteAccountDialog() {
   const { isPending, mutate } = useDeleteAccount({
     onSuccess: () => setIsOpen(false),
     onError: (e) => {
-      toast.error('Unable to perform action', {
+      toast.error('Unable to delete account', {
         description: e.message,
       });
     },
@@ -135,7 +135,7 @@ export function DeleteAccountDialog() {
         </div>
 
         <DialogFooter>
-          <DialogClose>
+          <DialogClose asChild>
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button

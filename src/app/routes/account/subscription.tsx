@@ -2,7 +2,10 @@ import { PlanCard } from '@/components/pricing2';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useCheckout } from '@/features/billing/api/checkout';
-import { subscriptionQuery } from '@/features/billing/api/subscription';
+import {
+  subscriptionQuery,
+  useSubscription,
+} from '@/features/billing/api/subscription';
 import { PlanManagmentCard } from '@/features/billing/components/subscription-management-card';
 import { authClient } from '@/lib/better-auth';
 import { queryClient } from '@/lib/query-client';
@@ -25,8 +28,8 @@ export const Route = createFileRoute('/account/subscription')({
 });
 
 function RouteComponent() {
-  const mySubscription = Route.useLoaderData();
-  const currentPlanId = mySubscription.planId || 'FREE';
+  const { data: mySubscription } = useSubscription();
+  const currentPlanId = mySubscription?.planId || 'FREE';
   const { mutateAsync: checkout } = useCheckout();
 
   const goToCheckout = async (planId: string) => {
@@ -43,6 +46,11 @@ function RouteComponent() {
   };
 
   const [isYearly, setIsYearly] = useState(false);
+
+  if (!mySubscription) {
+    // should never happen
+    return redirect({ to: '/account' });
+  }
 
   return (
     <div className="flex flex-col items-center justify-center gap-6">

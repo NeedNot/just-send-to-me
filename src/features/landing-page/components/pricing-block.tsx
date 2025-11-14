@@ -13,7 +13,7 @@ export function PricingBlock() {
   const navigate = useNavigate();
   const subscribe = async (planId: string) => {
     if (!account) {
-      navigate({ to: '/sign-up', search: { redirect: undefined } }); //todo navigate to /subscribe
+      navigate({ to: '/sign-up', search: { redirect: '/#pricing' } });
       return;
     }
     if (account.plan.id !== 'FREE') {

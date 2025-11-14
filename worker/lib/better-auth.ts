@@ -121,12 +121,6 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
             await stub.updateMaxCredits(freePlan?.credits ?? 3);
           },
         },
-        delete: {
-          after: async (ctx) => {
-            const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
-            await stub.deleteStorage();
-          },
-        },
       },
     },
     socialProviders: {

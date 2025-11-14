@@ -4,7 +4,7 @@ import { auth } from '../lib/better-auth';
 import folderRoutes from './routes/folders';
 import fileRoutes from './routes/files';
 import accountRoutes from './routes/account';
-import billingRoutes from './routes/billing'
+import billingRoutes from './routes/billing';
 
 export const app = new OpenAPIHono<AppBindings & AppVariables>();
 
@@ -12,9 +12,12 @@ app.on(['GET', 'POST'], '/api/auth/*', (c) => {
   return auth(c.env).handler(c.req.raw);
 });
 app.use('/api/*', async (c, next) => {
-  const session = await auth(c.env).api.getSession({
+  const authClient = auth(c.env);
+  const session = await authClient.api.getSession({
     headers: c.req.raw.headers,
   });
+
+  c.set('auth', authClient);
 
   if (!session) {
     c.set('user', null);
@@ -29,4 +32,4 @@ app.use('/api/*', async (c, next) => {
 app.route('/api', folderRoutes);
 app.route('/api', fileRoutes);
 app.route('/api', accountRoutes);
-app.route('/api', billingRoutes)
+app.route('/api', billingRoutes);

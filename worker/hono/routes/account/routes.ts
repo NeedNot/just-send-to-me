@@ -1,10 +1,9 @@
-import { createRoute } from '@hono/zod-openapi';
+import { createRoute, z } from '@hono/zod-openapi';
 import {
   myAccountResponseSchema,
   myFoldersResponseSchema,
 } from '../../../../shared/schemas';
 import { generalRateLimiter } from '../../middleware/rate-limiters';
-import { requireUser } from '../../middleware/require-user';
 
 export const getMyFolders = createRoute({
   middleware: generalRateLimiter,
@@ -44,15 +43,36 @@ export const getMyAccount = createRoute({
 });
 
 export const deleteMyAccount = createRoute({
-  middleware: requireUser,
   method: 'delete',
   path: '/account',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            password: z.string().min(1),
+          }),
+        },
+      },
+      required: true,
+    },
+  },
   responses: {
     200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            deletingAt: z.date(),
+          }),
+        },
+      },
       description: 'Account deleted',
     },
     400: {
       description: 'Bad request',
+    },
+    401: {
+      description: 'Incorrect password',
     },
     403: {
       description: 'User still has subscriptions',
@@ -60,6 +80,23 @@ export const deleteMyAccount = createRoute({
   },
 });
 
+export const restoreAccount = createRoute({
+  method: 'post',
+  path: '/account/restore',
+  responses: {
+    200: {
+      description: 'Account restored',
+    },
+    400: {
+      description: 'Bad request',
+    },
+    401: {
+      description: 'Unauthenticated',
+    },
+  },
+});
+
 export type GetMyFoldersRoute = typeof getMyFolders;
 export type GetMyAccountRoute = typeof getMyAccount;
 export type DeleteMyAccountRoute = typeof deleteMyAccount;
+export type RestoreAccountRoute = typeof restoreAccount;

@@ -7,6 +7,7 @@ export interface AppBindings {
 
 export interface AppVariables {
   Variables: {
+    auth: typeof auth;
     user: typeof auth.$Infer.Session.user | null;
     session: typeof auth.$Infer.Session.session | null;
   };

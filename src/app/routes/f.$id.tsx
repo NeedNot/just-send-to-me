@@ -74,7 +74,6 @@ function ErrorComponent({ error }: { error: Error }) {
       </EmptyHeader>
       <EmptyContent>
         <div className="flex gap-2">
-          {/* todo make all buttons with links childas */}
           <Button asChild>
             <Link to="/">Go home</Link>
           </Button>

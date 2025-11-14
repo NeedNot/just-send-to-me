@@ -10,7 +10,6 @@
 
 import { Route as rootRouteImport } from './app/routes/__root'
 import { Route as SuccessRouteImport } from './app/routes/success'
-import { Route as SubscribeRouteImport } from './app/routes/subscribe'
 import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
 import { Route as NewRouteImport } from './app/routes/new'
@@ -24,11 +23,6 @@ import { Route as AccountSubscriptionRouteImport } from './app/routes/account/su
 const SuccessRoute = SuccessRouteImport.update({
   id: '/success',
   path: '/success',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubscribeRoute = SubscribeRouteImport.update({
-  id: '/subscribe',
-  path: '/subscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignUpRoute = SignUpRouteImport.update({
@@ -84,7 +78,6 @@ export interface FileRoutesByFullPath {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
@@ -97,7 +90,6 @@ export interface FileRoutesByTo {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
@@ -111,7 +103,6 @@ export interface FileRoutesById {
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/subscribe': typeof SubscribeRoute
   '/success': typeof SuccessRoute
   '/account/subscription': typeof AccountSubscriptionRoute
   '/f/$id': typeof FIdRoute
@@ -126,7 +117,6 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
-    | '/subscribe'
     | '/success'
     | '/account/subscription'
     | '/f/$id'
@@ -139,7 +129,6 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
-    | '/subscribe'
     | '/success'
     | '/account/subscription'
     | '/f/$id'
@@ -152,7 +141,6 @@ export interface FileRouteTypes {
     | '/new'
     | '/sign-in'
     | '/sign-up'
-    | '/subscribe'
     | '/success'
     | '/account/subscription'
     | '/f/$id'
@@ -166,7 +154,6 @@ export interface RootRouteChildren {
   NewRoute: typeof NewRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
-  SubscribeRoute: typeof SubscribeRoute
   SuccessRoute: typeof SuccessRoute
   AccountSubscriptionRoute: typeof AccountSubscriptionRoute
   FIdRoute: typeof FIdRoute
@@ -180,13 +167,6 @@ declare module '@tanstack/react-router' {
       path: '/success'
       fullPath: '/success'
       preLoaderRoute: typeof SuccessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/subscribe': {
-      id: '/subscribe'
-      path: '/subscribe'
-      fullPath: '/subscribe'
-      preLoaderRoute: typeof SubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-up': {
@@ -262,7 +242,6 @@ const rootRouteChildren: RootRouteChildren = {
   NewRoute: NewRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
-  SubscribeRoute: SubscribeRoute,
   SuccessRoute: SuccessRoute,
   AccountSubscriptionRoute: AccountSubscriptionRoute,
   FIdRoute: FIdRoute,

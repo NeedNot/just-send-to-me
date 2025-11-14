@@ -77,6 +77,13 @@
       "id": "ab775508c37b4a889f0b1638ac1bcea4",
     },
   ],
+  "workflows": [
+    {
+      "name": "delete-account-workflow",
+      "binding": "DELETE_ACCOUNT_WORKFLOW",
+      "class_name": "DeleteAccountWorkflow",
+    },
+  ],
   "durable_objects": {
     "bindings": [
       {
@@ -162,6 +169,13 @@
             "limit": 10,
             "period": 10,
           },
+        },
+      ],
+      "workflows": [
+        {
+          "name": "delete-account-workflow",
+          "binding": "DELETE_ACCOUNT_WORKFLOW",
+          "class_name": "DeleteAccountWorkflow",
         },
       ],
       "durable_objects": {
