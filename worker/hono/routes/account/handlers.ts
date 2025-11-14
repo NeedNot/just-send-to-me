@@ -110,20 +110,23 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
     }
   }
 
+  const updatedAt = new Date();
+  const deletingAt = new Date(Date.now() + 30 * MS_IN_DAY);
+
   await db
     .update(userTable)
     .set({
-      deleting_at: new Date(Date.now() + MS_IN_DAY * 30),
-      updatedAt: new Date(),
+      deleting_at: deletingAt,
+      updatedAt,
     })
     .where(eq(userTable.id, user.id));
 
   await c.env.DELETE_ACCOUNT_WORKFLOW.create({
-    id: user.id,
-    params: { userId: user.id },
+    id: `${user.id}-${updatedAt.getMilliseconds()}`,
+    params: { userId: user.id, updatedAt: updatedAt },
   });
 
-  return c.json({ deletingAt: new Date(Date.now() + 30 * MS_IN_DAY) }, 200);
+  return c.json({ deletingAt }, 200);
 };
 
 export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
@@ -138,15 +141,16 @@ export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
       200,
     );
 
-  const workflow = c.env.DELETE_ACCOUNT_WORKFLOW.get(user.id).then((wf) =>
-    wf.terminate(),
-  );
   const db = drizzle(c.env.DB);
-  await db
-    .update(userTable)
-    .set({ deleting_at: null, updatedAt: new Date() })
-    .where(eq(userTable.id, user.id));
-  await workflow;
+  Promise.allSettled([
+    db
+      .update(userTable)
+      .set({ deleting_at: null, updatedAt: new Date() })
+      .where(eq(userTable.id, user.id)),
+    c.env.DELETE_ACCOUNT_WORKFLOW.get(`${user.id}-${user.updatedAt}`).then(
+      (wf) => wf.terminate(),
+    ),
+  ]);
 
   return c.json({ deletingAt: null }, 200);
 };

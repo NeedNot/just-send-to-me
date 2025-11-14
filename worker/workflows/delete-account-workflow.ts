@@ -8,21 +8,36 @@ import { drizzle } from 'drizzle-orm/d1/driver';
 import { user } from '../db/auth-schema';
 import { and, eq, lt } from 'drizzle-orm';
 import { DeleteAccountConfirmation } from '../email-templates/delete-account-confirmation';
+import { NonRetryableError } from 'cloudflare:workflows';
+
+export interface DeleteAccountWorkflowPayload {
+  userId: string;
+  updatedAt: Date;
+}
 
 export class DeleteAccountWorkflow extends WorkflowEntrypoint<
   Env,
-  { userId: string }
+  DeleteAccountWorkflowPayload
 > {
   async run(
-    event: Readonly<WorkflowEvent<{ userId: string }>>,
+    event: Readonly<WorkflowEvent<DeleteAccountWorkflowPayload>>,
     step: WorkflowStep,
   ) {
     console.log('Deleting account', event.payload.userId);
     await step.do('Send warning email', async () => {
-      const email = await this.getUserEmail(event.payload.userId);
+      const { email, updatedAt } =
+        (await this.getUserEmail(event.payload.userId)) || {};
       if (!email) {
-        console.log('No email found for user', event.payload.userId);
-        return;
+        throw new NonRetryableError(
+          'No email found for user ' + event.payload.userId,
+        );
+      }
+      if (updatedAt !== event.payload.updatedAt) {
+        throw new NonRetryableError(
+          'User ' +
+            event.payload.userId +
+            ' has been updated since this was triggered',
+        );
       }
       sendEmail(
         email,
@@ -34,10 +49,19 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
     await step.sleep('Wait 27 days', '27 days');
 
     await step.do('Send 3 day warning email', async () => {
-      const email = await this.getUserEmail(event.payload.userId);
+      const { email, updatedAt } =
+        (await this.getUserEmail(event.payload.userId)) || {};
       if (!email) {
-        console.log('No email found for user', event.payload.userId);
-        return;
+        throw new NonRetryableError(
+          'No email found for user ' + event.payload.userId,
+        );
+      }
+      if (updatedAt !== event.payload.updatedAt) {
+        throw new NonRetryableError(
+          'User ' +
+            event.payload.userId +
+            ' has been updated since this was triggered',
+        );
       }
       sendEmail(
         email,
@@ -57,24 +81,27 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           and(
             eq(user.id, event.payload.userId),
             lt(user.deleting_at, new Date()),
+            eq(user.updatedAt, event.payload.updatedAt),
           ),
         )
         .returning()
         .get();
       if (deletedUser) {
+        console.log('Deleted user', deletedUser);
         const stub = this.env.USER_CREDITS_OBJECT.getByName(
           event.payload.userId,
         );
         await stub.deleteStorage();
+      } else {
+        console.log('No user to delete');
       }
     });
   }
   getUserEmail(id: string) {
     return drizzle(this.env.DB)
-      .select({ email: user.email })
+      .select({ email: user.email, updatedAt: user.updatedAt })
       .from(user)
       .where(eq(user.id, id))
-      .get()
-      .then((user) => user?.email);
+      .get();
   }
 }
