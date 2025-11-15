@@ -73,7 +73,7 @@ export function VerifyEmailOTP({otp}: {otp: string}) {
                   <p style="margin: 0 0 24px; font-size: 16px; line-height: 24px; color: #a1a1a1">
                     Thanks for signing up, get ready to effortlessly recieve files from other people. But first enter this code to verify your email address.
                   </p>
-                  <div class="xs-tracking-0 sm-tracking-2" style="margin-left: auto; margin-right: auto; width: 50%; border-radius: 8px; background-color: #5e5c64; padding-top: 12px; padding-bottom: 12px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 16px; color: #fafafa">
+                  <div class="xs-tracking-0 sm-tracking-2" style="margin-left: auto; margin-right: auto; width: 50%; border-radius: 8px; background-color: #5e5c64; padding-top: 12px; padding-bottom: 12px; text-align: center; font-size: 24px; font-weight: 700; letter-spacing: 8px; color: #fafafa">
                     <span>${otp}</span>
                   </div>
                   <div role="separator" style="line-height: 24px">&zwj;</div>

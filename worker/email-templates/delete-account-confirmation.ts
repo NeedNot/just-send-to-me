@@ -67,7 +67,7 @@ export function DeleteAccountConfirmation(days: number) {
                     account within ${days} days.
                   </p>
                   <div style="font-family: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif">
-                    <a href="/account" style="display: inline-block; text-decoration: none; font-size: 16px; line-height: 1; border-radius: 6px; background-color: #f6d32d; padding: 16px 24px; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #171717">
+                    <a href="https://justsendto.me/account" style="display: inline-block; text-decoration: none; font-size: 16px; line-height: 1; border-radius: 6px; background-color: #f6d32d; padding: 16px 24px; font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; color: #171717">
                       <!--[if mso]><i style="mso-font-width: 150%; mso-text-raise: 31px" hidden>&emsp;</i><![endif]-->
                       <span style="mso-text-raise: 16px">Cancel deletion</span>
                       <!--[if mso]><i hidden style="mso-font-width: 150%">&emsp;&#8203;</i><![endif]-->
