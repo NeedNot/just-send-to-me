@@ -123,7 +123,7 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
     .where(eq(userTable.id, user.id));
 
   await c.env.DELETE_ACCOUNT_WORKFLOW.create({
-    id: `${user.id}-${updatedAt.getMilliseconds()}`,
+    id: `${user.id}-${updatedAt.getTime()}`,
     params: { userId: user.id, updatedAt: updatedAt },
   });
 

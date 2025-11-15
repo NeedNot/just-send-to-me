@@ -32,13 +32,11 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           'No email found for user ' + event.payload.userId,
         );
       }
-      console.log(
-        updatedAt?.getDate(),
-        new Date(event.payload.updatedAt).getDate(),
-      );
-      if (updatedAt !== new Date(event.payload.updatedAt)) {
+      if (
+        updatedAt?.getTime() !== new Date(event.payload.updatedAt).getTime()
+      ) {
         throw new NonRetryableError(
-          `User ${event.payload.userId} has been updated since this was triggered ${updatedAt?.getMilliseconds()} -> ${new Date(event.payload.updatedAt).getMilliseconds()}`,
+          `User ${event.payload.userId} has been updated since this was triggered ${updatedAt?.getTime()} -> ${new Date(event.payload.updatedAt).getTime()}`,
         );
       }
       sendEmail(
@@ -58,7 +56,9 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           'No email found for user ' + event.payload.userId,
         );
       }
-      if (updatedAt !== new Date(event.payload.updatedAt)) {
+      if (
+        updatedAt?.getTime() !== new Date(event.payload.updatedAt).getTime()
+      ) {
         throw new NonRetryableError(
           'User ' +
             event.payload.userId +
