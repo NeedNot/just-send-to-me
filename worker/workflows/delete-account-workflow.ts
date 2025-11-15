@@ -38,9 +38,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
       );
       if (updatedAt !== new Date(event.payload.updatedAt)) {
         throw new NonRetryableError(
-          'User ' +
-            event.payload.userId +
-            ' has been updated since this was triggered',
+          `User ${event.payload.userId} has been updated since this was triggered ${updatedAt?.getMilliseconds()} -> ${new Date(event.payload.updatedAt).getMilliseconds()}`,
         );
       }
       sendEmail(
