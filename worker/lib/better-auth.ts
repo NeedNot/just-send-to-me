@@ -26,12 +26,6 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         trustedProviders: ['google'],
       },
     },
-    session: {
-      cookieCache: {
-        enabled: true,
-        maxAge: 5 * 60,
-      },
-    },
     user: {
       additionalFields: {
         planId: {
@@ -124,6 +118,11 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
             const freePlan = await getPlanById(db, 'FREE');
             const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
             await stub.updateMaxCredits(freePlan?.credits ?? 3);
+          },
+        },
+        update: {
+          before: async (ctx) => {
+            console.log(ctx);
           },
         },
       },

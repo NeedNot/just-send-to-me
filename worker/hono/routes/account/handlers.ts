@@ -142,7 +142,7 @@ export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
     );
 
   const db = drizzle(c.env.DB);
-  Promise.allSettled([
+  await Promise.allSettled([
     db
       .update(userTable)
       .set({ deleting_at: null, updatedAt: new Date() })

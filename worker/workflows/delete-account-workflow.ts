@@ -72,10 +72,10 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
 
     await step.sleep('Wait 3 days', '3 days');
 
-    await step.do('Delete account', async () => {
+    const deletedUser = await step.do('Delete account', async () => {
       // folders should already be expired, so we can just delete the user and relations will clean everything out
       const db = drizzle(this.env.DB);
-      const deletedUser = await db
+      return db
         .delete(user)
         .where(
           and(
@@ -86,15 +86,18 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
         )
         .returning()
         .get();
+    });
+
+    await step.do('Delete user credits object', async () => {
       if (deletedUser) {
-        console.log('Deleted user', deletedUser);
-        const stub = this.env.USER_CREDITS_OBJECT.getByName(
-          event.payload.userId,
-        );
-        await stub.deleteStorage();
+        console.log('Deleted user row', deletedUser);
       } else {
         console.log('No user to delete');
+        return;
       }
+      console.log('deleting user credits object');
+      const stub = this.env.USER_CREDITS_OBJECT.getByName(event.payload.userId);
+      await stub.deleteStorage();
     });
   }
   getUserEmail(id: string) {
