@@ -12,7 +12,7 @@ import { NonRetryableError } from 'cloudflare:workflows';
 
 export interface DeleteAccountWorkflowPayload {
   userId: string;
-  updatedAt: Date;
+  updatedAt: string;
 }
 
 export class DeleteAccountWorkflow extends WorkflowEntrypoint<
@@ -32,7 +32,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           'No email found for user ' + event.payload.userId,
         );
       }
-      if (updatedAt !== event.payload.updatedAt) {
+      if (updatedAt !== new Date(event.payload.updatedAt)) {
         throw new NonRetryableError(
           'User ' +
             event.payload.userId +
@@ -56,7 +56,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           'No email found for user ' + event.payload.userId,
         );
       }
-      if (updatedAt !== event.payload.updatedAt) {
+      if (updatedAt !== new Date(event.payload.updatedAt)) {
         throw new NonRetryableError(
           'User ' +
             event.payload.userId +
@@ -81,7 +81,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           and(
             eq(user.id, event.payload.userId),
             lt(user.deleting_at, new Date()),
-            eq(user.updatedAt, event.payload.updatedAt),
+            eq(user.updatedAt, new Date(event.payload.updatedAt)),
           ),
         )
         .returning()

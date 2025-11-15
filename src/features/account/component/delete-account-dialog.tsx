@@ -36,7 +36,9 @@ export function DeleteAccountDialog() {
   });
 
   const hasSubscription =
-    subscription?.planId !== 'FREE' && !subscription?.cancelsAtPeriodEnd;
+    subscription &&
+    subscription?.planId !== 'FREE' &&
+    !subscription?.cancelsAtPeriodEnd;
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
