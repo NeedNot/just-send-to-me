@@ -112,6 +112,7 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
 
   const updatedAt = new Date();
   const deletingAt = new Date(Date.now() + 30 * MS_IN_DAY);
+  console.log('updatedAt', updatedAt);
 
   await db
     .update(userTable)

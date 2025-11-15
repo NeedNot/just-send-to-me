@@ -32,6 +32,10 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           'No email found for user ' + event.payload.userId,
         );
       }
+      console.log(
+        updatedAt?.getDate(),
+        new Date(event.payload.updatedAt).getDate(),
+      );
       if (updatedAt !== new Date(event.payload.updatedAt)) {
         throw new NonRetryableError(
           'User ' +
