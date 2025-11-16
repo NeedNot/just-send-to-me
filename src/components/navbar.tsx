@@ -85,7 +85,7 @@ const Navbar = ({
   onSignOut,
   onHelp = () => console.log('Help clicked'), //todo
 }: NavbarProps) => {
-  const route = useRouterState();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
   const creditPercentage = user && (user.credits / user.maxCredits) * 100;
   const userInitials = user?.name
     .split(' ')
@@ -186,7 +186,7 @@ const Navbar = ({
                   to={'/sign-in'}
                   search={{
                     redirect:
-                      route.location.pathname !== '/change-password'
+                      pathname !== '/change-password'
                         ? location.pathname
                         : undefined,
                   }}
@@ -199,7 +199,7 @@ const Navbar = ({
                   to={'/sign-up'}
                   search={{
                     redirect:
-                      route.location.pathname !== '/change-password'
+                      pathname !== '/change-password'
                         ? location.pathname
                         : undefined,
                   }}
@@ -297,7 +297,7 @@ const Navbar = ({
                     to={'/sign-up'}
                     search={{
                       redirect:
-                        route.location.pathname !== '/change-password'
+                        pathname !== '/change-password'
                           ? location.pathname
                           : undefined,
                     }}
@@ -349,7 +349,7 @@ const Navbar = ({
                           to={'/sign-in'}
                           search={{
                             redirect:
-                              route.location.pathname !== '/change-password'
+                              pathname !== '/change-password'
                                 ? location.pathname
                                 : undefined,
                           }}
@@ -362,7 +362,7 @@ const Navbar = ({
                           to={'/sign-in'}
                           search={{
                             redirect:
-                              route.location.pathname !== '/change-password'
+                              pathname !== '/change-password'
                                 ? location.pathname
                                 : undefined,
                           }}
