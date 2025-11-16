@@ -36,7 +36,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import { Route as AccountRoute } from '../app/routes/account';
 
 interface MenuItem {
@@ -85,6 +85,7 @@ const Navbar = ({
   onSignOut,
   onHelp = () => console.log('Help clicked'), //todo
 }: NavbarProps) => {
+  const route = useRouterState();
   const creditPercentage = user && (user.credits / user.maxCredits) * 100;
   const userInitials = user?.name
     .split(' ')
@@ -181,12 +182,28 @@ const Navbar = ({
           ) : (
             <div className="flex gap-2">
               <Button asChild variant="outline" size="sm">
-                <Link to={'/sign-in'} search={{ redirect: location.pathname }}>
+                <Link
+                  to={'/sign-in'}
+                  search={{
+                    redirect:
+                      route.location.pathname !== '/change-password'
+                        ? location.pathname
+                        : undefined,
+                  }}
+                >
                   Sign in
                 </Link>
               </Button>
               <Button asChild size="sm">
-                <Link to={'/sign-up'} search={{ redirect: location.pathname }}>
+                <Link
+                  to={'/sign-up'}
+                  search={{
+                    redirect:
+                      route.location.pathname !== '/change-password'
+                        ? location.pathname
+                        : undefined,
+                  }}
+                >
                   Sign up
                 </Link>
               </Button>
@@ -278,7 +295,12 @@ const Navbar = ({
                 <Button asChild size="sm">
                   <Link
                     to={'/sign-up'}
-                    search={{ redirect: location.pathname }}
+                    search={{
+                      redirect:
+                        route.location.pathname !== '/change-password'
+                          ? location.pathname
+                          : undefined,
+                    }}
                   >
                     Sign up
                   </Link>
@@ -325,7 +347,12 @@ const Navbar = ({
                       <Button asChild variant="outline">
                         <Link
                           to={'/sign-in'}
-                          search={{ redirect: location.pathname }}
+                          search={{
+                            redirect:
+                              route.location.pathname !== '/change-password'
+                                ? location.pathname
+                                : undefined,
+                          }}
                         >
                           Sign in
                         </Link>
@@ -333,7 +360,12 @@ const Navbar = ({
                       <Button asChild>
                         <Link
                           to={'/sign-in'}
-                          search={{ redirect: location.pathname }}
+                          search={{
+                            redirect:
+                              route.location.pathname !== '/change-password'
+                                ? location.pathname
+                                : undefined,
+                          }}
                         >
                           Sign up
                         </Link>
