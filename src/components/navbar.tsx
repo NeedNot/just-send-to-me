@@ -79,7 +79,7 @@ const Navbar = ({
   menu = [
     { title: 'Home', url: '/' },
     { title: 'Pricing', url: '/#pricing' },
-    { title: 'About', url: '/about' },
+    { title: 'Faq', url: '/#faq' },
   ],
   user,
   onSignOut,

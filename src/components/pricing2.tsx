@@ -53,38 +53,36 @@ const Pricing2 = ({
   const setIsYearly = isControlled ? onIsYearlyChange : setUncontrolledIsYearly;
 
   return (
-    <section className="py-32">
-      <div className="container">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
-          <h2 className="text-4xl font-semibold text-pretty lg:text-5xl">
-            {heading}
-          </h2>
-          <p className="text-muted-foreground lg:text-lg">{description}</p>
-          <div className="flex items-center gap-3 text-lg">
-            Monthly
-            <Switch
-              checked={isYearly}
-              onCheckedChange={() => setIsYearly?.(!isYearly)}
-            />
-            Yearly <Badge>2 months free</Badge>
-          </div>
-          <div className="flex flex-col flex-wrap items-stretch justify-center gap-6 md:flex-row">
-            {plans.map((plan) => (
-              <PlanCard plan={plan} key={plan.id} isYearly={isYearly} />
-            ))}
-          </div>
-          <span>
-            All prices in USD. Any plan can be customized, contact us for more
-            details.
-          </span>
-          <span className="text-muted-foreground text-sm">
-            * When you spend a credit, that credit is temporarily deducted from
-            your balance for 30 days. After the 30-day period, the credit is
-            automatically returned to your account for reuse.
-          </span>
+    <div className="container">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
+        <h2 className="text-4xl font-semibold text-pretty lg:text-5xl">
+          {heading}
+        </h2>
+        <p className="text-muted-foreground lg:text-lg">{description}</p>
+        <div className="flex items-center gap-3 text-lg">
+          Monthly
+          <Switch
+            checked={isYearly}
+            onCheckedChange={() => setIsYearly?.(!isYearly)}
+          />
+          Yearly <Badge>2 months free</Badge>
         </div>
+        <div className="flex flex-col flex-wrap items-stretch justify-center gap-6 md:flex-row">
+          {plans.map((plan) => (
+            <PlanCard plan={plan} key={plan.id} isYearly={isYearly} />
+          ))}
+        </div>
+        <span className="px-8">
+          All prices in USD. Any plan can be customized, contact us for more
+          details.
+        </span>
+        <span className="text-muted-foreground px-8 text-sm">
+          * When you spend a credit, that credit is temporarily deducted from
+          your balance for 30 days. After the 30-day period, the credit is
+          automatically returned to your account for reuse.
+        </span>
       </div>
-    </section>
+    </div>
   );
 };
 
