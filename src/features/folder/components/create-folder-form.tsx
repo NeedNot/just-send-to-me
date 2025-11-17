@@ -17,13 +17,21 @@ import { Label } from '@/components/ui/label';
 import { authClient } from '@/lib/better-auth';
 import { useState } from 'react';
 
-  const PLACEHOLDERS = ['Hiking trip', 'Beach day', 'Art submissions', 'Family reunion', 'Birthday party', 'Project ideas']
-
+const PLACEHOLDERS = [
+  'Hiking trip',
+  'Beach day',
+  'Art submissions',
+  'Family reunion',
+  'Birthday party',
+  'Project ideas',
+];
 
 export function CreateFolderForm() {
-  const [placeholder, _] = useState(PLACEHOLDERS[Math.floor(Math.random()*PLACEHOLDERS.length)])
+  const [placeholder, _] = useState(
+    PLACEHOLDERS[Math.floor(Math.random() * PLACEHOLDERS.length)],
+  );
   const { data: session } = authClient.useSession();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const createFolder = useCreateFolder({
     onSuccess: (newFolder) => {
       toast.success('Folder created', {
@@ -36,7 +44,7 @@ export function CreateFolderForm() {
         // todo prompt upgrade
       }
       if (error.cause === 'UNAUTHORIZED') {
-        const s = await authClient.getSession()
+        const s = await authClient.getSession();
         if (!s) {
           navigate({ to: '/sign-up', search: { redirect: undefined } });
         }
@@ -91,25 +99,25 @@ export function CreateFolderForm() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="1d">1 Day <span className='text-muted-foreground'>1 Credit</span></SelectItem>
-                    <SelectItem value="3d">3 Days <span className='text-muted-foreground'>2 Credits</span></SelectItem>
-                    <SelectItem value="7d">7 Days <span className='text-muted-foreground'>3 Credits</span></SelectItem>
+                    <SelectItem value="1d">
+                      1 Day{' '}
+                      <span className="text-muted-foreground">1 Credit</span>
+                    </SelectItem>
+                    <SelectItem value="3d">
+                      3 Days{' '}
+                      <span className="text-muted-foreground">2 Credits</span>
+                    </SelectItem>
+                    <SelectItem value="7d">
+                      7 Days{' '}
+                      <span className="text-muted-foreground">3 Credits</span>
+                    </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
-            <Button
-              disabled={createFolder.isPending}
-              type="submit"
-            >
+            <Button disabled={createFolder.isPending} type="submit">
               Create
             </Button>
-          </div>
-          <div className="mt-4 text-center text-sm">
-            By creating a link you agree to our{' '}
-            <a href="tos" className="underline underline-offset-4">
-              Terms of Service
-            </a>
           </div>
         </form>
       </CardContent>

@@ -5,6 +5,8 @@ import { Upload } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { FileUpload } from '@/components/ui/better-file-upload';
 import { type FileRejection, ErrorCode } from 'react-dropzone';
+import { Link } from '@tanstack/react-router';
+import { useMyAccount } from '@/features/account/api/my-account';
 
 export interface FileUploaderProps {
   folder: Folder;
@@ -13,6 +15,7 @@ export interface FileUploaderProps {
 }
 
 export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
+  const { data: account } = useMyAccount();
   const validate = (files: File[]): [File[], FileRejection[]] => {
     const valid: File[] = [];
     const rejected: FileRejection[] = [];
@@ -69,6 +72,15 @@ export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
 
   return (
     <>
+      {!account && (
+        <p className="text-muted-foreground mb-4 text-xs">
+          By uploading files you consent to JustSendToMe's{' '}
+          <Link className="underline" to="/legal">
+            {' '}
+            Terms of Service and Privacy Policy{' '}
+          </Link>
+        </p>
+      )}
       <FileUpload
         multiple={true}
         validateDrop={validate}

@@ -13,6 +13,7 @@ import { Route as SuccessRouteImport } from './app/routes/success'
 import { Route as SignUpRouteImport } from './app/routes/sign-up'
 import { Route as SignInRouteImport } from './app/routes/sign-in'
 import { Route as NewRouteImport } from './app/routes/new'
+import { Route as LegalRouteImport } from './app/routes/legal'
 import { Route as ChangePasswordRouteImport } from './app/routes/change-password'
 import { Route as AboutRouteImport } from './app/routes/about'
 import { Route as IndexRouteImport } from './app/routes/index'
@@ -38,6 +39,11 @@ const SignInRoute = SignInRouteImport.update({
 const NewRoute = NewRouteImport.update({
   id: '/new',
   path: '/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChangePasswordRoute = ChangePasswordRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/change-password': typeof ChangePasswordRoute
+  '/legal': typeof LegalRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -87,6 +94,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/change-password': typeof ChangePasswordRoute
+  '/legal': typeof LegalRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -100,6 +108,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/change-password': typeof ChangePasswordRoute
+  '/legal': typeof LegalRoute
   '/new': typeof NewRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -114,6 +123,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/change-password'
+    | '/legal'
     | '/new'
     | '/sign-in'
     | '/sign-up'
@@ -126,6 +136,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/change-password'
+    | '/legal'
     | '/new'
     | '/sign-in'
     | '/sign-up'
@@ -138,6 +149,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/change-password'
+    | '/legal'
     | '/new'
     | '/sign-in'
     | '/sign-up'
@@ -151,6 +163,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   ChangePasswordRoute: typeof ChangePasswordRoute
+  LegalRoute: typeof LegalRoute
   NewRoute: typeof NewRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
@@ -188,6 +201,13 @@ declare module '@tanstack/react-router' {
       path: '/new'
       fullPath: '/new'
       preLoaderRoute: typeof NewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/change-password': {
@@ -239,6 +259,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   ChangePasswordRoute: ChangePasswordRoute,
+  LegalRoute: LegalRoute,
   NewRoute: NewRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,

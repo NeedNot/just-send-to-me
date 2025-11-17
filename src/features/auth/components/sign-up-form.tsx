@@ -142,6 +142,13 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                 Sign In
               </Link>
             </div>
+            <div className="mt-4 text-center text-sm">
+              By continuing, you agree to our{' '}
+              <Link to="/legal" className="underline underline-offset-4">
+                Terms of Service and Privacy Policy
+              </Link>{' '}
+              .
+            </div>
           </form>
         </CardContent>
       </Card>
