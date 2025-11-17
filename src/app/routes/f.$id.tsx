@@ -15,19 +15,17 @@ import {
 } from '@/components/ui/empty';
 import { Button } from '@/components/ui/button';
 import { CircleAlert, ClockAlert, Unlink } from 'lucide-react';
+import { seo } from '@/lib/seo';
 
 export const Route = createFileRoute('/f/$id')({
   loader: ({ params }) =>
     queryClient.ensureQueryData(folderQueryOptions(params.id)),
   errorComponent: ErrorComponent,
   head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: `${loaderData?.name || 'Folder'} - JustSendToMe`,
-        content: `${loaderData?.name} shared folder`,
-        name: 'Shared folder',
-      },
-    ],
+    meta: seo({
+      title: `${loaderData?.name || 'Folder'} - JustSendToMe`,
+      description: `Upload files to ${loaderData?.name}`,
+    }),
   }),
   component: RouteComponent,
 });

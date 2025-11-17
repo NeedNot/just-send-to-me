@@ -9,11 +9,18 @@ import {
 import { PlanManagmentCard } from '@/features/billing/components/subscription-management-card';
 import { authClient } from '@/lib/better-auth';
 import { queryClient } from '@/lib/query-client';
+import { seo } from '@/lib/seo';
 import { SUBSCRIPTION_PLANS } from '@/lib/subscriptions';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useState } from 'react';
 
 export const Route = createFileRoute('/account/subscription')({
+  head: () => ({
+    meta: seo({
+      title: 'Manage subscription - JustSendToMe',
+      description: 'Manage your subscription',
+    }),
+  }),
   component: RouteComponent,
   loader: () => queryClient.ensureQueryData(subscriptionQuery),
   beforeLoad: async ({ location }) => {

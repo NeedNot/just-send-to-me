@@ -1,6 +1,13 @@
+import { seo } from '@/lib/seo';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/legal')({
+  head: () => ({
+    meta: seo({
+      title: 'Legal - JustSendToMe',
+      description: 'Terms of Service and Privacy Policy',
+    }),
+  }),
   component: RouteComponent,
 });
 

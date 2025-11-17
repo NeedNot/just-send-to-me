@@ -5,16 +5,14 @@ import { useMyFolders } from '@/features/account/api/my-folders';
 import React, { useEffect, useState } from 'react';
 import { AccountCard } from '@/features/account/component/account-card';
 import { authClient } from '@/lib/better-auth';
+import { seo } from '@/lib/seo';
 
 export const Route = createFileRoute('/account/')({
   head: () => ({
-    meta: [
-      {
-        title: 'Account - JustSendToMe',
-        description: 'View and manage your account',
-        name: 'My account',
-      },
-    ],
+    meta: seo({
+      title: 'Account - JustSendToMe',
+      description: 'View and manage your account',
+    }),
   }),
   beforeLoad: async ({ location }) => {
     const session = await authClient.getSession();

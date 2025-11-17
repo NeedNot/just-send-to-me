@@ -1,15 +1,13 @@
 import { SignInForm } from '@/features/auth/components/sign-in-form';
+import { seo } from '@/lib/seo';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/sign-in')({
   head: () => ({
-    meta: [
-      {
-        title: 'Sign in - JustSendToMe',
-        content: 'Sign in form',
-        name: 'Sign in',
-      },
-    ],
+    meta: seo({
+      title: 'Sign in - JustSendToMe',
+      description: 'Sign in form',
+    }),
   }),
   component: RouteComponent,
   validateSearch: (search) => ({

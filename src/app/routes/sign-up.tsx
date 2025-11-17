@@ -1,15 +1,13 @@
 import { SignUpForm } from '@/features/auth/components/sign-up-form';
+import { seo } from '@/lib/seo';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/sign-up')({
   head: () => ({
-    meta: [
-      {
-        title: 'Sign up - JustSendToMe',
-        content: 'Sign up form',
-        name: 'Sign up',
-      },
-    ],
+    meta: seo({
+      title: 'Sign up - JustSendToMe',
+      description: 'Sign up form',
+    }),
   }),
   component: RouteComponent,
   validateSearch: (search) => ({

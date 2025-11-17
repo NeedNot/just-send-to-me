@@ -1,15 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { CreateFolderForm } from '../../features/folder/components/create-folder-form';
+import { seo } from '@/lib/seo';
 
 export const Route = createFileRoute('/new')({
   head: () => ({
-    meta: [
-      {
-        title: 'Create new folder - JustSendToMe',
-        description: 'Input a title and duration to create a new folder.',
-        name: 'Create folder',
-      },
-    ],
+    meta: seo({
+      title: 'Create new folder - JustSendToMe',
+      description: 'Input a title and duration to create a new folder.',
+    }),
   }),
   component: Index,
 });

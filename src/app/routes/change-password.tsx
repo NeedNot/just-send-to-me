@@ -1,15 +1,13 @@
 import { ChangePasswordForm } from '@/features/auth/components/change-password-form';
+import { seo } from '@/lib/seo';
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/change-password')({
   head: () => ({
-    meta: [
-      {
-        title: 'Change password - JustSendToMe',
-        description: 'Change your password',
-        name: 'Change password',
-      },
-    ],
+    meta: seo({
+      title: 'Change password - JustSendToMe',
+      description: 'Change your password',
+    }),
   }),
   component: RouteComponent,
   validateSearch: (search) => ({
