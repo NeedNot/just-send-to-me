@@ -24,8 +24,10 @@ export class UserCreditsObject extends AlarmDO {
         )`);
       this.remainingCredits =
         (await this.ctx.storage.get('remainingCredits')) || 0;
-      this.remainingGiftedCredits =
-        (await this.ctx.storage.get('remainingGiftedCredits')) || 0;
+      this.remainingGiftedCredits = Math.max(
+        0,
+        (await this.ctx.storage.get('remainingGiftedCredits')) || 0,
+      );
     });
   }
 
