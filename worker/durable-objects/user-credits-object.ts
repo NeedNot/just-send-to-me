@@ -47,13 +47,27 @@ export class UserCreditsObject extends AlarmDO {
     console.log('Adding back credits', refund);
   }
 
-  // todo work when downgrading
   async updateMaxCredits(credits: number) {
     const rows = this.sql
       .exec<{ credits: number }>('SELECT credits FROM outstanding_transactions')
       .toArray();
     const spent = rows.reduce((prev, r) => prev + r.credits, 0);
-    this.remainingCredits = credits - spent;
+    if (spent > credits) {
+      // invalidate all transactions
+      const deleted = this.sql
+        .exec<OutstandingTransaction>(
+          'DELETE FROM outstanding_transactions ORDER BY created_at ASC returning *',
+        )
+        .toArray();
+      // add a new one to refund the now maxCredits that will be replenished when the first transaction expires
+      this.sql.exec(
+        'INSERT INTO outstanding_transactions (gifted_credits, credits, created_at) VALUES (?, ?, ?)',
+        0,
+        credits,
+        deleted[0].created_at,
+      );
+    }
+    this.remainingCredits = Math.max(0, credits - spent);
     await this.ctx.storage.put('remainingCredits', this.remainingCredits);
   }
 

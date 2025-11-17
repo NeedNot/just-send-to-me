@@ -56,7 +56,7 @@ export const auth = (env: Env): ReturnType<typeof betterAuth> => {
         if (!success) {
           throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
         }
-        const url = `https://justsendto.me/change-password?token=${token}`;
+        const url = `${env.URL}/change-password?token=${token}`;
         try {
           await sendResetPasswordEmail(user.email, url);
         } catch (e) {

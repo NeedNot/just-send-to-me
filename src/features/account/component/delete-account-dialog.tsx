@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { AlertTriangle, Clock, HelpCircle, Mail } from 'lucide-react';
+import { AlertTriangle, Clock, HelpCircle } from 'lucide-react';
 import { useDeleteAccount } from '../api/delete-account';
 import { DialogClose } from '@radix-ui/react-dialog';
 import { useEffect, useState } from 'react';
@@ -65,27 +65,14 @@ export function DeleteAccountDialog() {
           <div className="space-y-3">
             <div className="flex gap-3">
               <div className="bg-muted mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full">
-                <Mail className="text-muted-foreground size-4" />
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium">Verification Email</p>
-                <p className="text-muted-foreground text-sm">
-                  We'll send a verification email to confirm this request is
-                  legitimate.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <div className="bg-muted mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full">
                 <Clock className="text-muted-foreground size-4" />
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium">30-Day Grace Period</p>
                 <p className="text-muted-foreground text-sm">
-                  After confirmation, your account will be scheduled for
-                  deletion in 30 days. During this time, your account will be
-                  deactivated.
+                  Your account will be scheduled for deletion in 30 days. During
+                  this time, your account will be deactivated. You will not be
+                  able to use the service until it is reactivated.
                 </p>
               </div>
             </div>
@@ -97,8 +84,8 @@ export function DeleteAccountDialog() {
               <div className="space-y-1">
                 <p className="text-sm font-medium">Changed Your Mind?</p>
                 <p className="text-muted-foreground text-sm">
-                  You can cancel the deletion by contacting our support team
-                  within the 30-day period.
+                  You can cancel the deletion by logging in and reactivating
+                  your account within 30 days.
                 </p>
               </div>
             </div>

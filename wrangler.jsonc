@@ -13,6 +13,7 @@
   },
   "vars": {
     "IS_DEV": true,
+    "URL": "http://localhost:5173",
     "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
     "R2_FILES_BUCKET": "dev-files-bucket",
     "SMTP_SERVER_NAME": "smtp.zeptomail.com",
@@ -121,6 +122,7 @@
       },
       "vars": {
         "IS_DEV": false,
+        "URL": "https://justsendto.me",
         "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
         "R2_FILES_BUCKET": "files-bucket",
         "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",

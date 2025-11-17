@@ -48,7 +48,7 @@ export const createCheckoutSession: AppRouteHandler<
   const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    success_url: 'https://justsendto.me/success', //todo env
+    success_url: `${c.env.URL}/success`,
     line_items: [
       {
         price: duration === 'year' ? plan.priceIdYearly : plan.priceIdMonthly,
