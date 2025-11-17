@@ -65,7 +65,6 @@ interface NavbarProps {
   isLoading?: boolean;
   onCreateFolder?: () => void;
   onSignOut?: () => void;
-  onHelp?: () => void;
 }
 
 const Navbar = ({
@@ -83,7 +82,6 @@ const Navbar = ({
   ],
   user,
   onSignOut,
-  onHelp = () => console.log('Help clicked'), //todo
 }: NavbarProps) => {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const creditPercentage = user && (user.credits / user.maxCredits) * 100;
@@ -168,9 +166,11 @@ const Navbar = ({
                       Account
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={onHelp}>
-                    <HelpCircle className="mr-2 size-4" />
-                    Help
+                  <DropdownMenuItem asChild>
+                    <a href="mailto:support@justsendto.me">
+                      <HelpCircle className="mr-2 size-4" />
+                      Support
+                    </a>
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={onSignOut}>
                     <LogOut className="mr-2 size-4" />
@@ -280,9 +280,11 @@ const Navbar = ({
                           Account
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={onHelp}>
-                        <HelpCircle className="mr-2 size-4" />
-                        Help
+                      <DropdownMenuItem asChild>
+                        <a href="mailto:support@justsendto.me">
+                          <HelpCircle className="mr-2 size-4" />
+                          Support
+                        </a>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={onSignOut}>
                         <LogOut className="mr-2 size-4" />
