@@ -1,26 +1,24 @@
 import {
-  defineWorkersConfig,
+  cloudflareTest,
   readD1Migrations,
-} from '@cloudflare/vitest-pool-workers/config';
+} from '@cloudflare/vitest-pool-workers';
+import { defineConfig } from 'vitest/config';
 import path from 'path';
 
-export default defineWorkersConfig(async () => {
-  const migrations = await readD1Migrations(path.join(__dirname, 'drizzle'));
+export default defineConfig({
+  plugins: [
+    cloudflareTest(async () => {
+      const migrations = await readD1Migrations(
+        path.join(__dirname, 'drizzle'),
+      );
 
-  return {
-    test: {
-      setupFiles: ['./tests/apply-migrations.ts'],
-      globals: true,
-      poolOptions: {
-        workers: {
-          singleWorker: true,
-          experimental_remoteBindings: true,
-          wrangler: { configPath: './wrangler.jsonc' },
-          miniflare: {
-            bindings: { TEST_MIGRATIONS: migrations },
-          },
+      return {
+        remoteBindings: true,
+        wrangler: { configPath: './wrangler.jsonc' },
+        miniflare: {
+          bindings: { TEST_MIGRATIONS: migrations },
         },
-      },
-    },
-  };
+      };
+    }),
+  ],
 });
