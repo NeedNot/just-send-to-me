@@ -1,5 +1,7 @@
 import type { RouteConfig, RouteHandler } from '@hono/zod-openapi';
-import type { auth } from '../better-auth.config';
+import type { auth } from './better-auth';
+
+type Auth = ReturnType<typeof auth>;
 
 export interface AppBindings {
   Bindings: Env;
@@ -7,9 +9,9 @@ export interface AppBindings {
 
 export interface AppVariables {
   Variables: {
-    auth: typeof auth;
-    user: typeof auth.$Infer.Session.user | null;
-    session: typeof auth.$Infer.Session.session | null;
+    auth: Auth;
+    user: Auth['$Infer']['Session']['user'] | null;
+    session: Auth['$Infer']['Session']['session'] | null;
   };
 }
 

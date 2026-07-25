@@ -14,9 +14,9 @@ export function useEditAccount(mutationConfig?: UseMutationOptions<void, {code?:
   return useMutation({
     mutationFn: editAccount,
     ...mutationConfig,
-    onSuccess(data, variables, onMutateResult, context) {
+    onSuccess(data, variables, context) {
       queryClient.setQueryData(['account'], (prev: MyAccountResponse) => ({ ...prev, name: variables }));
-      mutationConfig?.onSuccess?.(data, variables, onMutateResult, context)
+      mutationConfig?.onSuccess?.(data, variables, context)
     }
   })
 }

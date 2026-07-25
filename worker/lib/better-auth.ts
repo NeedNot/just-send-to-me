@@ -11,7 +11,7 @@ import {
 import { captcha, emailOTP } from 'better-auth/plugins';
 import { getPlanById } from '../repositories/billing-repository';
 
-export const auth = (env: Env): ReturnType<typeof betterAuth> => {
+export const auth = (env: Env) => {
   const db = drizzle(env.DB);
 
   return betterAuth({

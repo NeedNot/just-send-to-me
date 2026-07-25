@@ -124,7 +124,7 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
 
   await c.env.DELETE_ACCOUNT_WORKFLOW.create({
     id: `${user.id}-${updatedAt.getTime()}`,
-    params: { userId: user.id, updatedAt: updatedAt },
+    params: { userId: user.id, updatedAt: updatedAt.toISOString() },
   });
 
   return c.json({ deletingAt }, 200);
