@@ -20,7 +20,7 @@
     "SMTP_DOMAIN": "justsendto.me",
     "SMTP_USERNAME": "emailapikey",
     "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
-    "R2_ACCESS_KEY_ID": "9d67e3c3e9db13fe86d67fe250d6f9c5",
+    "R2_ACCESS_KEY_ID": "a0c21c14d7c56c46b198f1269f572267",
   },
   "assets": {
     "directory": "./dist",
@@ -125,7 +125,7 @@
         "URL": "https://justsendto.me",
         "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
         "R2_FILES_BUCKET": "files-bucket",
-        "R2_ACCESS_KEY_ID": "e9282e37543da346d874cb675583d387",
+        "R2_ACCESS_KEY_ID": "a0c21c14d7c56c46b198f1269f572267",
         "SMTP_SERVER_NAME": "smtp.zeptomail.com",
         "SMTP_DOMAIN": "justsendto.me",
         "SMTP_USERNAME": "emailapikey",
@@ -145,6 +145,12 @@
           "bucket_name": "files-bucket",
           "binding": "FILES_BUCKET",
           "remote": true,
+        },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "STRIPE_CHECKOUT",
+          "id": "ab775508c37b4a889f0b1638ac1bcea4",
         },
       ],
       "ratelimits": [
