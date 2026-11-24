@@ -9,7 +9,7 @@ export const giftCredits = createRoute({
         'application/json': {
           schema: z.object({
             userId: z.string().min(1),
-            credits: z.number(),
+            credits: z.number().int().positive().max(1000),
           }),
         },
       },
