@@ -2,6 +2,7 @@ import { PlanCard } from '@/components/pricing2';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useCheckout } from '@/features/billing/api/checkout';
+import { toast } from 'sonner';
 import {
   subscriptionQuery,
   useSubscription,
@@ -49,6 +50,11 @@ function RouteComponent() {
       });
     } catch (error) {
       console.error(error);
+      toast.error(
+        error instanceof Response && error.status === 409
+          ? 'You already have a subscription. Manage it from your plan.'
+          : 'Could not start checkout. Please try again.',
+      );
     }
   };
 
