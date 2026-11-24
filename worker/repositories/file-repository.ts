@@ -17,7 +17,7 @@ export const insertFile = (
   db: DrizzleD1Database & { $client: D1Database },
   r2Object: R2Object,
 ) => {
-  const id = r2Object.key.split('/')[r2Object.size - 1];
+  const id = r2Object.key.split('/').at(-1);
   const { folderId, name } = r2Object.customMetadata ?? {};
 
   if (!folderId || !name) {

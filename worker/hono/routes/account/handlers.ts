@@ -16,6 +16,7 @@ import Stripe from 'stripe';
 import { account, user as userTable } from '../../../db/auth-schema';
 import { and, eq } from 'drizzle-orm';
 import { MS_IN_DAY } from '../../../../shared/constants';
+import { deleteAccountWorkflowId } from '../../../repositories/account-repository';
 
 export const getMyFolders: AppRouteHandler<GetMyFoldersRoute> = async (c) => {
   const user = c.get('user')!;
@@ -112,7 +113,6 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
 
   const updatedAt = new Date();
   const deletingAt = new Date(Date.now() + 30 * MS_IN_DAY);
-  console.log('updatedAt', updatedAt);
 
   await db
     .update(userTable)
@@ -123,7 +123,7 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
     .where(eq(userTable.id, user.id));
 
   await c.env.DELETE_ACCOUNT_WORKFLOW.create({
-    id: `${user.id}-${updatedAt.getTime()}`,
+    id: deleteAccountWorkflowId(user.id, updatedAt),
     params: { userId: user.id, updatedAt: updatedAt.toISOString() },
   });
 
@@ -148,7 +148,9 @@ export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
       .update(userTable)
       .set({ deleting_at: null, updatedAt: new Date() })
       .where(eq(userTable.id, user.id)),
-    c.env.DELETE_ACCOUNT_WORKFLOW.get(`${user.id}-${user.updatedAt}`).then(
+    c.env.DELETE_ACCOUNT_WORKFLOW.get(
+      deleteAccountWorkflowId(user.id, user.updatedAt),
+    ).then(
       (wf) => wf.terminate(),
     ),
   ]);

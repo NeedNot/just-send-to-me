@@ -39,7 +39,7 @@ export class UserCreditsObject extends AlarmDO {
   async handleAlarm() {
     const rows = this.sql
       .exec<OutstandingTransaction>(
-        'DROP FROM outstanding_transactions WHERE created_at <= ? RETURNING *',
+        'DELETE FROM outstanding_transactions WHERE created_at <= ? RETURNING *',
         Date.now() - MS_IN_DAY * 30,
       )
       .toArray();
@@ -89,13 +89,36 @@ export class UserCreditsObject extends AlarmDO {
       ),
     ]);
 
-    this.sql.exec(
-      'INSERT INTO outstanding_transactions (gifted_credits, credits) VALUES (?, ?)',
-      giftedSpent,
-      regularSpent,
-    );
+    const { id } = this.sql
+      .exec<{ id: number }>(
+        'INSERT INTO outstanding_transactions (gifted_credits, credits) VALUES (?, ?) RETURNING id',
+        giftedSpent,
+        regularSpent,
+      )
+      .one();
     // wait 30d
-    this.alarms.schedule(30 * 24 * 60 * 60, 'handleAlarm');
+    await this.alarms.schedule(30 * 24 * 60 * 60, 'handleAlarm');
+    return id;
+  }
+
+  /** Gives back a spend that didn't go through (e.g. folder creation failed). */
+  async refundTransaction(id: number) {
+    const row = this.sql
+      .exec<OutstandingTransaction>(
+        'DELETE FROM outstanding_transactions WHERE id = ? RETURNING *',
+        id,
+      )
+      .toArray()[0];
+    if (!row) return;
+    this.remainingCredits += row.credits;
+    this.remainingGiftedCredits += row.gifted_credits;
+    await Promise.all([
+      this.ctx.storage.put('remainingCredits', this.remainingCredits),
+      this.ctx.storage.put(
+        'remainingGiftedCredits',
+        this.remainingGiftedCredits,
+      ),
+    ]);
   }
 
   async hasEnoughCredits(credits: number) {

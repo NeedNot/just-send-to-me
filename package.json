@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:types": "tsc -p tests/tsconfig.json",
     "types": "wrangler types ./worker/lib/worker-configuration.d.ts",
     "db:generate": "drizzle-kit generate",
     "db:list:dev": "wrangler d1 migrations list DB --remote",
