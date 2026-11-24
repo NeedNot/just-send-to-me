@@ -22,6 +22,19 @@ type PendingFile = {
 };
 
 const CHUNK_SIZE = 1024 ** 2 * 10;
+
+/**
+ * RFC 6266 attachment header: an ASCII-only quoted fallback plus the exact
+ * UTF-8 name, so quotes or non-Latin-1 characters can't break the header.
+ */
+export function contentDisposition(name: string) {
+  const fallback = name.replace(/[^\x20-\x7e]|["\\]/g, '_');
+  const encoded = encodeURIComponent(name).replace(
+    /['()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+  );
+  return `attachment; filename="${fallback}"; filename*=UTF-8''${encoded}`;
+}
 const bucket = process.env.R2_FILES_BUCKET!;
 
 export class FolderUploadsObject extends AlarmDO {
@@ -116,7 +129,20 @@ export class FolderUploadsObject extends AlarmDO {
       if (pendingFiles.length > 0) return;
 
       console.log('No active uploads, deleting now.');
-      this.ctx.storage.deleteAll();
+      // Not deleteAll(): that also drops the SQL tables (ours and the
+      // actors Alarms table) while this instance and the running alarm
+      // loop still use them, so the next upload/alarm fails with
+      // "no such table". Clear our own state and re-read D1 next time.
+      this.sql.exec('DELETE FROM pending_files');
+      this.sql.exec('DELETE FROM abort_queue');
+      await this.ctx.storage.delete([
+        'folderId',
+        'remainingFiles',
+        'remainingSpace',
+        'cancelAlarm',
+        'cleanUpAlarm',
+      ]);
+      this.initialized = false;
       return;
     });
   }
@@ -138,9 +164,7 @@ export class FolderUploadsObject extends AlarmDO {
     if (this.remainingFiles <= 0 || this.remainingSpace < file.size) {
       if (pendingFiles.length === 0)
         throw new Error(
-          this.remainingSpace <= 0
-            ? 'File is too large for folder'
-            : 'Folder has too many files',
+          this.remainingSpace < file.size ? 'NOT_ENOUGH_SPACE' : 'TOO_MANY_FILES',
         );
 
       const cancellableUploads = this.findCancellableUploads(file.size);
@@ -175,7 +199,7 @@ export class FolderUploadsObject extends AlarmDO {
       },
 
       httpMetadata: {
-        contentDisposition: `attachment; filename="${file.name}"`,
+        contentDisposition: contentDisposition(file.name),
       },
     });
     this.remainingFiles -= 1;
@@ -271,7 +295,7 @@ export class FolderUploadsObject extends AlarmDO {
 
   async abortUpload(key: string, uploadId: string) {
     const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
-    session.abort();
+    await session.abort().catch((e) => console.log('abort failed', key, e));
     const upload = this.sql
       .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
       .next().value;
