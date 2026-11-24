@@ -40,7 +40,7 @@ async function downloadAndZipFiles(
   const filePromises = files.map(async (file) => {
     const { key, name } = file;
 
-    const fileContent = await new Promise<Blob>((resolve) => {
+    const fileContent = await new Promise<Blob>((resolve, reject) => {
       let bytesTransferred = 0;
       const request = new XMLHttpRequest();
       request.open('GET', `${import.meta.env.VITE_R2_URL}/${key}`);
@@ -53,9 +53,17 @@ async function downloadAndZipFiles(
       };
 
       request.onload = () => {
+        // a 403/404 body is an error page, not the file
+        if (request.status < 200 || request.status >= 300) {
+          reject(new Error(`Failed to download ${name} (${request.status})`));
+          return;
+        }
         resolve(request.response);
         if (onProgress) onProgress((bytesDownloaded / totalBytes) * 100);
       };
+      // without these the promise never settles and the download hangs
+      request.onerror = () => reject(new Error(`Failed to download ${name}`));
+      request.onabort = () => reject(new Error(`Download of ${name} aborted`));
 
       request.responseType = 'blob';
       request.send();
@@ -65,8 +73,19 @@ async function downloadAndZipFiles(
   });
   const resolvedFiles = await Promise.all(filePromises);
 
+  // uploaders can send files with the same name; don't let them overwrite
+  const used = new Set<string>();
   resolvedFiles.forEach(({ name, fileContent }) => {
-    zip.file(name, fileContent);
+    let entry = name;
+    for (let n = 1; used.has(entry); n++) {
+      const dot = name.lastIndexOf('.');
+      entry =
+        dot > 0
+          ? `${name.slice(0, dot)} (${n})${name.slice(dot)}`
+          : `${name} (${n})`;
+    }
+    used.add(entry);
+    zip.file(entry, fileContent);
   });
 
   return zip.generateAsync({ type: 'blob' });
