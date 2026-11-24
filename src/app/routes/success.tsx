@@ -10,12 +10,17 @@ export const Route = createFileRoute('/success')({
     }),
   }),
   component: RouteComponent,
+  validateSearch: (search) => ({
+    session_id:
+      typeof search.session_id === 'string' ? search.session_id : undefined,
+  }),
 });
 
 function RouteComponent() {
+  const { session_id } = Route.useSearch();
   return (
     <div className="mx-auto w-full max-w-sm">
-      <ThankYou />
+      <ThankYou sessionId={session_id} />
     </div>
   );
 }
