@@ -85,3 +85,54 @@ export async function syncSubscription(
 
   return { status: 'synced', userId, planId: entitledPlanId, active };
 }
+
+type StripeClient = Pick<Stripe, 'checkout' | 'subscriptions'>;
+
+/**
+ * Syncs the subscription a finished Checkout created, for the success page.
+ *
+ * Without this the plan only changes when the webhook arrives, so a user
+ * could land on "Thank you" still on FREE, and in local dev (where Stripe
+ * can't reach localhost unless `stripe listen` is running) never upgrade.
+ * Safe to race with the webhook: both re-read the subscription from Stripe
+ * and syncSubscription is idempotent.
+ */
+export async function confirmCheckoutSession(
+  db: DB,
+  env: Env,
+  stripe: StripeClient,
+  { userId, sessionId }: { userId: string; sessionId: string },
+): Promise<
+  SyncResult | { status: 'not_found' } | { status: 'pending'; reason: string }
+> {
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+  } catch (e) {
+    if (e instanceof Stripe.errors.StripeInvalidRequestError) {
+      return { status: 'not_found' };
+    }
+    throw e;
+  }
+
+  // only the user who started the checkout may claim it
+  const owner = session.metadata?.userId || session.client_reference_id;
+  if (owner !== userId || session.mode !== 'subscription') {
+    return { status: 'not_found' };
+  }
+  // Right after the redirect Stripe can still be finalising the session, so
+  // the caller should retry rather than give up.
+  if (session.status !== 'complete' || !session.subscription) {
+    return {
+      status: 'pending',
+      reason: `session ${session.status}, subscription ${session.subscription ? 'set' : 'missing'}`,
+    };
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(
+    typeof session.subscription === 'string'
+      ? session.subscription
+      : session.subscription.id,
+  );
+  return syncSubscription(db, env, subscription, { userId });
+}

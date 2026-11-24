@@ -1,5 +1,7 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import {
+  confirmCheckoutSessionResponseSchema,
+  confirmCheckoutSessionSchema,
   createCheckoutSessionResponseSchema,
   createCheckoutSessionSchema,
   createPortalSessionResponseSchema,
@@ -38,6 +40,40 @@ export const createCheckoutSession = createRoute({
     },
     409: {
       description: 'User already has an active subscription',
+    },
+  },
+});
+
+// Called by the success page so the plan is active as soon as the user lands
+// there, without waiting for (or depending on) the webhook.
+export const confirmCheckoutSession = createRoute({
+  method: 'post',
+  middleware: requireUser,
+  path: '/billing/checkout/confirm',
+  request: {
+    body: {
+      content: {
+        'application/json': {
+          schema: confirmCheckoutSessionSchema,
+        },
+      },
+      required: true,
+    },
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: confirmCheckoutSessionResponseSchema,
+        },
+      },
+      description: "The user's plan after syncing the checkout's subscription",
+    },
+    404: {
+      description: 'No subscription checkout for this user',
+    },
+    409: {
+      description: 'Checkout not finalised yet; retry shortly',
     },
   },
 });
@@ -104,6 +140,7 @@ export const getSubscription = createRoute({
 });
 
 export type CreateCheckoutSessionRoute = typeof createCheckoutSession;
+export type ConfirmCheckoutSessionRoute = typeof confirmCheckoutSession;
 export type StripeWebhookRoute = typeof stripeWebhook;
 export type StripeBillingPortalRoute = typeof stripeBillingPortal;
 export type GetSubscriptionRoute = typeof getSubscription;
