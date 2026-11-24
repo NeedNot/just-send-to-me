@@ -5,6 +5,8 @@
   "compatibility_date": "2025-10-14",
   "compatibility_flags": ["nodejs_compat"],
   "logpush": true,
+  // upload source maps so exceptions in Workers Logs show original TS lines
+  "upload_source_maps": true,
   "observability": {
     "logs": {
       "invocation_logs": true,
@@ -70,12 +72,6 @@
         "limit": 10,
         "period": 10,
       },
-    },
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "STRIPE_CHECKOUT",
-      "id": "ab775508c37b4a889f0b1638ac1bcea4",
     },
   ],
   "workflows": [
@@ -145,12 +141,6 @@
           "bucket_name": "files-bucket",
           "binding": "FILES_BUCKET",
           "remote": true,
-        },
-      ],
-      "kv_namespaces": [
-        {
-          "binding": "STRIPE_CHECKOUT",
-          "id": "ab775508c37b4a889f0b1638ac1bcea4",
         },
       ],
       "ratelimits": [
