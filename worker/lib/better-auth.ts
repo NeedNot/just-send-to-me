@@ -12,7 +12,7 @@ import { captcha, emailOTP } from 'better-auth/plugins';
 import { getPlanById } from '../repositories/billing-repository';
 
 // Auth endpoints that send an email. Limited per address (in addition to the
-// per-IP limit) so nobody can mail-bomb an address or burn the SMTP quota.
+// per-IP limit) so nobody can mail-bomb an address or burn the email sending quota.
 const EMAIL_SENDING_PATHS = new Set([
   '/email-otp/send-verification-otp',
   '/request-password-reset',

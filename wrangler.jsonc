@@ -18,9 +18,7 @@
     "URL": "http://localhost:5173",
     "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
     "R2_FILES_BUCKET": "dev-files-bucket",
-    "SMTP_SERVER_NAME": "smtp.zeptomail.com",
-    "SMTP_DOMAIN": "justsendto.me",
-    "SMTP_USERNAME": "emailapikey",
+    "EMAIL_FROM_ADDRESS": "noreply@justsendto.me",
     "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
     "R2_ACCESS_KEY_ID": "a0c21c14d7c56c46b198f1269f572267",
   },
@@ -32,6 +30,14 @@
   "triggers": {
     "crons": ["0 * * * *"],
   },
+  // Cloudflare Email Sending. Simulated in local dev (printed to the console,
+  // never delivered); only noreply@ may be used as the sender.
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": ["noreply@justsendto.me"],
+    },
+  ],
   "d1_databases": [
     {
       "binding": "DB",
@@ -135,11 +141,15 @@
         "CLOUDFLARE_ACCOUNT_ID": "78382dff1e8ba1ce7ad866cb85aa5f39",
         "R2_FILES_BUCKET": "files-bucket",
         "R2_ACCESS_KEY_ID": "a0c21c14d7c56c46b198f1269f572267",
-        "SMTP_SERVER_NAME": "smtp.zeptomail.com",
-        "SMTP_DOMAIN": "justsendto.me",
-        "SMTP_USERNAME": "emailapikey",
+        "EMAIL_FROM_ADDRESS": "noreply@justsendto.me",
         "GOOGLE_CLIENT_ID": "1087781101194-7lusmlc7f48eco6v9bmud3487lt6kj5u.apps.googleusercontent.com",
       },
+      "send_email": [
+        {
+          "name": "EMAIL",
+          "allowed_sender_addresses": ["noreply@justsendto.me"],
+        },
+      ],
       "d1_databases": [
         {
           "binding": "DB",

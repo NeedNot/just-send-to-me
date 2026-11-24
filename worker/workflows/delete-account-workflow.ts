@@ -11,7 +11,10 @@ import {
   deleteScheduledUser,
   deleteUserObjects,
 } from '../repositories/account-repository';
-import { DeleteAccountConfirmation } from '../email-templates/delete-account-confirmation';
+import {
+  DeleteAccountConfirmation,
+  deletionWarningText,
+} from '../email-templates/delete-account-confirmation';
 import { NonRetryableError } from 'cloudflare:workflows';
 
 export interface DeleteAccountWorkflowPayload {
@@ -47,6 +50,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
         email,
         'ATTENTION! Your account is about to be deleted',
         DeleteAccountConfirmation(30),
+        deletionWarningText(30),
       );
     });
 
@@ -73,6 +77,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
         email,
         'ATTENTION! Your account is about to be deleted',
         DeleteAccountConfirmation(3),
+        deletionWarningText(3),
       );
     });
 
