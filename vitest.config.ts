@@ -13,7 +13,8 @@ export default defineConfig({
       );
 
       return {
-        remoteBindings: true,
+        // tests must never touch the remote dev D1/R2 resources
+        remoteBindings: false,
         wrangler: { configPath: './wrangler.jsonc' },
         miniflare: {
           bindings: { TEST_MIGRATIONS: migrations },
@@ -21,4 +22,7 @@ export default defineConfig({
       };
     }),
   ],
+  test: {
+    setupFiles: ['./tests/apply-migrations.ts'],
+  },
 });
