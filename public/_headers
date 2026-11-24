@@ -1,0 +1,15 @@
+# Workers Static Assets headers (SPA + /assets). /api/* responses get
+# headers from the Hono secureHeaders middleware instead.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  Strict-Transport-Security: max-age=31536000
+  # Report-only first: Crisp chat and Turnstile load third-party scripts.
+  # Check the browser console for violations, then switch to
+  # Content-Security-Policy once it is clean.
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://client.crisp.chat; style-src 'self' 'unsafe-inline' https://client.crisp.chat; img-src 'self' data: blob: https://*.crisp.chat; font-src 'self' https://client.crisp.chat; connect-src 'self' https://*.r2.cloudflarestorage.com https://*.r2.dev https://*.crisp.chat wss://*.crisp.chat; frame-src https://challenges.cloudflare.com https://game.crisp.chat; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
