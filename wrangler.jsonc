@@ -122,6 +122,10 @@
   ],
   "env": {
     "production": {
+      // explicit, so `CLOUDFLARE_ENV=production` builds and
+      // `wrangler ... --env production` target this Worker rather than an
+      // implicit "just-send-to-me-production"
+      "name": "just-send-to-me",
       "triggers": {
         "crons": ["0 * * * *"],
       },
