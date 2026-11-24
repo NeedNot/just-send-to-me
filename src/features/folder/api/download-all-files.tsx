@@ -1,5 +1,4 @@
 import type { Folder, File } from '@shared/schemas';
-import JSZip from 'jszip';
 import { useState } from 'react';
 import { downloadFile } from '@/lib/utils';
 
@@ -34,6 +33,8 @@ async function downloadAndZipFiles(
   const totalBytes = files.reduce((acc, file) => acc + file.size, 0);
   let bytesDownloaded = 0;
 
+  // loaded on demand so the folder page doesn't ship jszip up front
+  const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
 
   const filePromises = files.map(async (file) => {
