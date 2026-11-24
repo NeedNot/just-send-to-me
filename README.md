@@ -135,20 +135,24 @@ local D1/R2/Durable Objects (migrations are applied in `tests/apply-migrations.t
 ## Deployment
 
 > **Pushing to `main` deploys production.** Workers Builds is connected to this repo and deploys the
-> `just-send-to-me` Worker (justsendto.me) on every push to `main`.
->
-> The top-level config in `wrangler.jsonc` (dev vars, `IS_DEV: true`, dev-db) has the **same Worker
-> name** as production, so a bare `npx wrangler deploy` (without `--env production`) would overwrite
-> production with the dev configuration. Always pass `--env production`.
+> `just-send-to-me` Worker (justsendto.me) on every push to `main`. You normally never deploy by hand.
 
-Deploys to Cloudflare Workers via Wrangler. The built frontend (`./dist`) is served as static assets with
-`/api/*` handled by the worker first; production config lives under `env.production` in `wrangler.jsonc`.
+How the environment is chosen: this project uses the Cloudflare Vite plugin, so the environment is
+picked **at build time** with `CLOUDFLARE_ENV`, and `wrangler deploy` ships whatever the last
+`vite build` produced. `wrangler deploy --env production` does **not** switch environments after a
+build; the flag is ignored.
 
-```bash
-npm run build
+| Command | Builds | Deploys to |
+| ------- | ------ | ---------- |
+| `npm run build` then `npx wrangler deploy` | dev config (dev-db, `IS_DEV`) | `just-send-to-me-dev` (a separate Worker, never production) |
+| `npm run deploy:production` | production config | `just-send-to-me` (production) |
 
-npx wrangler deploy --env production
-```
+The top-level `name` in `wrangler.jsonc` must stay `just-send-to-me` (Workers Builds checks that it
+matches the connected Worker), so `vite.config.ts` renames builds made without `CLOUDFLARE_ENV` to
+`just-send-to-me-dev`. That is what stops a dev build from replacing production.
+
+Secrets and other Wrangler commands that take an environment work as usual:
+`npx wrangler secret put NAME --env production` targets the production Worker.
 
 ---
 
