@@ -23,7 +23,12 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
 
   const userCreditsObject = c.env.USER_CREDITS_OBJECT.getByName(user.id);
 
-  if (!(await userCreditsObject.hasEnoughCredits(creditCost))) {
+  // Spend first: the DO serialises spends, so two concurrent requests can't
+  // both pass a balance check and overdraw. Refund if the insert fails.
+  let transactionId: number;
+  try {
+    transactionId = await userCreditsObject.spendCredits(creditCost);
+  } catch {
     return c.json(
       {
         code: 'INSUFFICIENT_CREDITS',
@@ -33,16 +38,18 @@ export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
     );
   }
 
-  const result = await repositoryCreateFolder(db, {
-    name,
-    creator: user,
-    expiresAt,
-    creditCost,
-  });
-
-  await userCreditsObject.spendCredits(creditCost);
-
-  return c.json(result, 200);
+  try {
+    const result = await repositoryCreateFolder(db, {
+      name,
+      creator: user,
+      expiresAt,
+      creditCost,
+    });
+    return c.json(result, 200);
+  } catch (e) {
+    await userCreditsObject.refundTransaction(transactionId);
+    throw e;
+  }
 };
 
 export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
