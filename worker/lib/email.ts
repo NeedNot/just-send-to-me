@@ -1,17 +1,9 @@
-import nodemailer from 'nodemailer';
+import { env } from 'cloudflare:workers';
 import ForgotPassword from '../email-templates/forgot-password';
 import { VerifyEmailOTP } from '../email-templates/verify-email-otp';
 
 const BLACKLIST_SOURCE =
   'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf';
-
-const {
-  SMTP_SERVER_NAME,
-  SMTP_DOMAIN,
-  SMTP_USERNAME,
-  SMTP_PASSWORD,
-  SMTP_PORT,
-} = process.env;
 
 let blocklist: { domains: Set<string>; fetchedAt: number } | undefined;
 const BLOCKLIST_TTL_MS = 60 * 60 * 1000;
@@ -39,51 +31,65 @@ export async function isEmailDomainDisposable(domain: string) {
   return blocklist.domains.has(domain.toLowerCase());
 }
 
-function createTransport() {
-  const transport = nodemailer.createTransport({
-    host: SMTP_SERVER_NAME,
-    // optional override, e.g. a local SMTP sink in .dev.vars
-    port: Number(SMTP_PORT) || 587,
-    auth: {
-      user: SMTP_USERNAME,
-      pass: SMTP_PASSWORD,
-    },
-  });
-  return transport;
+/**
+ * Sends through Cloudflare Email Sending (the EMAIL send_email binding).
+ *
+ * The sender domain must be onboarded under Email Service > Email Sending.
+ * In local dev (`wrangler dev` / `vite dev`) the binding is simulated: the
+ * message is printed to the console and saved to a local file, nothing is
+ * delivered. send() rejects on failure, e.g. an unverified sender
+ * (E_SENDER_NOT_VERIFIED) or a recipient the plan doesn't allow
+ * (E_RECIPIENT_PLAN_RESTRICTED); callers decide whether that is fatal.
+ */
+async function send({
+  to,
+  subject,
+  html,
+  text,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+}) {
+  try {
+    await env.EMAIL.send({
+      from: { email: env.EMAIL_FROM_ADDRESS, name: 'JustSendToMe' },
+      to,
+      subject,
+      html,
+      text,
+    });
+  } catch (e) {
+    const code = (e as { code?: string }).code;
+    console.log('Email send failed', code ?? '', subject, e);
+    throw e;
+  }
 }
 
 export async function sendVerificationEmail(email: string, otp: string) {
-  const transport = createTransport();
-  const mailOptions = {
-    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
+  await send({
     to: email,
     subject: 'Verify your email address',
     html: VerifyEmailOTP({ otp }),
-  };
-  const info = await transport.sendMail(mailOptions);
-  if (info.rejected.length > 0) throw Error(info.response);
+    text: `Your JustSendToMe verification code is ${otp}.\n\nIf you didn't request this, you can ignore this email.`,
+  });
 }
 
 export async function sendResetPasswordEmail(email: string, url: string) {
-  const transport = createTransport();
-  const mailOptions = {
-    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
+  await send({
     to: email,
     subject: 'Reset your password',
     html: ForgotPassword({ url }),
-  };
-  const info = await transport.sendMail(mailOptions);
-  if (info.rejected.length > 0) throw Error(info.response);
+    text: `Reset your JustSendToMe password: ${url}\n\nIf you didn't request this, you can ignore this email.`,
+  });
 }
 
-export async function sendEmail(email: string, subject: string, html: string) {
-  const transport = createTransport();
-  const mailOptions = {
-    from: `"JustSendToMe" <noreply@${SMTP_DOMAIN}>`,
-    to: email,
-    subject,
-    html,
-  };
-  const info = await transport.sendMail(mailOptions);
-  if (info.rejected.length > 0) throw Error(info.response);
+export async function sendEmail(
+  email: string,
+  subject: string,
+  html: string,
+  text: string,
+) {
+  await send({ to: email, subject, html, text });
 }

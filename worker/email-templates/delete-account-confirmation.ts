@@ -104,3 +104,17 @@ export function DeleteAccountConfirmation(days: number) {
 </body>
 </html>`;
 }
+
+// plain-text alternative, sent alongside the HTML above
+export function deletionWarningText(days: number) {
+  return [
+    `Your JustSendToMe account will be deleted in ${days} days.`,
+    '',
+    `You asked for your account to be permanently deleted. It will be deleted unless you sign in and restore it within ${days} days:`,
+    'https://justsendto.me/account',
+    '',
+    "If you want the deletion to go ahead, you don't need to do anything.",
+    '',
+    "If you didn't ask for this, cancel the deletion now and change your password. If you think this email is a scam, go to https://justsendto.me directly or contact support.",
+  ].join('\n');
+}

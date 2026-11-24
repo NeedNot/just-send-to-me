@@ -36,7 +36,7 @@ Live: [justsendto.me](https://justsendto.me)
 | Auth              | better-auth (email + Google OAuth)                                              |
 | Payments          | Stripe                                    |
 | Storage           | Cloudflare R2 (S3-compatible, via `aws4fetch`)                                  |
-| Email             | Nodemailer over SMTP                                               |
+| Email             | Cloudflare Email Sending (`send_email` binding)                                 |
 | Anti-abuse        | Cloudflare Turnstile                                                            |
 
 ---
@@ -47,7 +47,8 @@ Live: [justsendto.me](https://justsendto.me)
 
 - Node.js
 - A Cloudflare account on the **Workers Paid plan ($5/mo)** (required for R2, etc.)
-- Accounts / API keys for: Stripe, Google OAuth, an SMTP provider, and Cloudflare Turnstile
+- `justsendto.me` onboarded under **Email Service → Email Sending** in the Cloudflare dashboard
+- Accounts / API keys for: Stripe, Google OAuth, and Cloudflare Turnstile
 
 ### Installation
 
@@ -93,6 +94,8 @@ First configure the wrangler.jsonc file. The vars (including the env.vars) need 
 ```bash
 npm run dev        # D1/R2 bindings marked "remote" use the real dev-db / dev-files-bucket
 npm run dev:local  # everything in local Miniflare storage (run `npm run db:migrate:local` first)
+# Emails (OTP codes, password resets) are never delivered locally: the send_email binding prints
+# each message in the dev server output and saves its text/HTML under .wrangler/tmp/email/.
 ```
 
 To test Stripe webhooks locally, forward test-mode events to the dev server and put the printed
