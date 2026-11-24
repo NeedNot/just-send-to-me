@@ -6,7 +6,11 @@ import {
 import { sendEmail } from '../lib/email';
 import { drizzle } from 'drizzle-orm/d1/driver';
 import { user } from '../db/auth-schema';
-import { and, eq, lt } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+import {
+  deleteScheduledUser,
+  deleteUserObjects,
+} from '../repositories/account-repository';
 import { DeleteAccountConfirmation } from '../email-templates/delete-account-confirmation';
 import { NonRetryableError } from 'cloudflare:workflows';
 
@@ -39,10 +43,10 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
           `User ${event.payload.userId} has been updated since this was triggered ${updatedAt?.getTime()} -> ${new Date(event.payload.updatedAt).getTime()}`,
         );
       }
-      sendEmail(
+      await sendEmail(
         email,
         'ATTENTION! Your account is about to be deleted',
-        DeleteAccountConfirmation(3),
+        DeleteAccountConfirmation(30),
       );
     });
 
@@ -65,7 +69,7 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
             ' has been updated since this was triggered',
         );
       }
-      sendEmail(
+      await sendEmail(
         email,
         'ATTENTION! Your account is about to be deleted',
         DeleteAccountConfirmation(3),
@@ -75,19 +79,19 @@ export class DeleteAccountWorkflow extends WorkflowEntrypoint<
     await step.sleep('Wait 3 days', '3 days');
 
     const deletedUser = await step.do('Delete account', async () => {
-      // folders should already be expired, so we can just delete the user and relations will clean everything out
+      // folders/files/subscriptions don't cascade, so they're removed in the
+      // same batch as the user row (see deleteScheduledUser)
       const db = drizzle(this.env.DB);
-      return db
-        .delete(user)
-        .where(
-          and(
-            eq(user.id, event.payload.userId),
-            lt(user.deleting_at, new Date()),
-            eq(user.updatedAt, new Date(event.payload.updatedAt)),
-          ),
-        )
-        .returning()
-        .get();
+      const deleted = await deleteScheduledUser(db, {
+        userId: event.payload.userId,
+        updatedAt: new Date(event.payload.updatedAt),
+      });
+      return deleted ? { id: deleted.id } : null;
+    });
+
+    await step.do('Delete stored files', async () => {
+      if (!deletedUser) return 0;
+      return deleteUserObjects(this.env.FILES_BUCKET, event.payload.userId);
     });
 
     await step.do('Delete user credits object', async () => {
