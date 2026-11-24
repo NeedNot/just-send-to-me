@@ -5,8 +5,13 @@ import { VerifyEmailOTP } from '../email-templates/verify-email-otp';
 const BLACKLIST_SOURCE =
   'https://raw.githubusercontent.com/disposable-email-domains/disposable-email-domains/master/disposable_email_blocklist.conf';
 
-const { SMTP_SERVER_NAME, SMTP_DOMAIN, SMTP_USERNAME, SMTP_PASSWORD } =
-  process.env;
+const {
+  SMTP_SERVER_NAME,
+  SMTP_DOMAIN,
+  SMTP_USERNAME,
+  SMTP_PASSWORD,
+  SMTP_PORT,
+} = process.env;
 
 export async function isEmailDomainDisposable(domain: string) {
   const list = await fetch(BLACKLIST_SOURCE)
@@ -19,7 +24,8 @@ export async function isEmailDomainDisposable(domain: string) {
 function createTransport() {
   const transport = nodemailer.createTransport({
     host: SMTP_SERVER_NAME,
-    port: 587,
+    // optional override, e.g. a local SMTP sink in .dev.vars
+    port: Number(SMTP_PORT) || 587,
     auth: {
       user: SMTP_USERNAME,
       pass: SMTP_PASSWORD,
