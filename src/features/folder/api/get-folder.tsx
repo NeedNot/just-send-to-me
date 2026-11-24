@@ -1,11 +1,11 @@
-import type { Folder } from '@shared/schemas';
+import type { FolderView } from '@shared/schemas';
 import {
   queryOptions,
   useQuery,
   type UseQueryOptions,
 } from '@tanstack/react-query';
 
-export async function getFolder(id: string): Promise<Folder> {
+export async function getFolder(id: string): Promise<FolderView> {
   const res = await fetch(`/api/folders/${id}`);
   if (!res.ok) {
     throw Error(res.statusText, { cause: res.status });
@@ -15,7 +15,7 @@ export async function getFolder(id: string): Promise<Folder> {
 
 export const folderQueryOptions = (
   id: string,
-  queryConfig?: UseQueryOptions<Folder, Error>,
+  queryConfig?: UseQueryOptions<FolderView, Error>,
 ) =>
   queryOptions({
     queryKey: ['folder', id],
@@ -28,9 +28,9 @@ export const folderQueryOptions = (
 
 type UseFolderOptions = {
   folderId: string;
-  queryConfig?: UseQueryOptions<Folder, Error>;
+  queryConfig?: UseQueryOptions<FolderView, Error>;
 };
 
 export function useGetFolder({ folderId, queryConfig }: UseFolderOptions) {
-  return useQuery<Folder>(folderQueryOptions(folderId, queryConfig));
+  return useQuery<FolderView>(folderQueryOptions(folderId, queryConfig));
 }

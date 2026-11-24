@@ -6,6 +6,7 @@ import {
 import {
   type CreateFolderInput,
   type Folder,
+  type FolderView,
   type MyAccountResponse,
 } from '@shared/schemas';
 
@@ -39,7 +40,12 @@ export function useCreateFolder(
     mutationFn: createFolder,
     ...mutationConfig,
     onSuccess: (...args) => {
-      queryClient.setQueryData(['folder', args[0].id], args[0]);
+      // the creator is the owner; a new folder has no files yet
+      queryClient.setQueryData<FolderView>(['folder', args[0].id], {
+        ...args[0],
+        viewer: 'owner',
+        files: [],
+      });
       queryClient.setQueryData(['account'], (prev: MyAccountResponse) => ({
         ...prev,
         remainingCredits: prev.remainingCredits - args[0].creditCost,

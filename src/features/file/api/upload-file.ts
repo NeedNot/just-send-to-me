@@ -1,5 +1,5 @@
 import { retry, uploadWithProgress } from '@/lib/utils';
-import type { Folder } from '@shared/schemas';
+import type { File as FolderFile, FolderView } from '@shared/schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState } from 'react';
 import pLimit from 'p-limit';
@@ -21,7 +21,37 @@ interface UploadedPart {
   etag: string;
 }
 
-const limit = pLimit(5)
+const limit = pLimit(5);
+
+/**
+ * Makes sure this browser has an uploader cookie before any upload starts.
+ * Shared by all uploads on the page so parallel first uploads can't each be
+ * issued a different identity.
+ */
+let uploaderSession: Promise<void> | null = null;
+function ensureUploaderSession() {
+  uploaderSession ??= fetch('/api/files/uploader-session', {
+    method: 'POST',
+  })
+    .then((res) => {
+      if (!res.ok) throw new Error('Could not start upload, please try again');
+    })
+    .catch((e) => {
+      uploaderSession = null; // let the next upload retry
+      throw e;
+    });
+  return uploaderSession;
+}
+
+async function errorMessage(res: Response, fallback: string) {
+  try {
+    const body = await res.json();
+    if (typeof body?.message === 'string') return body.message as string;
+  } catch {
+    // not JSON
+  }
+  return fallback;
+}
 
 export function useFileUploader(folderId: string) {
   const queryClient = useQueryClient();
@@ -54,13 +84,20 @@ export function useFileUploader(folderId: string) {
             );
           },
           controller.signal,
-        ));
+        ),
+      );
 
-      queryClient.setQueryData(['folder', folderId], (prev: Folder) => ({
-        ...prev,
-        size: prev.size + newFile.size,
-        files: [...(prev.files ?? []), newFile],
-      }));
+      queryClient.setQueryData<FolderView>(['folder', folderId], (prev) =>
+        prev
+          ? {
+              ...prev,
+              size: prev.size + newFile.size,
+              fileCount:
+                prev.fileCount === undefined ? undefined : prev.fileCount + 1,
+              files: [...prev.files, newFile],
+            }
+          : prev,
+      );
 
       setUploads((prev) =>
         prev.map((f) =>
@@ -98,7 +135,7 @@ async function uploadMultipartFile(
   file: File,
   onProgress: (progress: number) => void,
   abortSignal: AbortSignal,
-) {
+): Promise<FolderFile> {
   const CHUNK_SIZE = 1024 * 1024 * 10;
   let uploadId: string | undefined;
   let key: string | undefined;
@@ -108,6 +145,7 @@ async function uploadMultipartFile(
   };
   abortSignal.addEventListener('abort', onAbort);
   try {
+    await ensureUploaderSession();
     const res = await fetch(`/api/files/upload/new`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -120,11 +158,9 @@ async function uploadMultipartFile(
     });
 
     if (!res.ok) {
-      throw new Error(
-        res.status === 413
-          ? 'File is too large for folder'
-          : 'Failed to initiate upload',
-      );
+      // cookie gone (e.g. cleared mid-visit): get a new one next time
+      if (res.status === 401) uploaderSession = null;
+      throw new Error(await errorMessage(res, 'Failed to initiate upload'));
     }
 
     ({ uploadId, key } = await res.json());
