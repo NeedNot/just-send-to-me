@@ -73,6 +73,15 @@
         "period": 10,
       },
     },
+    {
+      // per email address for OTP / password-reset emails
+      "name": "EMAIL_RATE_LIMITER",
+      "namespace_id": "1004",
+      "simple": {
+        "limit": 2,
+        "period": 60,
+      },
+    },
   ],
   "workflows": [
     {
@@ -166,6 +175,15 @@
           "simple": {
             "limit": 10,
             "period": 10,
+          },
+        },
+        {
+          // per email address for OTP / password-reset emails
+          "name": "EMAIL_RATE_LIMITER",
+          "namespace_id": "1004",
+          "simple": {
+            "limit": 2,
+            "period": 60,
           },
         },
       ],

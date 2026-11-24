@@ -11,12 +11,25 @@ import {
 import { captcha, emailOTP } from 'better-auth/plugins';
 import { getPlanById } from '../repositories/billing-repository';
 
+// Auth endpoints that send an email. Limited per address (in addition to the
+// per-IP limit) so nobody can mail-bomb an address or burn the SMTP quota.
+const EMAIL_SENDING_PATHS = new Set([
+  '/email-otp/send-verification-otp',
+  '/request-password-reset',
+]);
+
 export const auth = (env: Env) => {
   const db = drizzle(env.DB);
 
   return betterAuth({
     database: drizzleAdapter(db, { provider: 'sqlite', schema }),
-    baseURL: '',
+    // Pin the public origin instead of deriving it from each request's Host,
+    // so origin/CSRF checks and callback/redirect validation use a fixed
+    // value. In dev also trust the request's own origin (e.g. `vite --host`
+    // on a LAN IP).
+    baseURL: env.URL,
+    trustedOrigins: (request) =>
+      env.IS_DEV && request ? [new URL(request.url).origin] : [],
     secret: env.BETTER_AUTH_SECRET,
     basePath: '/api/auth',
     account: {
@@ -49,13 +62,6 @@ export const auth = (env: Env) => {
       autoSignIn: true,
       requireEmailVerification: true,
       async sendResetPassword({ user, token }) {
-        const { success } = await env.GENERAL_RATE_LIMITER.limit({
-          key: user.email,
-        });
-
-        if (!success) {
-          throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
-        }
         const url = `${env.URL}/change-password?token=${token}`;
         try {
           await sendResetPasswordEmail(user.email, url);
@@ -94,16 +100,27 @@ export const auth = (env: Env) => {
           }
         }
 
+        if (EMAIL_SENDING_PATHS.has(ctx.path)) {
+          const email = String(ctx.body?.email ?? '').toLowerCase();
+          const { success } = await env.EMAIL_RATE_LIMITER.limit({
+            key: `${ctx.path}:${email}`,
+          });
+          if (!success) {
+            throw new APIError('TOO_MANY_REQUESTS', { code: '429' });
+          }
+        }
+
         if (ctx.path !== '/sign-up/email') {
           return;
         }
-        if (ctx.body?.name.length < 2) {
+        const name = String(ctx.body?.name ?? '').trim();
+        if (name.length < 2 || name.length > 100) {
           throw new APIError('BAD_REQUEST', {
-            message: 'Name is too short',
+            message: 'Name must be 2-100 characters',
           });
         }
-        const email = ctx.body?.email.toLowerCase() ?? '';
-        const domain = email.split('@')[1];
+        const email = String(ctx.body?.email ?? '').toLowerCase();
+        const domain = email.split('@')[1] ?? '';
         if (await isEmailDomainDisposable(domain)) {
           throw new APIError('FORBIDDEN', {
             message: 'Cannot create account at this time',
@@ -118,11 +135,6 @@ export const auth = (env: Env) => {
             const freePlan = await getPlanById(db, 'FREE');
             const stub = env.USER_CREDITS_OBJECT.getByName(ctx.id);
             await stub.updateMaxCredits(freePlan?.credits ?? 3);
-          },
-        },
-        update: {
-          before: async (ctx) => {
-            console.log(ctx);
           },
         },
       },
