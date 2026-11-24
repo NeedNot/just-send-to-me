@@ -147,6 +147,19 @@ export const createCheckoutSessionResponseSchema = z.object({
   url: z.string(),
 });
 
+export const confirmCheckoutSessionSchema = z.object({
+  // the {CHECKOUT_SESSION_ID} Stripe puts in success_url
+  sessionId: z
+    .string()
+    .max(255)
+    .regex(/^cs_[A-Za-z0-9_]+$/),
+});
+
+export const confirmCheckoutSessionResponseSchema = z.object({
+  planId: z.string(),
+  active: z.boolean(),
+});
+
 export const createPortalSessionResponseSchema = z.object({
   url: z.string(),
 });
@@ -184,6 +197,10 @@ export type CreateCheckoutSessionRequest = z.infer<
 >;
 export type CreateCheckoutSessionResponse = z.infer<
   typeof createCheckoutSessionResponseSchema
+>;
+
+export type ConfirmCheckoutSessionResponse = z.infer<
+  typeof confirmCheckoutSessionResponseSchema
 >;
 
 export type CreatePortalSessionResponse = z.infer<

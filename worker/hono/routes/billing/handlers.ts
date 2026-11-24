@@ -1,6 +1,7 @@
 import { drizzle } from 'drizzle-orm/d1/driver';
 import type { AppRouteHandler } from '../../../lib/types';
 import type {
+  ConfirmCheckoutSessionRoute,
   CreateCheckoutSessionRoute,
   GetSubscriptionRoute,
   StripeBillingPortalRoute,
@@ -11,7 +12,11 @@ import {
   getPlanById,
   getUserSubscription,
 } from '../../../repositories/billing-repository';
-import { stripeClient, syncSubscription } from '../../../lib/billing';
+import {
+  confirmCheckoutSession as confirmCheckout,
+  stripeClient,
+  syncSubscription,
+} from '../../../lib/billing';
 
 // Events that can change a user's entitlement. Everything else is
 // acknowledged with 200 and ignored.
@@ -62,6 +67,30 @@ export const createCheckoutSession: AppRouteHandler<
     cancel_url: `${c.env.URL}/account/subscription`,
   });
   return c.json({ url: session.url! }, 200);
+};
+
+export const confirmCheckoutSession: AppRouteHandler<
+  ConfirmCheckoutSessionRoute
+> = async (c) => {
+  const user = c.get('user')!;
+  const { sessionId } = c.req.valid('json');
+  const result = await confirmCheckout(
+    drizzle(c.env.DB),
+    c.env,
+    stripeClient(c.env),
+    { userId: user.id, sessionId },
+  );
+  if (result.status === 'pending') {
+    console.log('checkout confirm pending', sessionId, result.reason);
+    return c.json({ error: 'Checkout is still being finalised' }, 409);
+  }
+  if (result.status !== 'synced') {
+    if (result.status === 'ignored') {
+      console.log('checkout confirm ignored', sessionId, result.reason);
+    }
+    return c.json({ error: 'Checkout not found' }, 404);
+  }
+  return c.json({ planId: result.planId, active: result.active }, 200);
 };
 
 export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
