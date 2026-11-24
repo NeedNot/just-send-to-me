@@ -1,5 +1,5 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
-import { eq, sql } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import { folders, plans } from '../db/schema';
 
 export const getFolderById = (
@@ -62,6 +62,7 @@ export const addFileMetaToFolder = (
     .get();
 };
 
+/** A creator's folders: unexpired first, then expired; newest created first within each. */
 export const getFoldersByCreator = async (
   db: DrizzleD1Database & { $client: D1Database },
   creatorId: string,
@@ -70,5 +71,10 @@ export const getFoldersByCreator = async (
     .select()
     .from(folders)
     .where(eq(folders.creatorId, creatorId))
+    .orderBy(
+      // active folders first (expiresAt is a non-null ms timestamp), newest first within each group
+      desc(sql`${folders.expiresAt} > ${Date.now()}`),
+      desc(folders.createdAt),
+    )
     .all();
 };
