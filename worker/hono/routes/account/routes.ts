@@ -50,7 +50,7 @@ export const deleteMyAccount = createRoute({
       content: {
         'application/json': {
           schema: z.object({
-            password: z.string().min(1),
+            password: z.string().min(1).max(256),
           }),
         },
       },

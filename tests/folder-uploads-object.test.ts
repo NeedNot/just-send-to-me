@@ -112,3 +112,22 @@ describe('contentDisposition', () => {
     );
   });
 });
+
+describe('uploadNewFileSchema', () => {
+  it('rejects negative, fractional and zero sizes', async () => {
+    const { uploadNewFileSchema } = await import('../shared/schemas');
+    const base = { folderId: 'abc123', name: 'a.txt' };
+    expect(uploadNewFileSchema.safeParse({ ...base, size: -1 }).success).toBe(
+      false,
+    );
+    expect(uploadNewFileSchema.safeParse({ ...base, size: 1.5 }).success).toBe(
+      false,
+    );
+    expect(uploadNewFileSchema.safeParse({ ...base, size: 0 }).success).toBe(
+      false,
+    );
+    expect(uploadNewFileSchema.safeParse({ ...base, size: 10 }).success).toBe(
+      true,
+    );
+  });
+});

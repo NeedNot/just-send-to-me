@@ -11,11 +11,21 @@ export const fileSchema = z.object({
   size: z.number(),
 });
 
+// R2 multipart: at most 10,000 parts; the client uses 10 MiB parts
+export const MAX_UPLOAD_PARTS = 10_000;
+export const UPLOAD_PART_SIZE = 1024 * 1024 * 10;
+
 export const uploadNewFileSchema = z
   .object({
-    folderId: z.string().min(1),
-    name: z.string().min(1),
-    size: z.number(),
+    folderId: z.string().min(1).max(64),
+    name: z.string().trim().min(1).max(255),
+    // must be a positive whole byte count: negative sizes used to inflate
+    // the folder's remaining space in the uploads Durable Object
+    size: z
+      .number()
+      .int()
+      .positive()
+      .max(MAX_UPLOAD_PARTS * UPLOAD_PART_SIZE),
   })
   .openapi({
     type: 'object',
@@ -63,7 +73,7 @@ export const completeFileUploadSchema = z
 
 export const createFolderSchema = z
   .object({
-    name: z.string().min(1),
+    name: z.string().trim().min(1).max(128),
     expiration: folderExpirationDuration,
   })
   .openapi({
@@ -111,8 +121,8 @@ export const IdParamSchema = z.object({
 });
 
 export const R2UploadedPartSchema = z.object({
-  partNumber: z.number(),
-  etag: z.string(),
+  partNumber: z.number().int().min(1).max(MAX_UPLOAD_PARTS),
+  etag: z.string().min(1).max(256),
 });
 
 export const myFoldersResponseSchema = z.object({
