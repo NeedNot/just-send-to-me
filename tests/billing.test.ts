@@ -4,7 +4,11 @@ import { eq } from 'drizzle-orm';
 import type StripeTypes from 'stripe';
 import { user } from '../worker/db/auth-schema';
 import { subscriptions } from '../worker/db/schema';
-import { syncSubscription } from '../worker/lib/billing';
+import { Stripe } from 'stripe';
+import {
+  confirmCheckoutSession,
+  syncSubscription,
+} from '../worker/lib/billing';
 import { db, seedUser } from './helpers';
 
 function fakeSubscription({
@@ -166,6 +170,113 @@ describe('syncSubscription', () => {
         }),
       ),
     ).rejects.toThrow('No plan with priceId price_unknown');
+  });
+});
+
+describe('confirmCheckoutSession (success page)', () => {
+  // Stands in for the Stripe client: one checkout session and the
+  // subscription it created.
+  function fakeStripe(
+    session: Partial<StripeTypes.Checkout.Session>,
+    subscription: StripeTypes.Subscription,
+  ) {
+    return {
+      checkout: {
+        sessions: {
+          retrieve: async (id: string) => {
+            if (id !== session.id) {
+              throw new Stripe.errors.StripeInvalidRequestError({
+                type: 'invalid_request_error',
+                message: `No such checkout.session: '${id}'`,
+              });
+            }
+            return session;
+          },
+        },
+      },
+      subscriptions: { retrieve: async () => subscription },
+    } as unknown as Parameters<typeof confirmCheckoutSession>[2];
+  }
+
+  async function setup(session: Partial<StripeTypes.Checkout.Session> = {}) {
+    const userId = await seedUser();
+    const sub = fakeSubscription({
+      id: `sub_confirm_${userId}`,
+      customer: `cus_confirm_${userId}`,
+      status: 'active',
+      userId,
+    });
+    const stripe = fakeStripe(
+      {
+        id: `cs_test_${userId}`,
+        mode: 'subscription',
+        status: 'complete',
+        subscription: sub.id,
+        client_reference_id: userId,
+        metadata: { userId },
+        ...session,
+      },
+      sub,
+    );
+    return { userId, stripe, sessionId: `cs_test_${userId}` };
+  }
+
+  it('activates the plan without any webhook', async () => {
+    const { userId, stripe, sessionId } = await setup();
+    const result = await confirmCheckoutSession(db(), env, stripe, {
+      userId,
+      sessionId,
+    });
+    expect(result).toMatchObject({ status: 'synced', planId: 'PLUS' });
+    const s = await state(userId);
+    expect(s.plan).toBe('PLUS');
+    expect(s.rows).toHaveLength(1);
+  });
+
+  it("refuses another user's checkout session", async () => {
+    const { stripe, sessionId } = await setup();
+    const attacker = await seedUser();
+    const result = await confirmCheckoutSession(db(), env, stripe, {
+      userId: attacker,
+      sessionId,
+    });
+    expect(result).toEqual({ status: 'not_found' });
+    expect((await state(attacker)).plan).toBe('FREE');
+  });
+
+  it('ignores unknown and non-subscription sessions; unfinished ones are pending', async () => {
+    let { userId, stripe } = await setup();
+    expect(
+      await confirmCheckoutSession(db(), env, stripe, {
+        userId,
+        sessionId: 'cs_test_unknown',
+      }),
+    ).toEqual({ status: 'not_found' });
+
+    ({ userId, stripe } = await setup({ status: 'open' }));
+    expect(
+      await confirmCheckoutSession(db(), env, stripe, {
+        userId,
+        sessionId: `cs_test_${userId}`,
+      }),
+    ).toMatchObject({ status: 'pending' });
+
+    ({ userId, stripe } = await setup({ subscription: null }));
+    expect(
+      await confirmCheckoutSession(db(), env, stripe, {
+        userId,
+        sessionId: `cs_test_${userId}`,
+      }),
+    ).toMatchObject({ status: 'pending' });
+
+    ({ userId, stripe } = await setup({ mode: 'payment' }));
+    expect(
+      await confirmCheckoutSession(db(), env, stripe, {
+        userId,
+        sessionId: `cs_test_${userId}`,
+      }),
+    ).toEqual({ status: 'not_found' });
+    expect((await state(userId)).plan).toBe('FREE');
   });
 });
 
