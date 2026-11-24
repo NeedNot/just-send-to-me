@@ -12,7 +12,7 @@ import {
   getPlanById,
   getUserSubscription,
 } from '../../../repositories/billing-repository';
-import Stripe from 'stripe';
+import { stripeClient } from '../../../lib/billing';
 import { account, user as userTable } from '../../../db/auth-schema';
 import { and, eq } from 'drizzle-orm';
 import { MS_IN_DAY } from '../../../../shared/constants';
@@ -103,8 +103,7 @@ export const deleteMyAccount: AppRouteHandler<DeleteMyAccountRoute> = async (
   // verify user has no subscriptions
   const sub = await getUserSubscription(db, user.id);
   if (sub?.status === 'active') {
-    const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
-    const stripeSub = await stripe.subscriptions.retrieve(sub.id);
+    const stripeSub = await stripeClient(c.env).subscriptions.retrieve(sub.id);
     const canceled = stripeSub.cancel_at || stripeSub.canceled_at;
     if (!canceled) {
       return c.json({ error: 'You must cancel your subscription first' }, 403);
@@ -150,9 +149,7 @@ export const restoreAccount: AppRouteHandler<RestoreAccountRoute> = async (
       .where(eq(userTable.id, user.id)),
     c.env.DELETE_ACCOUNT_WORKFLOW.get(
       deleteAccountWorkflowId(user.id, user.updatedAt),
-    ).then(
-      (wf) => wf.terminate(),
-    ),
+    ).then((wf) => wf.terminate()),
   ]);
 
   return c.json({ deletingAt: null }, 200);
