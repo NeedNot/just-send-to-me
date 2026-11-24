@@ -18,8 +18,19 @@ import { AlarmDO } from './alarm-do';
 type PendingFile = {
   key: string;
   size: number;
-  lastActive: number;
+  last_active: number;
+  // uploader id that started the upload; NULL for uploads started before
+  // uploader tokens existed
+  uploader_id: string | null;
 };
+
+/**
+ * An upload in progress may only be continued, completed or aborted by the
+ * uploader that started it. Legacy rows without an uploader are unrestricted.
+ */
+function isUploadOwnedBy(upload: PendingFile, uploaderId?: string) {
+  return upload.uploader_id === null || upload.uploader_id === uploaderId;
+}
 
 const CHUNK_SIZE = 1024 ** 2 * 10;
 
@@ -50,8 +61,9 @@ export class FolderUploadsObject extends AlarmDO {
     this.alarms = new Alarms(ctx, this);
     this.sql = this.ctx.storage.sql;
     this.sql.exec(
-      `CREATE TABLE IF NOT EXISTS pending_files(key TEXT PRIMARY KEY, size INTEGER, last_active INTEGER); CREATE TABLE IF NOT EXISTS abort_queue (key TEXT PRIMARY KEY)`,
+      `CREATE TABLE IF NOT EXISTS pending_files(key TEXT PRIMARY KEY, size INTEGER, last_active INTEGER, uploader_id TEXT); CREATE TABLE IF NOT EXISTS abort_queue (key TEXT PRIMARY KEY)`,
     );
+    this.migratePendingFiles();
 
     this.ctx.blockConcurrencyWhile(async () => {
       const id: string | undefined = await this.ctx.storage.get('folderId');
@@ -61,6 +73,17 @@ export class FolderUploadsObject extends AlarmDO {
       this.remainingFiles = (await this.ctx.storage.get('remainingFiles')) || 0;
       this.remainingSpace = (await this.ctx.storage.get('remainingSpace')) || 0;
     });
+  }
+
+  /** Objects created before uploader tokens have pending_files without uploader_id. */
+  migratePendingFiles() {
+    const hasUploaderColumn = this.sql
+      .exec<{ name: string }>('PRAGMA table_info(pending_files)')
+      .toArray()
+      .some((c) => c.name === 'uploader_id');
+    if (!hasUploaderColumn) {
+      this.sql.exec('ALTER TABLE pending_files ADD COLUMN uploader_id TEXT');
+    }
   }
 
   private async init(id: string) {
@@ -151,6 +174,7 @@ export class FolderUploadsObject extends AlarmDO {
     file: { name: string; size: number },
     folderId: string,
     creatorId: string,
+    uploaderId?: string,
   ) {
     if (!this.initialized) {
       await this.ctx.blockConcurrencyWhile(() => this.init(folderId));
@@ -164,7 +188,9 @@ export class FolderUploadsObject extends AlarmDO {
     if (this.remainingFiles <= 0 || this.remainingSpace < file.size) {
       if (pendingFiles.length === 0)
         throw new Error(
-          this.remainingSpace < file.size ? 'NOT_ENOUGH_SPACE' : 'TOO_MANY_FILES',
+          this.remainingSpace < file.size
+            ? 'NOT_ENOUGH_SPACE'
+            : 'TOO_MANY_FILES',
         );
 
       const cancellableUploads = this.findCancellableUploads(file.size);
@@ -206,10 +232,11 @@ export class FolderUploadsObject extends AlarmDO {
     this.remainingSpace -= file.size;
 
     this.sql.exec(
-      'INSERT INTO pending_files (key, size, last_active) VALUES (?, ?, ?)',
+      'INSERT INTO pending_files (key, size, last_active, uploader_id) VALUES (?, ?, ?, ?)',
       key,
       file.size,
       Date.now(),
+      uploaderId ?? null,
     );
     await Promise.all([
       this.ctx.storage.put('remainingFiles', this.remainingFiles),
@@ -220,11 +247,17 @@ export class FolderUploadsObject extends AlarmDO {
     return { uploadId: res.uploadId, key: res.key };
   }
 
-  async getPartUploadUrl(key: string, uploadId: string, partNumber: string) {
+  async getPartUploadUrl(
+    key: string,
+    uploadId: string,
+    partNumber: string,
+    uploaderId?: string,
+  ) {
     const upload = this.sql
       .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
       .next().value;
-    if (!upload) throw Error('Upload not found');
+    // unknown upload, or someone else's
+    if (!upload || !isUploadOwnedBy(upload, uploaderId)) return null;
 
     if (Math.ceil(upload.size / CHUNK_SIZE) < parseInt(partNumber)) {
       throw Error('Part number is too large');
@@ -256,7 +289,18 @@ export class FolderUploadsObject extends AlarmDO {
     return signedUrl.url;
   }
 
-  async completeUpload(key: string, uploadId: string, parts: R2UploadedPart[]) {
+  async completeUpload(
+    key: string,
+    uploadId: string,
+    parts: R2UploadedPart[],
+    uploaderId?: string,
+  ) {
+    const pending = this.sql
+      .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
+      .next().value;
+    // someone else's upload: leave it alone entirely
+    if (pending && !isUploadOwnedBy(pending, uploaderId)) return null;
+
     const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
 
     try {
@@ -282,7 +326,7 @@ export class FolderUploadsObject extends AlarmDO {
 
     const db = drizzle(this.env.DB);
     try {
-      const res = await insertFile(db, objectHead);
+      const res = await insertFile(db, objectHead, upload.uploader_id);
       await addFileMetaToFolder(db, res);
       this.sql.exec('DELETE FROM pending_files WHERE key = ?', key);
       return res;
@@ -293,12 +337,14 @@ export class FolderUploadsObject extends AlarmDO {
     }
   }
 
-  async abortUpload(key: string, uploadId: string) {
-    const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
-    await session.abort().catch((e) => console.log('abort failed', key, e));
+  async abortUpload(key: string, uploadId: string, uploaderId?: string) {
     const upload = this.sql
       .exec<PendingFile>('SELECT * FROM pending_files WHERE key = ?', key)
       .next().value;
+    if (upload && !isUploadOwnedBy(upload, uploaderId)) return;
+
+    const session = this.env.FILES_BUCKET.resumeMultipartUpload(key, uploadId);
+    await session.abort().catch((e) => console.log('abort failed', key, e));
     if (upload) {
       this.remainingFiles += 1;
       this.remainingSpace += upload.size;

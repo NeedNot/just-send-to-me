@@ -2,6 +2,7 @@ import { createRoute } from '@hono/zod-openapi';
 import {
   createFolderSchema,
   folderSchema,
+  folderViewSchema,
   IdParamSchema,
 } from '../../../../shared/schemas';
 import { requireUser } from '../../middleware/require-user';
@@ -48,13 +49,17 @@ export const getFolder = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: folderSchema,
+          schema: folderViewSchema,
         },
       },
-      description: 'Get folder by id',
+      description:
+        'Get folder by id. `files` holds only what the caller may see: all files for the owner, their own for an uploader, none otherwise.',
     },
     404: {
       description: 'Folder not found',
+    },
+    410: {
+      description: 'Folder expired',
     },
   },
 });

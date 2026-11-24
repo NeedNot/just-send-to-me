@@ -2,13 +2,15 @@ import { z } from '@hono/zod-openapi';
 
 export const folderExpirationDuration = z.enum(['1d', '3d', '7d']);
 
+// What the API returns for a file. Deliberately no R2 key or uploader id:
+// downloads go through /api/files/{id}/download, which checks access.
 export const fileSchema = z.object({
   id: z.string(),
   name: z.string(),
-  key: z.string(),
   folderId: z.string(),
   thumbnail: z.string().optional(),
   size: z.number(),
+  createdAt: z.date().or(z.string()).optional(),
 });
 
 // R2 multipart: at most 10,000 parts; the client uses 10 MiB parts
@@ -99,6 +101,26 @@ export const folderSchema = z
     type: 'object',
   });
 
+// Who is looking at a folder page:
+// - owner: the signed-in creator; sees every file
+// - uploader: has an uploader cookie; sees only the files they sent
+// - visitor: neither; sees no files
+export const folderViewerRole = z.enum(['owner', 'uploader', 'visitor']);
+
+// GET /folders/{id}. Non-owners get no file count, creator id or cost, so
+// they can't learn what (or how much) other people sent. `size` stays so
+// the uploader can see whether their file fits.
+export const folderViewSchema = folderSchema
+  .omit({ files: true, creatorId: true, fileCount: true, creditCost: true })
+  .extend({
+    viewer: folderViewerRole,
+    files: z.array(fileSchema),
+    creatorId: z.string().optional(),
+    fileCount: z.number().optional(),
+    creditCost: z.number().optional(),
+  })
+  .openapi({ type: 'object' });
+
 export const planSchema = z
   .object({
     id: z.string(),
@@ -179,6 +201,8 @@ export type UploadNewFileResponseSchema = z.infer<
 >;
 
 export type Folder = z.infer<typeof folderSchema>;
+export type FolderView = z.infer<typeof folderViewSchema>;
+export type FolderViewerRole = z.infer<typeof folderViewerRole>;
 export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 export type ExpirationDuration = z.infer<typeof folderExpirationDuration>;
 
