@@ -22,6 +22,8 @@ export default defineConfig({
             // fixed test values so tests never depend on a local .dev.vars
             STRIPE_SECRET_KEY: 'sk_test_unit_tests_only',
             STRIPE_WEBHOOK_SECRET: 'whsec_unit_tests_only',
+            // lets tests mint real signed session cookies (tests/helpers.ts)
+            BETTER_AUTH_SECRET: 'unit-tests-only-better-auth-secret-0123456789',
           },
         },
       };

@@ -10,6 +10,12 @@ import {
   EXPIRATION_DURATIONS,
 } from '../../../../shared/constants';
 import type { User } from 'better-auth';
+import { resolveViewer } from '../../../lib/folder-access';
+import { getUploaderId } from '../../../lib/uploader-identity';
+import {
+  listFilesForViewer,
+  toPublicFile,
+} from '../../../repositories/file-repository';
 
 export const createFolder: AppRouteHandler<CreateFolderRoute> = async (c) => {
   const user = c.get('user') as User & { planId: string };
@@ -56,9 +62,39 @@ export const getFolder: AppRouteHandler<GetFolderRoute> = async (c) => {
   const { id } = c.req.valid('param');
 
   const db = drizzle(c.env.DB);
-  const result = await getFolderById(db, id, { withFiles: true });
-  if (!result) return c.notFound();
-  if (result.expiresAt < new Date())
+  const folder = await getFolderById(db, id);
+  if (!folder) return c.notFound();
+  if (folder.expiresAt < new Date())
     return c.json({ message: 'Folder expired' }, 410);
-  return c.json(result, 200);
+
+  const viewer = resolveViewer(folder, c.get('user'), await getUploaderId(c));
+  const files = (await listFilesForViewer(db, folder.id, viewer)).map(
+    toPublicFile,
+  );
+
+  const shared = {
+    id: folder.id,
+    name: folder.name,
+    expiresAt: folder.expiresAt,
+    createdAt: folder.createdAt,
+    maxSize: folder.maxSize,
+    maxFiles: folder.maxFiles,
+    size: folder.size,
+    viewer: viewer.role,
+    files,
+  };
+
+  if (viewer.role === 'owner') {
+    return c.json(
+      {
+        ...shared,
+        creatorId: folder.creatorId,
+        fileCount: folder.fileCount,
+        creditCost: folder.creditCost,
+      },
+      200,
+    );
+  }
+  // uploaders and visitors: nothing that reveals how many files others sent
+  return c.json(shared, 200);
 };

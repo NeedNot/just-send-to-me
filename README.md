@@ -9,6 +9,7 @@ Live: [justsendto.me](https://justsendto.me)
 ## Features
 
 - **No account needed for uploaders**
+- **Private uploads:** uploaders only ever see the files they sent; only the folder owner sees everything
 - **folders expire after a chosen duration**
 - **Credit-based durations:** longer folder lifetimes cost more credits (e.g. 1 day = 1 credit, 1 week = 3 credits)
 - **Subscription tiers**
@@ -23,6 +24,33 @@ Live: [justsendto.me](https://justsendto.me)
 2. You create a request folder that stays open for a set amount of time.
 3. You share the link with anyone.
 4. They upload files to the folder with no sign-in required.
+
+---
+
+## Who can see which files
+
+| Viewer | Sees in the folder | Can download |
+| ------ | ------------------ | ------------ |
+| Folder owner (signed in) | every file | every file, plus "Download all" |
+| Uploader (no account) | only the files this browser uploaded | only those files |
+| Anyone else with the link | the upload box, no files | nothing |
+
+**Uploader identity.** Before its first upload a browser calls `POST /api/files/uploader-session`,
+which issues a random 256-bit token in an `httpOnly`, `SameSite=Strict` cookie (on HTTPS:
+`__Host-jstm_uploader`, so `Secure`, `Path=/`, no `Domain`; plain `jstm_uploader` on local http).
+It lasts 30 days and is refreshed on every upload session. Each uploaded file is tagged with
+`files.uploader_id = SHA-256(token)`; the token itself is never stored. Files uploaded before this
+existed have no `uploader_id` and are visible to the owner only. Clearing cookies or switching
+browser means a new identity: the uploader no longer sees earlier uploads (the owner still does).
+
+**Downloads** go through `GET /api/files/{id}/download`, which checks the session / uploader cookie
+on every request and streams the object from the R2 binding (Range requests supported). A file the
+caller may not read returns the same 404 as a missing one. The R2 bucket itself must **not** be
+public (see Deployment).
+
+The rules live in `worker/lib/folder-access.ts` (`resolveViewer`, `canReadFile`); the cookie in
+`worker/lib/uploader-identity.ts`. Uploads in progress are also bound to the uploader that started
+them, so nobody else can complete or abort them.
 
 ---
 
@@ -156,6 +184,15 @@ matches the connected Worker), so `vite.config.ts` renames builds made without `
 
 Secrets and other Wrangler commands that take an environment work as usual:
 `npx wrangler secret put NAME --env production` targets the production Worker.
+
+### R2 bucket access
+
+Files are served only by the Worker (`/api/files/{id}/download`), never from a public bucket URL.
+`files-bucket` (prod) and `dev-files-bucket` (dev) must have **Public Development URL (r2.dev)
+disabled** and **no Custom Domain** attached: Cloudflare dashboard → R2 → the bucket → Settings →
+Public access. The Worker reaches the bucket through its binding and the S3 API keys, neither of
+which needs public access. Leave the bucket's CORS policy as it is: the browser still `PUT`s upload
+parts straight to R2 through presigned URLs.
 
 ---
 

@@ -1,10 +1,54 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import {
+  fileSchema,
+  IdParamSchema,
   R2UploadedPartSchema,
   uploadFileResponseSchema,
   uploadNewFileSchema,
 } from '../../../../shared/schemas';
-import { uploadRateLimiter } from '../../middleware/rate-limiters';
+import {
+  downloadRateLimiter,
+  uploadRateLimiter,
+} from '../../middleware/rate-limiters';
+
+export const startUploaderSession = createRoute({
+  middleware: uploadRateLimiter,
+  method: 'post',
+  path: '/files/uploader-session',
+  responses: {
+    204: {
+      description:
+        'Uploader cookie issued (or refreshed). Required before uploading.',
+    },
+  },
+});
+
+export const downloadFile = createRoute({
+  middleware: downloadRateLimiter,
+  method: 'get',
+  path: '/files/{id}/download',
+  request: {
+    params: IdParamSchema,
+  },
+  responses: {
+    200: {
+      description: 'The file, as an attachment',
+    },
+    206: {
+      description: 'Part of the file (Range request)',
+    },
+    404: {
+      description:
+        'No such file, or the caller is neither the folder owner nor its uploader',
+    },
+    410: {
+      description: 'Folder expired',
+    },
+    416: {
+      description: 'Range not satisfiable',
+    },
+  },
+});
 
 export const uploadNewFile = createRoute({
   middleware: uploadRateLimiter,
@@ -31,6 +75,9 @@ export const uploadNewFile = createRoute({
     },
     404: {
       description: 'Folder not found',
+    },
+    401: {
+      description: 'No uploader session',
     },
     410: {
       description: 'Folder locked and no more files can be uploaded',
@@ -89,6 +136,9 @@ export const getFilePartUploadUrl = createRoute({
     400: {
       description: 'Bad request',
     },
+    401: {
+      description: 'No uploader session',
+    },
   },
 });
 
@@ -115,6 +165,9 @@ export const abortFileUpload = createRoute({
   responses: {
     204: {
       description: 'Upload aborted',
+    },
+    401: {
+      description: 'No uploader session',
     },
   },
 });
@@ -154,7 +207,15 @@ export const completeFileUpload = createRoute({
   },
   responses: {
     200: {
+      content: {
+        'application/json': {
+          schema: fileSchema,
+        },
+      },
       description: 'File upload successfully completed',
+    },
+    401: {
+      description: 'No uploader session',
     },
     400: {
       description: 'Bad request',
@@ -166,3 +227,5 @@ export type UploadNewFileRoute = typeof uploadNewFile;
 export type GetFilePartUploadUrl = typeof getFilePartUploadUrl;
 export type CompleteFileUpload = typeof completeFileUpload;
 export type AbortFileUpload = typeof abortFileUpload;
+export type StartUploaderSessionRoute = typeof startUploaderSession;
+export type DownloadFileRoute = typeof downloadFile;

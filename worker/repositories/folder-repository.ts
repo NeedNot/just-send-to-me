@@ -1,33 +1,12 @@
 import type { DrizzleD1Database } from 'drizzle-orm/d1/driver';
 import { eq, sql } from 'drizzle-orm';
-import { files, folders, plans } from '../db/schema';
-import type { File } from '../../shared/schemas';
+import { folders, plans } from '../db/schema';
 
-export const getFolderById = async (
+export const getFolderById = (
   db: DrizzleD1Database & { $client: D1Database },
   id: string,
-  options?: { withFiles?: boolean },
 ) => {
-  let allFiles: File[] = [];
-  const folder = await db
-    .select()
-    .from(folders)
-    .where(eq(folders.id, id))
-    .get();
-
-  if (!folder) return undefined;
-
-  if (options?.withFiles) {
-    allFiles = await db
-      .select()
-      .from(files)
-      .where(eq(files.folderId, id))
-      .all();
-  }
-  return {
-    ...folder,
-    files: allFiles,
-  };
+  return db.select().from(folders).where(eq(folders.id, id)).get();
 };
 
 export const createFolder = async (

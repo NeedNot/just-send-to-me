@@ -1,12 +1,13 @@
-import type { Folder, File } from '@shared/schemas';
+import type { FolderView, File } from '@shared/schemas';
 import { useState } from 'react';
 import { downloadFile } from '@/lib/utils';
+import { fileDownloadUrl } from './download-file';
 
 export function useDownloadFolder() {
   const [downloading, setDownloading] = useState(false);
   const [progress, setProgress] = useState(0);
 
-  const downloadFolder = async ({ name, files }: Folder) => {
+  const downloadFolder = async ({ name, files }: FolderView) => {
     try {
       setDownloading(true);
       if (!files) return;
@@ -38,12 +39,13 @@ async function downloadAndZipFiles(
   const zip = new JSZip();
 
   const filePromises = files.map(async (file) => {
-    const { key, name } = file;
+    const { id, name } = file;
 
     const fileContent = await new Promise<Blob>((resolve, reject) => {
       let bytesTransferred = 0;
       const request = new XMLHttpRequest();
-      request.open('GET', `${import.meta.env.VITE_R2_URL}/${key}`);
+      // same-origin worker route: checks the session / uploader cookie
+      request.open('GET', fileDownloadUrl(id));
 
       request.onprogress = (event) => {
         bytesDownloaded += event.loaded - bytesTransferred;

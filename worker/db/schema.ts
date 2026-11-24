@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 import { createId } from '@paralleldrive/cuid2';
 import { sql } from 'drizzle-orm';
 import { user } from './auth-schema';
@@ -25,20 +25,28 @@ export const folders = sqliteTable('folders', {
   creditCost: integer('credit_cost').default(1).notNull(),
 });
 
-export const files = sqliteTable('files', {
-  id: text()
-    .$defaultFn(() => createId())
-    .primaryKey(),
-  folderId: text()
-    .references(() => folders.id)
-    .notNull(),
-  name: text({ length: 255 }).notNull(),
-  key: text().notNull(),
-  size: integer().notNull(),
-  createdAt: integer({ mode: 'timestamp_ms' })
-    .notNull()
-    .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
-});
+export const files = sqliteTable(
+  'files',
+  {
+    id: text()
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    folderId: text()
+      .references(() => folders.id)
+      .notNull(),
+    name: text({ length: 255 }).notNull(),
+    key: text().notNull(),
+    size: integer().notNull(),
+    createdAt: integer({ mode: 'timestamp_ms' })
+      .notNull()
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`),
+    // SHA-256 of the anonymous uploader token (see worker/lib/uploader-identity.ts).
+    // NULL for files uploaded before uploader tokens existed: those are
+    // visible to the folder owner only.
+    uploaderId: text('uploader_id'),
+  },
+  (t) => [index('files_folder_uploader_idx').on(t.folderId, t.uploaderId)],
+);
 
 export const plans = sqliteTable('plans', {
   id: text()

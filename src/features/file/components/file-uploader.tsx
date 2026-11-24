@@ -1,5 +1,5 @@
 import { type FileStatus } from '../api/upload-file';
-import { type Folder } from '@shared/schemas';
+import { type FolderView } from '@shared/schemas';
 import { toast } from 'sonner';
 import { Upload } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
@@ -9,7 +9,7 @@ import { Link } from '@tanstack/react-router';
 import { useMyAccount } from '@/features/account/api/my-account';
 
 export interface FileUploaderProps {
-  folder: Folder;
+  folder: FolderView;
   statuses: FileStatus[];
   upload: (file: File) => Promise<void>;
 }
@@ -23,7 +23,10 @@ export function FileUploader({ folder, statuses, upload }: FileUploaderProps) {
     const pendingUploads = statuses.filter(
       (f) => f.status === 'preparing' || f.status === 'uploading',
     ).length;
-    if ((folder.files?.length ?? 0) + pendingUploads >= folder.maxFiles) {
+    // Only the owner knows the folder's total file count; for uploaders the
+    // server enforces the limit and reports it per file.
+    const knownFiles = folder.fileCount ?? folder.files.length;
+    if (knownFiles + pendingUploads >= folder.maxFiles) {
       rejected.push({
         file: files[0],
         errors: [
