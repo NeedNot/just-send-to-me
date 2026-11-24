@@ -57,7 +57,13 @@ npm install
 
 ### Environment variables
 
-Copy `.env.example` to `.env.local` and fill in the values.
+`.env.example` lists every variable, split into two groups:
+
+- **Worker secrets** (`BETTER_AUTH_SECRET`, `STRIPE_SECRET_KEY`, ...): put them in `.dev.vars` for local dev.
+  In Cloudflare they are Worker secrets (`npx wrangler secret put NAME --env production`).
+- **Build-time client vars** (`VITE_*`): put them in `.env.local`. Vite inlines them into the browser bundle, so they are public.
+
+Use Stripe **test** keys and Cloudflare's Turnstile test keys locally (see the comments in `.env.example`).
 
 ### Database setup
 
@@ -85,7 +91,15 @@ npm run db:migrate:prod
 First configure the wrangler.jsonc file. The vars (including the env.vars) need to be changed as well as binding ids.
 
 ```bash
-npm run dev
+npm run dev        # D1/R2 bindings marked "remote" use the real dev-db / dev-files-bucket
+npm run dev:local  # everything in local Miniflare storage (run `npm run db:migrate:local` first)
+```
+
+To test Stripe webhooks locally, forward test-mode events to the dev server and put the printed
+`whsec_...` in `.dev.vars` as `STRIPE_WEBHOOK_SECRET`:
+
+```bash
+stripe listen --forward-to localhost:5173/api/billing/webhook
 ```
 
 ### Scripts
@@ -93,8 +107,10 @@ npm run dev
 | Script            | Description                              |
 |-------------------|------------------------------------------|
 | `npm run dev`     | Start the Vite dev server (`--host`)     |
+| `npm run dev:local` | Dev server with local-only bindings (no remote D1/R2) |
 | `npm run build`   | Type-check (`tsc -b`) and build for production |
-| `npm run test`    | Run the test suite with Vitest           |
+| `npm run test`    | Run the test suite with Vitest (Workers pool, local bindings) |
+| `npm run test:types` | Type-check the tests                   |
 | `npm run lint`    | Lint with ESLint                         |
 | `npm run preview` | Preview the production build             |
 | `npm run types`   | Generate Cloudflare Worker types         |
@@ -107,11 +123,23 @@ npm run dev
 
 ### Testing
 
-`todo add tests`
+```bash
+npm test
+```
+
+Tests live in `tests/` and run inside the Workers runtime via `@cloudflare/vitest-pool-workers` with
+local D1/R2/Durable Objects (migrations are applied in `tests/apply-migrations.ts`).
 
 ---
 
 ## Deployment
+
+> **Pushing to `main` deploys production.** Workers Builds is connected to this repo and deploys the
+> `just-send-to-me` Worker (justsendto.me) on every push to `main`.
+>
+> The top-level config in `wrangler.jsonc` (dev vars, `IS_DEV: true`, dev-db) has the **same Worker
+> name** as production, so a bare `npx wrangler deploy` (without `--env production`) would overwrite
+> production with the dev configuration. Always pass `--env production`.
 
 Deploys to Cloudflare Workers via Wrangler. The built frontend (`./dist`) is served as static assets with
 `/api/*` handled by the worker first; production config lives under `env.production` in `wrangler.jsonc`.
