@@ -17,7 +17,10 @@ export default defineConfig({
     tailwindcss(),
     cloudflare({
       configPath: './wrangler.jsonc',
-      remoteBindings: true,
+      // D1/R2 marked "remote" in wrangler.jsonc hit the real dev-db and
+      // dev-files-bucket. LOCAL_BINDINGS=1 (npm run dev:local) keeps
+      // everything in local Miniflare storage instead.
+      remoteBindings: process.env.LOCAL_BINDINGS !== '1',
     }),
   ],
   resolve: {

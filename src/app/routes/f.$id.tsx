@@ -42,7 +42,9 @@ function RouteComponent() {
   );
 }
 
-function ErrorComponent({ error }: { error: Error }) {
+function ErrorComponent({ error: rawError }: { error: unknown }) {
+  const error =
+    rawError instanceof Error ? rawError : new Error(String(rawError));
   const messages: Record<
     number,
     { icon: React.ReactNode; title: string; description: string }

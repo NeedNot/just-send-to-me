@@ -95,7 +95,11 @@ export function FolderCard({
 
   const handleDownload = async () => {
     if (downloading) return;
-    downloadFolder(folder);
+    try {
+      await downloadFolder(folder);
+    } catch (e) {
+      toast.error((e as Error).message || 'Download failed');
+    }
   };
 
   if (expiresAt < new Date()) {

@@ -6,32 +6,22 @@ import type {
   StripeBillingPortalRoute,
   StripeWebhookRoute,
 } from './routes';
-import { Stripe } from 'stripe';
+import type { Stripe } from 'stripe';
 import {
-  createSubscription,
   getPlanById,
-  getPlanByPriceId,
-  getUserCustomerId,
   getUserSubscription,
-  updateSubscription,
-  updateUserPlan,
 } from '../../../repositories/billing-repository';
+import { stripeClient, syncSubscription } from '../../../lib/billing';
 
-// stripe webhook ips
-const ALLOWED_IPS = [
-  '3.18.12.63',
-  '3.130.192.231',
-  '13.235.14.237',
-  '13.235.122.149',
-  '18.211.135.69',
-  '35.154.171.200',
-  '52.15.183.38',
-  '54.88.130.119',
-  '54.88.130.237',
-  '54.187.174.169',
-  '54.187.205.235',
-  '54.187.216.72',
-];
+// Events that can change a user's entitlement. Everything else is
+// acknowledged with 200 and ignored.
+const SUBSCRIPTION_EVENTS = new Set<Stripe.Event['type']>([
+  'customer.subscription.created',
+  'customer.subscription.updated',
+  'customer.subscription.deleted',
+  'customer.subscription.paused',
+  'customer.subscription.resumed',
+]);
 
 export const createCheckoutSession: AppRouteHandler<
   CreateCheckoutSessionRoute
@@ -42,115 +32,102 @@ export const createCheckoutSession: AppRouteHandler<
   const db = drizzle(c.env.DB);
   const plan = await getPlanById(db, planId);
   if (!plan) return c.notFound();
-  if (!plan.priceIdMonthly || !plan.priceIdYearly)
-    return c.newResponse(null, 400);
+  const price = duration === 'year' ? plan.priceIdYearly : plan.priceIdMonthly;
+  if (!price) return c.newResponse(null, 400);
 
-  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
+  const existing = await getUserSubscription(db, user.id);
+  if (existing?.status === 'active') {
+    // a second checkout would create a second, parallel subscription
+    return c.json(
+      { error: 'You already have a subscription. Manage it in billing.' },
+      409,
+    );
+  }
+
+  const stripe = stripeClient(c.env);
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
-    success_url: `${c.env.URL}/success`,
-    line_items: [
-      {
-        price: duration === 'year' ? plan.priceIdYearly : plan.priceIdMonthly,
-        quantity: 1,
-      },
-    ],
-    customer_email: user.email,
-    customer: await getUserCustomerId(db, user.id),
-    metadata: {
-      userId: user.id,
-    },
+    line_items: [{ price, quantity: 1 }],
+    // Stripe rejects customer + customer_email together, which broke
+    // checkout for every returning customer
+    ...(existing?.customerId
+      ? { customer: existing.customerId }
+      : { customer_email: user.email }),
+    client_reference_id: user.id,
+    metadata: { userId: user.id },
+    // copied onto the subscription so every subscription event can be
+    // attributed to the user, whatever order the events arrive in
+    subscription_data: { metadata: { userId: user.id } },
+    success_url: `${c.env.URL}/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${c.env.URL}/account/subscription`,
   });
-  return c.json({ url: session.url }, 200);
+  return c.json({ url: session.url! }, 200);
 };
 
 export const stripeWebHook: AppRouteHandler<StripeWebhookRoute> = async (c) => {
-  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY, {
-    maxNetworkRetries: 3,
-    timeout: 3 * 1000,
-  });
-  const ip = c.req.raw.headers.get('cf-connecting-ip');
-  if (!c.env.IS_DEV && !ALLOWED_IPS.includes(ip!)) {
-    console.log('ip not allowed');
-    return c.newResponse(null, 400);
-  }
-  const signature = c.req.raw.headers.get('stripe-signature');
+  // No source-IP allowlist: the hard-coded list was missing 3 of Stripe's 15
+  // current webhook IPs, so those deliveries were rejected. The signature
+  // check below (over the raw body) is the authentication.
+  const signature = c.req.header('stripe-signature');
+  if (!signature) return c.newResponse(null, 400);
+
+  const stripe = stripeClient(c.env);
+  let event: Stripe.Event;
   try {
-    if (!signature) {
-      return c.newResponse(null, 400);
-    }
-    const body = await c.req.text();
-    const event = await stripe.webhooks.constructEventAsync(
-      body,
+    event = await stripe.webhooks.constructEventAsync(
+      await c.req.text(),
       signature,
       c.env.STRIPE_WEBHOOK_SECRET,
     );
+  } catch (e) {
+    console.log('Stripe webhook signature verification failed', e);
+    return c.newResponse(null, 400);
+  }
 
-    const db = drizzle(c.env.DB);
+  const db = drizzle(c.env.DB);
+  try {
+    let subscriptionId: string | undefined;
+    let userId: string | undefined;
+
     if (event.type === 'checkout.session.completed') {
-      const checkoutEvent = event.data.object as Stripe.Checkout.Session & {
-        metadata: {
-          userId: string;
-        };
-      };
-
-      const customerId = checkoutEvent.customer! as string;
-      const userId = checkoutEvent.metadata.userId;
-      const subscription = await stripe.subscriptions.retrieve(
-        checkoutEvent.subscription as string,
-      );
-
-      console.log('subscription created');
-      const priceId = subscription.items.data[0].price.id;
-      const plan = await getPlanByPriceId(db, priceId);
-      if (!plan) {
-        throw Error(`No plan with priceId ${priceId} found`);
+      const session = event.data.object;
+      if (session.mode !== 'subscription' || !session.subscription) {
+        return c.newResponse(null, 200);
       }
-      await createSubscription(db, {
-        customerId,
-        userId,
-        planId: plan.id,
-        subscription,
-      });
-      await updateUserPlan(db, userId, plan.id);
-      const stub = c.env.USER_CREDITS_OBJECT.getByName(userId);
-      await stub.updateMaxCredits(plan.credits);
-    } else if (event.type === 'customer.subscription.updated') {
-      const subscription = event.data.object;
-      const priceId = subscription.items.data[0].price.id;
-      const plan = await getPlanByPriceId(db, priceId);
-      if (!plan) {
-        throw Error(`No plan with priceId ${priceId} found`);
-      }
-      console.log('subscription updated');
-      const sub = await updateSubscription(db, {
-        subscription,
-        planId: plan.id,
-      });
-      const newPlanId = ['active', 'trialing'].includes(subscription.status)
-        ? plan.id
-        : 'FREE';
-      await updateUserPlan(db, sub.userId, newPlanId);
-      const stub = c.env.USER_CREDITS_OBJECT.getByName(sub.userId);
-      stub.updateMaxCredits(plan?.credits || 3);
+      subscriptionId =
+        typeof session.subscription === 'string'
+          ? session.subscription
+          : session.subscription.id;
+      userId =
+        session.metadata?.userId ?? session.client_reference_id ?? undefined;
+    } else if (SUBSCRIPTION_EVENTS.has(event.type)) {
+      subscriptionId = (event.data.object as Stripe.Subscription).id;
+    } else {
+      return c.newResponse(null, 200);
     }
+
+    // re-read the current state: makes processing order-independent and
+    // idempotent (a retry or duplicate delivery re-applies the same state)
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+    const result = await syncSubscription(db, c.env, subscription, { userId });
+    console.log('stripe webhook', event.type, event.id, JSON.stringify(result));
     return c.newResponse(null, 200);
   } catch (e) {
-    console.log(e);
-    return c.newResponse(null, 400);
+    // 5xx so Stripe retries with backoff
+    console.log('Stripe webhook processing failed', event.type, event.id, e);
+    return c.newResponse(null, 500);
   }
 };
 
 export const stripeBillingPortal: AppRouteHandler<
   StripeBillingPortalRoute
 > = async (c) => {
-  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
   const user = c.get('user')!;
-  const customerId = await getUserCustomerId(drizzle(c.env.DB), user.id);
-  if (!customerId) return c.json({ error: 'No subscription found' }, 400);
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: 'https://justsendto.me/account',
+  const sub = await getUserSubscription(drizzle(c.env.DB), user.id);
+  if (!sub?.customerId) return c.json({ error: 'No subscription found' }, 400);
+  const session = await stripeClient(c.env).billingPortal.sessions.create({
+    customer: sub.customerId,
+    return_url: `${c.env.URL}/account/subscription`,
   });
   return c.json({ url: session.url }, 200);
 };
@@ -159,38 +136,36 @@ export const getSubscription: AppRouteHandler<GetSubscriptionRoute> = async (
   c,
 ) => {
   const user = c.get('user')!;
-  const sub = await getUserSubscription(drizzle(c.env.DB), user.id);
+  const db = drizzle(c.env.DB);
+  const sub = await getUserSubscription(db, user.id);
 
-  if (!(sub?.status === 'active')) {
-    return c.json(
-      {
-        planId: 'FREE',
-        createdAt: new Date(Number.MIN_SAFE_INTEGER),
-        status: 'active',
-        currentPeriodEnd: new Date(Number.MAX_SAFE_INTEGER),
-        cancelsAtPeriodEnd: false,
-        existingCustomer: !!sub?.customerId,
-      },
-      200,
-    );
+  const free = {
+    planId: 'FREE',
+    createdAt: new Date(Number.MIN_SAFE_INTEGER),
+    status: 'active' as const,
+    currentPeriodEnd: new Date(Number.MAX_SAFE_INTEGER),
+    cancelsAtPeriodEnd: false,
+    existingCustomer: !!sub?.customerId,
+  };
+  if (sub?.status !== 'active') return c.json(free, 200);
+
+  const stripeSub = await stripeClient(c.env).subscriptions.retrieve(sub.id);
+  if (stripeSub.status !== 'active' && stripeSub.status !== 'trialing') {
+    // a missed or failed webhook left us out of date: heal it now
+    await syncSubscription(db, c.env, stripeSub, { userId: user.id });
+    return c.json(free, 200);
   }
-
-  const stripe = new Stripe(c.env.STRIPE_SECRET_KEY);
-  const stripeSub = await stripe.subscriptions.retrieve(sub.id);
-
-  // Normalize to the expected response schema: strings for dates and non-null currentPeriodEnd
-  const createdAt = new Date(sub.createdAt);
-  const currentPeriodEnd = sub.currentPeriodEnd
-    ? new Date(sub.currentPeriodEnd)
-    : new Date(Number.MAX_SAFE_INTEGER);
 
   return c.json(
     {
       planId: sub.planId,
-      createdAt,
+      createdAt: new Date(sub.createdAt),
       status: sub.status,
-      currentPeriodEnd,
-      cancelsAtPeriodEnd: !!stripeSub.cancel_at,
+      currentPeriodEnd: sub.currentPeriodEnd
+        ? new Date(sub.currentPeriodEnd)
+        : new Date(Number.MAX_SAFE_INTEGER),
+      cancelsAtPeriodEnd:
+        stripeSub.cancel_at_period_end || !!stripeSub.cancel_at,
       existingCustomer: true,
     },
     200,

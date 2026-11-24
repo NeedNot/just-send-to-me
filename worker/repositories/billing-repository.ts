@@ -4,96 +4,59 @@ import type Stripe from 'stripe';
 import { eq, or } from 'drizzle-orm';
 import { user } from '../db/auth-schema';
 
+type DB = DrizzleD1Database & { $client: D1Database };
+
+export const isActiveStatus = (status: Stripe.Subscription.Status) =>
+  status === 'active' || status === 'trialing';
+
 /**
- * Creates a new subscription in the database. Does nothing if the subscription already exists.
- *
- * @param db - The Drizzle database client.
- * @param params - An object containing the subscription data.
- * @param params.userId - The ID of the user who owns the subscription.
- * @param params.subscription - The Stripe subscription object.
- *
- * @returns A promise that resolves when the subscription has been created in the database.
- *
- * @example
- * const subscription = await stripe.subscriptions.retrieve('si_1234567890');
- * const result = await createSubscription(db, {
- *   userId: 'user_1234567890',
- *   subscription,
- * });
+ * Stores the latest state of a customer's subscription. There is one row per
+ * Stripe customer (customer_id is UNIQUE): a returning customer's new
+ * subscription replaces the old, canceled one instead of failing the insert.
  */
-export async function createSubscription(
-  db: DrizzleD1Database & { $client: D1Database },
+export async function upsertSubscription(
+  db: DB,
   {
-    customerId,
     userId,
     planId,
     subscription,
-  }: {
-    customerId: string;
-    userId: string;
-    planId: string;
-    subscription: Stripe.Subscription;
-  },
+  }: { userId: string; planId: string; subscription: Stripe.Subscription },
 ) {
+  const item = subscription.items.data[0];
+  const values = {
+    id: subscription.id,
+    customerId:
+      typeof subscription.customer === 'string'
+        ? subscription.customer
+        : subscription.customer.id,
+    userId,
+    planId,
+    createdAt: new Date(subscription.created * 1000),
+    currentPeriodStart: new Date(item.current_period_start * 1000),
+    currentPeriodEnd: new Date(item.current_period_end * 1000),
+    lastRenewal: new Date(item.current_period_start * 1000),
+    status: isActiveStatus(subscription.status)
+      ? ('active' as const)
+      : ('inactive' as const),
+  };
+  // everything except the conflict key itself
+  const update: Partial<typeof values> = { ...values };
+  delete update.customerId;
   await db
     .insert(subscriptions)
-    .values({
-      id: subscription.id,
-      customerId,
-      createdAt: new Date(subscription.created * 1000),
-      userId,
-      currentPeriodStart: new Date(
-        subscription.items.data[0].current_period_start * 1000,
-      ),
-      currentPeriodEnd: new Date(
-        subscription.items.data[0].current_period_end * 1000,
-      ),
-      lastRenewal: new Date(
-        subscription.items.data[0].current_period_start * 1000,
-      ),
-      status: ['active', 'trialing'].includes(subscription.status)
-        ? 'active'
-        : 'inactive',
-      planId,
-    })
-    .onConflictDoNothing({
-      target: subscriptions.id,
-    })
+    .values(values)
+    .onConflictDoUpdate({ target: subscriptions.customerId, set: update });
+}
+
+export async function getSubscriptionByCustomerId(db: DB, customerId: string) {
+  return db
+    .select()
+    .from(subscriptions)
+    .where(eq(subscriptions.customerId, customerId))
     .get();
 }
 
-export async function updateSubscription(
-  db: DrizzleD1Database & { $client: D1Database },
-  {
-    subscription,
-    planId,
-  }: { subscription: Stripe.Subscription; planId: string },
-) {
-  const sub = await db
-    .update(subscriptions)
-    .set({
-      currentPeriodEnd: new Date(
-        subscription.items.data[0].current_period_end * 1000,
-      ),
-      lastRenewal: new Date(
-        subscription.items.data[0].current_period_start * 1000,
-      ),
-      status: ['active', 'trialing'].includes(subscription.status)
-        ? 'active'
-        : 'inactive',
-      planId,
-    })
-    .where(eq(subscriptions.id, subscription.id))
-    .returning({ userId: subscriptions.userId })
-    .get();
-
-  return sub;
-}
-
-export async function getUserSubscription(
-  db: DrizzleD1Database & { $client: D1Database },
-  userId: string,
-) {
+export async function getUserSubscription(db: DB, userId: string) {
   return db
     .select()
     .from(subscriptions)
@@ -101,37 +64,19 @@ export async function getUserSubscription(
     .get();
 }
 
-export async function getUserCustomerId(
-  db: DrizzleD1Database & { $client: D1Database },
-  userId: string,
-) {
-  return db
-    .select({ customerId: subscriptions.customerId })
-    .from(subscriptions)
-    .where(eq(subscriptions.userId, userId))
-    .get()
-    .then((res) => res?.customerId);
+export async function getUserCustomerId(db: DB, userId: string) {
+  return getUserSubscription(db, userId).then((res) => res?.customerId);
 }
 
-export function updateUserPlan(
-  db: DrizzleD1Database & { $client: D1Database },
-  userId: string,
-  planId: string,
-) {
+export function updateUserPlan(db: DB, userId: string, planId: string) {
   return db.update(user).set({ plan_id: planId }).where(eq(user.id, userId));
 }
 
-export const getPlanById = async (
-  db: DrizzleD1Database & { $client: D1Database },
-  planId: string,
-) => {
+export const getPlanById = async (db: DB, planId: string) => {
   return db.select().from(plans).where(eq(plans.id, planId)).get();
 };
 
-export const getPlanByPriceId = async (
-  db: DrizzleD1Database & { $client: D1Database },
-  priceId: string,
-) => {
+export const getPlanByPriceId = async (db: DB, priceId: string) => {
   return db
     .select()
     .from(plans)

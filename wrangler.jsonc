@@ -5,6 +5,8 @@
   "compatibility_date": "2025-10-14",
   "compatibility_flags": ["nodejs_compat"],
   "logpush": true,
+  // upload source maps so exceptions in Workers Logs show original TS lines
+  "upload_source_maps": true,
   "observability": {
     "logs": {
       "invocation_logs": true,
@@ -71,11 +73,14 @@
         "period": 10,
       },
     },
-  ],
-  "kv_namespaces": [
     {
-      "binding": "STRIPE_CHECKOUT",
-      "id": "ab775508c37b4a889f0b1638ac1bcea4",
+      // per email address for OTP / password-reset emails
+      "name": "EMAIL_RATE_LIMITER",
+      "namespace_id": "1004",
+      "simple": {
+        "limit": 2,
+        "period": 60,
+      },
     },
   ],
   "workflows": [
@@ -147,12 +152,6 @@
           "remote": true,
         },
       ],
-      "kv_namespaces": [
-        {
-          "binding": "STRIPE_CHECKOUT",
-          "id": "ab775508c37b4a889f0b1638ac1bcea4",
-        },
-      ],
       "ratelimits": [
         {
           "name": "FILE_DOWNLOAD_RATE_LIMITER",
@@ -176,6 +175,15 @@
           "simple": {
             "limit": 10,
             "period": 10,
+          },
+        },
+        {
+          // per email address for OTP / password-reset emails
+          "name": "EMAIL_RATE_LIMITER",
+          "namespace_id": "1004",
+          "simple": {
+            "limit": 2,
+            "period": 60,
           },
         },
       ],

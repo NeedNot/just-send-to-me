@@ -66,7 +66,7 @@ export const getFilePartUploadUrl = createRoute({
     params: z.object({
       partNumber: z
         .string()
-        .min(1)
+        .regex(/^[1-9][0-9]{0,4}$/, 'partNumber must be 1-10000')
         .openapi({
           param: {
             name: 'partNumber',
@@ -146,7 +146,7 @@ export const completeFileUpload = createRoute({
     body: {
       content: {
         'application/json': {
-          schema: z.array(R2UploadedPartSchema),
+          schema: z.array(R2UploadedPartSchema).min(1).max(10_000),
         },
       },
       required: true,

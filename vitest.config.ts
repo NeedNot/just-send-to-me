@@ -17,7 +17,12 @@ export default defineConfig({
         remoteBindings: false,
         wrangler: { configPath: './wrangler.jsonc' },
         miniflare: {
-          bindings: { TEST_MIGRATIONS: migrations },
+          bindings: {
+            TEST_MIGRATIONS: migrations,
+            // fixed test values so tests never depend on a local .dev.vars
+            STRIPE_SECRET_KEY: 'sk_test_unit_tests_only',
+            STRIPE_WEBHOOK_SECRET: 'whsec_unit_tests_only',
+          },
         },
       };
     }),

@@ -36,6 +36,9 @@ export const createCheckoutSession = createRoute({
     400: {
       description: 'Bad request',
     },
+    409: {
+      description: 'User already has an active subscription',
+    },
   },
 });
 
@@ -54,7 +57,13 @@ export const stripeWebhook = createRoute({
   },
   responses: {
     200: {
-      description: 'Success',
+      description: 'Event processed or ignored',
+    },
+    400: {
+      description: 'Missing or invalid Stripe signature',
+    },
+    500: {
+      description: 'Processing failed; Stripe will retry',
     },
   },
 });
