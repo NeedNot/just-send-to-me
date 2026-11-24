@@ -39,7 +39,7 @@ export class UserCreditsObject extends AlarmDO {
   async handleAlarm() {
     const rows = this.sql
       .exec<OutstandingTransaction>(
-        'DROP FROM outstanding_transactions WHERE created_at <= ? RETURNING *',
+        'DELETE FROM outstanding_transactions WHERE created_at <= ? RETURNING *',
         Date.now() - MS_IN_DAY * 30,
       )
       .toArray();
@@ -95,7 +95,7 @@ export class UserCreditsObject extends AlarmDO {
       regularSpent,
     );
     // wait 30d
-    this.alarms.schedule(30 * 24 * 60 * 60, 'handleAlarm');
+    await this.alarms.schedule(30 * 24 * 60 * 60, 'handleAlarm');
   }
 
   async hasEnoughCredits(credits: number) {
